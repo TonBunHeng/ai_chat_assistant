@@ -1,425 +1,65 @@
 [
   {
-    "session_id": "session_4e7c2b60",
-    "title": "Best Cambodian food",
-    "updated_at": "2026-08-12 01:16:00",
-    "message_count": 10,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Best Cambodian food"
-      },
-      {
-        "role": "assistant",
-        "content": " In Cambodia, the cuisine is a delightful blend of flavors that showcase the country's rich history and cultural influences. Here are some must-try dishes when visiting Cambodia:\n\n1. Amok - A traditional Khmer dish made with fish (or chicken), coconut milk, lemongrass, kaffir lime leaves, and spices, cooked in banana leaves and served in the same leaf as a steamer. This creamy curry is one of the most famous Cambodian dishes.\n\n2. Nom Banh Chok - A popular breakfast dish also known as Khmer noodles. It consists of rice noodles topped with various ingredients like fish gravy, cucumber, green beans, and a spicy chili paste called kroeung.\n\n3. Fish Amok - Similar to Amok but made with fish fillet instead of fish paste. This version is usually steamed in banana leaves for added flavor and aroma.\n\n4. Bai Sach Chrouk - Marinated pork cooked over charcoal, served with sticky rice and pickled vegetables. It's a simple yet delicious dish that's popular among locals and visitors alike.\n\n5. Nom Kim - A Cambodian salad made with shredded banana flowers, green mango, beansprouts, carrots, peanuts, and served with a tangy, fish-based dressing. It's a refreshing and light dish perfect for any meal of the day.\n\nThese dishes offer a great opportunity to immerse yourself in Cambodian culture through its food. They can be found in street food stalls, local markets, and restaurants across the country. Enjoy your culinary adventure in Cambodia!\n\nIf you have more specific preferences or dietary restrictions, please let me know so I can help you find the best Cambodian dishes that suit your needs."
-      },
-      {
-        "role": "user",
-        "content": "Hotels in Siem Reap"
-      },
-      {
-        "role": "assistant",
-        "content": " Based on your interest in exploring Siem Reap, here are some recommendations for hotels to make your stay comfortable and enjoyable:\n\n1. Park Hyatt Siem Reap - A luxury hotel offering modern rooms with a Khmer touch, three swimming pools, a spa, and several dining options. It's located near the Old Market area and Pub Street, making it convenient for sightseeing.\n\n   - Reason: Perfect for couples or those seeking an upscale experience.\n\n2. Shinta Mani Angkor - A boutique hotel with a focus on sustainable luxury, offering spacious rooms, a pool, a restaurant, and a spa. It's located in a quieter area yet close to the city center and the temples of Angkor.\n\n   - Reason: Ideal for couples or solo travelers who appreciate eco-friendly accommodations.\n\n3. Siem Reap Garden Villa Resort & Spa - A mid-range resort with villas, an outdoor pool, a restaurant, and a spa. It features a peaceful garden setting yet is conveniently located near Angkor National Museum and Pub Street.\n\n   - Reason: Suitable for families or groups who prefer a tranquil environment but still want easy access to attractions.\n\n4. The Viroth's Hotel - A charming boutique hotel with Art Deco-inspired rooms, a pool, a restaurant, and a bar. It's centrally located near Pub Street and offers a cozy atmosphere.\n\n   - Reason: Ideal for couples or solo travelers who enjoy stylish accommodations in a central location.\n\nTo help you plan your trip better, I recommend staying at Park Hyatt Siem Reap for its luxury offerings and convenient location near popular attractions. However, if you prefer eco-friendly accommodations or a more budget-friendly option, Shinta Mani Angkor or Siem Reap Garden Villa Resort & Spa might be suitable choices for you.\n\nIf you can share your budget and preferences, I can provide a personalized hotel recommendation tailored to your needs."
-      },
-      {
-        "role": "user",
-        "content": "Create a 2-day Cambodia trip"
-      },
-      {
-        "role": "assistant",
-        "content": " To create a 2-day itinerary in Cambodia, I recommend focusing on the cultural and historical attractions in Siem Reap, as it's home to the famous temples of Angkor. Here is a suggested itinerary for your convenience:\n\nDay 1 - Arrival and Temples of Angkor\n\nMorning:\n- Arrive in Siem Reap International Airport and transfer to your hotel\n- After freshening up, have breakfast at your hotel or a nearby restaurant\n- Visit Angkor Wat, the largest and most famous temple complex in Cambodia. Wander around its intricate carvings and admire its stunning architecture\n\nAfternoon:\n- Head to Ta Prohm, a unique temple engulfed by giant trees. The ruins here are covered with vegetation, giving it an eerie yet enchanting atmosphere\n- Explore Bayon Temple, known for its numerous towers adorned with enormous smiling stone faces of Avalokiteshvara\n\nEvening:\n- Return to your hotel and rest or enjoy the facilities like swimming pools, spas, or restaurants\n- Stroll around Pub Street for dinner and experience Siem Reap's nightlife\n\nDay 2 - More Temples and City Tour\n\nMorning:\n- Breakfast at your hotel or a nearby restaurant\n- Visit Ta Som Temple, a small yet beautiful temple complex surrounded by trees and vegetation\n- Explore Preah Khan, a vast temple compound once housing thousands of monks during the Khmer Empire\n\nAfternoon:\n- Lunch at a local restaurant in Siem Reap\n- Visit Angkor National Museum to learn more about Cambodian history and culture through artifacts and exhibits\n- Optionally, take a traditional Apsara dance show performance at a local theater or restaurant in the evening\n\nThis itinerary offers you an immersive experience into Cambodia's rich cultural heritage while keeping your stay within Siem Reap. You can adjust this itinerary based on your preferences, such as spending more time at specific temples, exploring local markets, or visiting other attractions in the city.\n\nPlease let me know if you need further assistance with accommodations, transportation, or additional suggestions to personalize your trip. Enjoy your 2-day adventure in Cambodia!"
-      },
-      {
-        "role": "user",
-        "content": "What language do people speak in Cambodia?"
-      },
-      {
-        "role": "assistant",
-        "content": " The official language of Cambodia is Khmer (also known as Cambodian), but many people also speak English, particularly in tourist areas and cities like Siem Reap and Phnom Penh. To better assist you during your trip to Cambodia, I can communicate fluently in both English and Khmer to help with any questions or concerns you may have."
-      },
-      {
-        "role": "user",
-        "content": "What have we talked about so far? pls Summary like point!!!"
-      },
-      {
-        "role": "assistant",
-        "content": " 1. Hotels in Siem Reap - Recommended hotels for different preferences, including luxury, eco-friendly, mid-range, and boutique accommodations.\n2. 2-Day Cambodia Trip - A suggested itinerary focusing on temples, history, and cultural attractions in Siem Reap.\n3. Language spoken in Cambodia - The official language is Khmer, but English is also widely spoken in tourist areas and cities like Siem Reap and Phnom Penh."
-      }
-    ]
-  },
-  {
-    "session_id": "session_7694d7de",
-    "title": "Create a 1 week Cambodia trip",
-    "updated_at": "2026-08-12 01:03:01",
+    "session_id": "session_2aaa073d",
+    "title": "Create a 3-day Cambodia itinerary.",
+    "updated_at": "2026-08-12 16:21:33",
     "message_count": 2,
     "messages": [
       {
         "role": "user",
-        "content": "Create a 1 week Cambodia trip"
+        "content": "Create a 3-day Cambodia itinerary."
       },
       {
         "role": "assistant",
-        "content": " To create a one-week itinerary for a first-time visitor to Cambodia, I'd recommend focusing on Siem Reap and Phnom Penh, as they offer a comprehensive exploration of the country's history, culture, and local life. Here's my suggested itinerary:\n\nDay 1 - Arrival in Siem Reap:\n- Check-in at your hotel\n- Visit Angkor National Museum to gain an overview of Khmer history and art\n- In the evening, explore Pub Street for dining and entertainment\n\nDay 2 & 3 - Exploring Temples of Angkor:\n- Day 2: Discover Angkor Wat, Ta Prohm, and Bayon Temple\n- Day 3: Visit Pre Rup, East Mebon, Ta Som, Neak Pean, and Preah Khan\n\nDay 4 - Siem Reap to Battambang (approx. 3-hour journey):\n- Explore Bat Cave and Bamboo Train in Battambang\n- Evening stroll around the French Quarter for dining and local culture immersion\n\nDay 5 & 6 - Travel to Phnom Penh (approx. 4-hour journey):\n- Day 5: Discover the National Museum of Cambodia, Royal Palace, and Silver Pagoda\n- Day 6: Visit Tuol Sleng Genocide Museum and Choeung Ek Killing Fields for a sobering historical experience\n\nDay 7 - Leisure day in Phnom Penh:\n- Spend your last day exploring the Central Market or riverside area, or indulging in local cuisine before departing Cambodia.\n\nThis itinerary balances history, culture, and local experiences across both Siem Reap and Phnom Penh, allowing you to immerse yourself in Cambodian heritage while enjoying a variety of attractions. Adjustments can be made based on your personal preferences, budget, and travel pace.\n\nEnjoy your trip to Cambodia! If you have more specific questions or need further recommendations, feel free to ask."
+        "content": " To create a 3-day itinerary in Cambodia, I recommend focusing on Siem Reap and Phnom Penh as they offer a great combination of temples, history, culture, and city life. Here's a suggested itinerary:\n\nDay 1: Siem Reap\n- Morning: Visit the iconic Angkor Wat temple complex, the largest religious monument in the world. Spend approximately 3 hours exploring this UNESCO World Heritage site.\n- Afternoon: Head to Angkor Thom, another significant archaeological site featuring the Bayon Temple with its enigmatic stone faces and the Terrace of the Elephants. Allocate about 4 hours for these attractions.\n- Evening: Explore Pub Street in Siem Reap for food and entertainment.\n\nDay 2: Phnom Penh (Travel Day)\n- Morning: Take a flight from Siem Reap to Phnom Penh (Approx. 1 hour). Upon arrival, start your day with the Royal Palace, home to the Cambodian king, and Silver Pagoda with its thousands of silver tiles. Allocate around 2 hours for these sites.\n- Afternoon: Visit the National Museum of Cambodia to learn more about Khmer art and history. Spend approximately 1.5 hours here.\n- Evening: Explore the Riverside area of Phnom Penh for dining options and scenic river views.\n\nDay 3: Phnom Penh (Continuation)\n- Morning: Visit the Tuol Sleng Genocide Museum and the Killing Fields of Choeung Ek to gain insight into Cambodia's dark past during the Khmer Rouge regime. Allocate around 4 hours for these sites.\n- Afternoon: Relax at Phnom Penh's Central Market or Russian Market for shopping, food, and local souvenirs. Spend approximately 2 hours here.\n- Evening: Departure from Phnom Penh airport (Approx. 1 hour drive) or continue exploring the city as desired.\n\nThis itinerary offers a balance of historical and cultural experiences in two major Cambodian cities while keeping the travel duration manageable for a 3-day trip. Enjoy your journey through Cambodia!\n\nIf you'd like me to tailor this itinerary based on specific preferences, budget, or interests, please provide more details so I can create a personalized plan just for you."
       }
     ]
   },
   {
-    "session_id": "session_8e5ba35f",
-    "title": "Can you plan a trip based on my budget and in...",
-    "updated_at": "2026-08-12 00:50:24",
-    "message_count": 4,
+    "session_id": "session_15f10a89",
+    "title": "Tell me about Angkor Wat.",
+    "updated_at": "2026-08-12 16:14:36",
+    "message_count": 2,
     "messages": [
       {
         "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
+        "content": "Tell me about Angkor Wat."
       },
       {
         "role": "assistant",
-        "content": " Of course! I'd be happy to help you plan a trip within your budget that caters to your interests in Cambodia. Here's a suggested itinerary:\n\n1. Phnom Penh (3 days) - Explore the capital city's rich history at the Royal Palace, Silver Pagoda, and National Museum. Don't miss the Tuol Sleng Genocide Museum and the Killing Fields to understand Cambodia's darker past.\n\n2. Siem Reap (5 days) - Visit the world-renowned Angkor Wat temple complex. Spend at least one day exploring Angkor Thom, Bayon Temple, Ta Prohm, and Pre Rup. For a unique experience, visit the floating villages of Tonle Sap Lake and enjoy an authentic Cambodian Apsara dance performance.\n\n3. Battambang (2 days) - Known for its French colonial architecture and stunning countryside, you can explore Bamboo Train, Wat Banan Temple, Phnom Sampeau, and the Bat Caves.\n\n4. Sihanoukville (2 days) - Relax at one of the beautiful beaches like Otres Beach, Serendipity Beach, or Koh Rong Island. Take a boat trip to snorkel or dive among the coral reefs and swim with various marine life.\n\nThis itinerary should fit within a budget of around $100 per day for accommodations, food, transportation, and entry fees, excluding international flights. Remember that costs may vary depending on season, accommodation choices, and additional activities. Enjoy your trip to Cambodia!"
+        "content": " Angkor Wat is a truly magnificent temple located in Siem Reap, Cambodia. It's the largest religious monument in the world and was built by King Suryavarman II during the 12th century. This architectural masterpiece showcases the Khmer empire's artistic genius with intricate carvings and stone galleries.\n\nVisitors can explore the temple complex from 5:00 AM to 5:30 PM, and an Angkor Pass is required for entry, which costs $37 for a one-day pass, $62 for a three-day pass, or $72 for a seven-day pass.\n\nAngkor Wat is indeed a must-visit when in Siem Reap, as it offers a unique blend of history and art that you won't find anywhere else. Enjoy your journey to this extraordinary site!\n\nIf you tell me about your travel plans, such as the number of days you have for your trip or any other specific interests, I can help you create a personalized itinerary around Angkor Wat and other attractions in Siem Reap."
+      }
+    ]
+  },
+  {
+    "session_id": "session_2a56592f",
+    "title": "What is the best time to visit Cambodia?",
+    "updated_at": "2026-08-12 16:13:59",
+    "message_count": 2,
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the best time to visit Cambodia?"
       },
+      {
+        "role": "assistant",
+        "content": " Understood. I'll do my best to provide a helpful and informative response based on general knowledge about Cambodia's weather and tourist seasons.\n\nThe best time to visit Cambodia generally falls between November and February, which is considered the dry season. During this period, temperatures are pleasant, and there is minimal rainfall. This makes it easier for travelers to explore the temples of Angkor Wat in Siem Reap, or stroll around Phnom Penh without worrying about excessive heat or downpours.\n\nHowever, keep in mind that these months also represent peak tourist season. If you're looking to avoid crowds and potentially secure cheaper accommodations, consider visiting during the shoulder seasons (March through May and September through October). While there is a higher chance of occasional rainfall during these months, they still offer pleasant temperatures and fewer tourists compared to the high season.\n\nLastly, if your travel plans include visiting the southern regions like Kampot or Koh Rong, bear in mind that they have their own microclimates and weather patterns. It's a good idea to research the specific region you plan to visit and tailor your trip accordingly.\n\nHope this helps! If you can provide more details about your travel plans (such as duration of stay or specific locations), I can offer a more personalized recommendation for the best time to visit Cambodia."
+      }
+    ]
+  },
+  {
+    "session_id": "session_a9e27cbf",
+    "title": "What are the best places to visit in Cambodia...",
+    "updated_at": "2026-08-12 16:05:26",
+    "message_count": 2,
+    "messages": [
       {
         "role": "user",
         "content": "What are the best places to visit in Cambodia?"
       },
       {
         "role": "assistant",
-        "content": " The itinerary I provided earlier includes some of the most popular destinations in Cambodia, such as Phnom Penh, Siem Reap, Battambang, and Sihanoukville. These locations offer a mix of historical sites, cultural experiences, and natural beauty that cater to various interests.\n\n1. Phnom Penh: Explore the Royal Palace, Silver Pagoda, National Museum, Tuol Sleng Genocide Museum, and Killing Fields.\n2. Siem Reap: Visit Angkor Wat, Angkor Thom, Bayon Temple, Ta Prohm, Pre Rup, floating villages of Tonle Sap Lake, and enjoy an Apsara dance performance.\n3. Battambang: Discover French colonial architecture, Bamboo Train, Wat Banan Temple, Phnom Sampeau, and Bat Caves.\n4. Sihanoukville: Relax on beaches like Otres Beach, Serendipity Beach, or Koh Rong Island, and snorkel or dive among coral reefs.\n\nThese destinations should provide an enjoyable and educational Cambodian experience while fitting within your budget of around $100 per day for accommodations, food, transportation, and entry fees (excluding international flights). Enjoy your trip!"
-      }
-    ]
-  },
-  {
-    "session_id": "session_93ec98d1",
-    "title": "Can you plan a trip based on my budget and in...",
-    "updated_at": "2026-08-12 00:45:07",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": " Of course! I'd be happy to help you plan a trip to Cambodia that suits your budget and interests. Here's a suggestion for an itinerary:\n\n1. Phnom Penh: Start your journey in the capital city, Phnom Penh. Explore the Royal Palace, Silver Pagoda, and the National Museum to learn about Khmer history and culture. You can also visit the Tuol Sleng Genocide Museum and the Killing Fields of Choeung Ek for a sobering insight into Cambodia's recent past.\n\n2. Siem Reap: From Phnom Penh, travel to Siem Reap (approximately 6 hours by car) and prepare yourself for the wonders of Angkor Wat. This ancient temple complex is a UNESCO World Heritage Site and one of the most famous tourist destinations in Southeast Asia. Be sure to visit Angkor Thom, Bayon Temple, Ta Prohm, and Preah Khan while you're there.\n\n3. Tonle Sap Lake: Take a day trip to Tonle Sap Lake and explore the floating villages of Kampong Phluk or Chong Kneas. You can even take a boat ride through the floating houses for an unforgettable experience.\n\n4. Battambang: If you have more time, consider visiting Battambang (approximately 3 hours by car from Siem Reap). This charming city is known for its colonial architecture, bamboo trains, and the Phnom Sampeau temple complex.\n\nWhen it comes to budgeting, here are a few tips:\n- Accommodation prices can range from $5 per night for a dorm bed in a hostel to $100 or more for a luxury hotel room.\n- Meals typically cost between $2-$5 depending on the location and type of food you choose. Street food is often cheaper and just as delicious as dining at a restaurant.\n- Entrance fees for temples and attractions vary, but expect to pay around $37 for a 3-day Angkor Wat pass.\n- Transportation costs can add up quickly, so consider renting a motorbike or arranging for shared transportation with other travelers."
-      }
-    ]
-  },
-  {
-    "session_id": "session_9953b28c",
-    "title": "Can you plan a trip based on my budget and in...",
-    "updated_at": "2026-08-12 00:33:18",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": " Of course! I'd be happy to help you plan a trip to Cambodia tailored to your preferences and budget. Here's a suggestion for a 7-day itinerary:\n\nDay 1: Arrival in Phnom Penh - Explore the Royal Palace, Silver Pagoda, and National Museum. Enjoy local cuisine at night markets like Night Market Street or Riverside.\n\nDay 2: Phnom Penh - Visit Tuol Sleng Genocide Museum and Choeung Ek Killing Fields to learn about Cambodia's history during the Khmer Rouge era.\n\nDay 3: Travel to Siem Reap - On your way, stop at Skun Spider Village for a unique experience. In Siem Reap, visit Angkor National Museum.\n\nDay 4: S"
-      }
-    ]
-  },
-  {
-    "session_id": "session_6c2bd5f9",
-    "title": "Can you plan a trip based on my budget and in...",
-    "updated_at": "2026-08-12 00:32:54",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": " Of course! Let's plan an exciting trip to Cambodia that caters to your preferences and budget. Here's a suggested itinerary for a 7-day journey, with activities focusing on cultural heritage, natural wonders, and local experiences:\n\nDay 1: Arrival in Siem Reap\n- Explore the bustling Psar Chas (Old Market) and enjoy traditional Khmer cuisine.\n\nDay 2 & 3: Angkor Wat & Temples of Angkor\n- Discover the magnificent temples, including Angkor Wat, Bayon Temple, Ta Prohm, and Angkor Thom.\n- Opt for a sunrise or sunset tour at Angkor Wat for an unforgettable experience.\n\nDay 4: Siem Reap & Tonle Sap Lake\n- Visit"
-      }
-    ]
-  },
-  {
-    "session_id": "session_42c88eb1",
-    "title": "Tell me about Angkor Wat",
-    "updated_at": "2026-08-12 00:27:46",
-    "message_count": 6,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Tell me about Angkor Wat"
-      },
-      {
-        "role": "assistant",
-        "content": " Angkor Wat is a breathtaking temple located in Siem Reap province, Cambodia. It's the largest religious monument in the world and was built by King Suryavarman II during the 12th century. This magnificent structure showcases incredible Khmer architecture.\n\nAngkor Wat is open daily from 5:00 AM to 5:30 PM, but you can visit earlier or later depending on your preference. To enter, you'll need an Angkor Pass, which costs $37 for a one-day pass, $62 for a three-day pass, or $72 for a seven-day pass."
-      },
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": "🗓️ **3-Day Travel Itinerary for Siem Reap**\n\n📌 **Day 1**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 2**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 3**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n💡 *Note: Itineraries can be customized based on season and interest.*"
-      },
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests for 1week in Seim Reap?"
-      },
-      {
-        "role": "assistant",
-        "content": "🗓️ **3-Day Travel Itinerary for Siem Reap**\n\n📌 **Day 1**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 2**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 3**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n💡 *Note: Itineraries can be customized based on season and interest.*"
-      }
-    ]
-  },
-  {
-    "session_id": "session_128fdbb8",
-    "title": "Can you plan a trip based on my budget and in...",
-    "updated_at": "2026-08-12 00:25:15",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": " Of course! Let's create an exciting itinerary tailored to your preferences and budget. Here are some suggestions:\n\n1. **Phnom Penh**: Start in Cambodia's capital, Phnom Penh. Visit the Royal Palace, Silver Pagoda, and National Museum. Take a boat ride along the Mekong River for a picturesque view of the city. (Approximate budget: $20-$30 per day)\n\n2. **Siem Reap**: Travel to Siem Reap to explore the magnificent Angkor Wat temple complex. Don't miss Angkor Thom, Ta Prohm, and Banteay Srei. (Approximate budget: $40-$60 per day)\n\n3. **Battambang**: For a more laid-back experience, head to Battambang"
-      }
-    ]
-  },
-  {
-    "session_id": "session_d4becf89",
-    "title": "Is Angkor Wat suitable for children?",
-    "updated_at": "2026-08-12 00:25:01",
-    "message_count": 8,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Is Angkor Wat suitable for children?"
-      },
-      {
-        "role": "assistant",
-        "content": " Absolutely! Angkor Wat is family-friendly and offers an educational experience for children. It's essential that they are supervised at all times due to the historical significance and size of the site, but they will undoubtedly enjoy exploring this stunning temple complex. Enjoy your visit with your loved ones!"
-      },
-      {
-        "role": "user",
-        "content": "What are the best places to visit in Cambodia?"
-      },
-      {
-        "role": "assistant",
-        "content": "  The best places to visit in Cambodia include Angkor Wat, Siem Reap, Phnom Penh, Battambang, Sihanoukville, and the Cardamom Mountains. Each destination offers unique cultural, historical, and natural attractions that will make your trip unforgettable:\n\n1. Angkor Wat & Siem Reap: Discover the ancient temples of the Angkor Archaeological Park, with Angkor Wat being the most famous. Explore Ta Prohm, Pre Rup, Banteay Srei, and other incredible ruins. Siem Reap is also home to vibrant markets, restaurants, and nightlife.\n2. Phnom Penh: Experience the capital city's rich history at the Royal Palace, Silver Pagoda, and National Museum. Visit the infamous Tuol Sleng"
-      },
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": "🗓️ **3-Day Travel Itinerary for Siem Reap**\n\n📌 **Day 1**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 2**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 3**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n💡 *Note: Itineraries can be customized based on season and interest.*"
-      },
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": "🗓️ **3-Day Travel Itinerary for Siem Reap**\n\n📌 **Day 1**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 2**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n📌 **Day 3**\n  • **Morning:** Visit core heritage/temple highlights and enjoy local breakfast (Num Banh Chok/Kuy Teav).\n  • **Afternoon:** Explore nature or museums and savor Khmer lunch (Fish Amok/Beef Lok Lak).\n  • **Evening:** Watch the sunset, stroll night markets, and enjoy local dinner.\n  • **Transport Suggestion:** Remorque / Tuk-Tuk via PassApp or Grab.\n  • **Travel Tip:** Wear comfortable walking shoes, respectful attire, and sunscreen.\n\n💡 *Note: Itineraries can be customized based on season and interest.*"
-      }
-    ]
-  },
-  {
-    "session_id": "session_1f881631",
-    "title": "HI",
-    "updated_at": "2026-08-12 00:23:44",
-    "message_count": 4,
-    "messages": [
-      {
-        "role": "user",
-        "content": "HI"
-      },
-      {
-        "role": "assistant",
-        "content": " Hello! I'm glad you reached out. Cambodia has a tropical climate and the best time to visit is from November to February, as it's cooler and drier during these months. When visiting temples, please dress respectfully, covering your shoulders and knees. Enjoy your trip!"
-      },
-      {
-        "role": "user",
-        "content": "Which tourist attractions are suitable for families?"
-      },
-      {
-        "role": "assistant",
-        "content": " When traveling with family in Cambodia, there are plenty of kid-friendly destinations to explore. Here are some popular options:\n\n1. Angkor Wat: Though famous for its historical significance, this UNESCO World Heritage Site offers wide, open spaces and beautiful landscapes that make it great for families.\n\n2. Phare Ponleu Selpak: This non-profit organization offers circus performances, visual arts workshops, and more, providing a unique cultural experience while also supporting local artists and communities.\n\n3. Siem Reap Night Market: A lively destination with food stalls, souvenir shops, and games for children to enjoy.\n\n4. Tonle Sap Lake: Take a boat ride through the floating villages or visit the Prek Toal Bird Sanctuary to observe various bird species.\n\n5."
-      }
-    ]
-  },
-  {
-    "session_id": "session_b532335e",
-    "title": "Tell me about Angkor Wat",
-    "updated_at": "2026-08-11 16:10:33",
-    "message_count": 4,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Tell me about Angkor Wat"
-      },
-      {
-        "role": "assistant",
-        "content": " Angkor Wat is an incredible religious monument located in Siem Reap, Cambodia. It's the largest religious building in the world and was constructed by King Suryavarman II in the 12th century! This temple complex is truly awe-inspiring, showcasing intricate stone carvings and architectural beauty that still stands strong today.\n\nIf you plan to visit Angkor Wat, the opening hours are from 5:00 AM to 5:30 PM. Entrance fees are included in an Angkor Pass, which offers three options: a one-day pass for $37, a three-day pass for $62, and a seven-day pass for $72.\n\nI highly recommend a visit during sunrise or sunset to witness the stunning silhouette of Angkor Wat against the backdrop of the Cambodian sky! Remember to dress appropriately (shoulders covered and no shorts) to respect the temple's cultural significance.\n\nEnjoy your journey through history at Angkor Wat – it will undoubtedly be a memorable experience!"
-      },
-      {
-        "role": "user",
-        "content": "Best places in Siem Reap"
-      },
-      {
-        "role": "assistant",
-        "content": " The vibrant city of Siem Reap, Cambodia is known for its rich Khmer heritage and attractions beyond the famous Angkor Wat. Some other must-visit locations include:\n\n1. Pub Street (ᕞះហាងៗ បុរឱហ្គ): A lively district filled with bars, restaurants, and shops catering to tourists from around the world.\n2. Tonle Sap Lake (ទន្លេសាព់): The largest freshwater lake in Southeast Asia, home to floating villages and abundant wildlife.\n3. Angkor National Museum (បិទទីក្រុងអង្គរ): Houses over 1,000 artifacts that offer insight into the Khmer Empire'"
-      }
-    ]
-  },
-  {
-    "session_id": "session_9b4f4e9a",
-    "title": "Hi",
-    "updated_at": "2026-08-11 16:09:07",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hi"
-      },
-      {
-        "role": "assistant",
-        "content": " Hello! I'm delighted to assist you with your Cambodia travel questions. The country has a tropical climate, so it's essential to pack appropriate clothing for your visit. The best time to travel is between November and February when the weather is cooler and drier. When visiting temples, please dress respectfully by covering your shoulders and knees. Enjoy your trip to Cambodia!"
-      }
-    ]
-  },
-  {
-    "session_id": "session_36fadee3",
-    "title": "Tell me about Angkor Wat",
-    "updated_at": "2026-08-11 16:08:49",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Tell me about Angkor Wat"
-      },
-      {
-        "role": "assistant",
-        "content": " Angkor Wat is a breathtaking temple located in Siem Reap province. It's the largest religious monument in the world and was built by King Suryavarman II in the 12th century. This architectural masterpiece showcases intricate carvings, towering spires, and beautiful bas-reliefs that display scenes from Hindu mythology.\n\nThe temple opens daily from 5:00 AM to 5:30 PM, and visitors can access it with an Angkor Pass, which costs $37 for a one-day pass, $62 for a three-day pass, or $72 for a seven-day pass. Come early in the morning to witness the stunning sunrise over the temple complex!"
-      }
-    ]
-  },
-  {
-    "session_id": "session_854feb9a",
-    "title": "How many days should I spend in Cambodia?",
-    "updated_at": "2026-08-11 16:04:15",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "How many days should I spend in Cambodia?"
-      },
-      {
-        "role": "assistant",
-        "content": " To fully explore the richness of Cambodia's culture, history, and natural beauty, we recommend spending at least 7-10 days. This allows time to visit key destinations such as Angkor Wat, Siem Reap, Phnom Penh, and the southern coastal islands. However, you can adjust this duration depending on your personal interests and travel pace. If you're interested in a specific itinerary or have specific questions about what to see and do in each location, feel free to ask!"
-      }
-    ]
-  },
-  {
-    "session_id": "session_68601206",
-    "title": "Can you plan a trip based on my budget and in...",
-    "updated_at": "2026-08-11 16:03:13",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Can you plan a trip based on my budget and interests?"
-      },
-      {
-        "role": "assistant",
-        "content": " Of course! Let's design an exciting trip tailored to your preferences and budget in beautiful Cambodia. Here's a suggested itinerary for a week-long journey:\n\n1. **Phnom Penh (2 Days):** Start with the capital city, Phnom Penh. Visit the Royal Palace, Silver Pagoda, and National Museum to learn about Khmer history and culture. Explore the Killing Fields and S-21 Museum to understand Cambodia's tragic past. Enjoy local cuisine at riverside restaurants.\n\n2. **Kampot (2 Days):** Next, head to Kampot, a picturesque coastal town known for its pepper farms, seafood, and Bokor National Park. Rent a bicycle and explore the surrounding countryside or take a boat trip along the Tonle Basac River"
-      }
-    ]
-  },
-  {
-    "session_id": "session_a04bc4dd",
-    "title": "How much money do I need for a trip to Cambod...",
-    "updated_at": "2026-08-11 16:01:41",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "How much money do I need for a trip to Cambodia?"
-      },
-      {
-        "role": "assistant",
-        "content": " A trip to Cambodia can vary in cost depending on your travel style and duration. Generally, you'll need to budget for flights, accommodations, meals, transportation within the country, and entrance fees to attractions.\n\nFor a basic budget backpacker-style trip, you might spend around $20-$30 USD per day including accommodation, food, and local transportation. A mid-range traveler could expect to spend about $50-$80 USD per day, while luxury travelers may spend over $100 USD per day.\n\nRemember to factor in additional costs such as visas, vaccinations, travel insurance, and souvenirs. It's always a good idea to have some extra cash for unplanned expenses or emergencies. Enjoy your trip to Cambodia!"
-      }
-    ]
-  },
-  {
-    "session_id": "session_b98dc8ea",
-    "title": "What are the best tourist attractions in Camb...",
-    "updated_at": "2026-08-11 16:01:21",
-    "message_count": 4,
-    "messages": [
-      {
-        "role": "user",
-        "content": "What are the best tourist attractions in Cambodia?"
-      },
-      {
-        "role": "assistant",
-        "content": " In Cambodia, there are numerous captivating tourist attractions that showcase its rich history and cultural heritage. Here are some must-visit destinations:\n\n1. Angkor Wat: A world-renowned temple complex, it's one of the largest religious monuments on Earth and a UNESCO World Heritage Site.\n\n2. Siem Reap: The gateway to Angkor Wat, Siem Reap offers not only temples but also bustling markets, stunning nightlife, and delicious local cuisine.\n\n3. Phnom Penh: Cambodia's capital city boasts the Royal Palace, Silver Pagoda, and National Museum, offering insights into the country's royal history and Khmer art.\n\n4. Battambang: Known for its beautiful colonial architecture, rich countryside, and stunning temples"
-      },
-      {
-        "role": "user",
-        "content": "What are the most popular places to visit in Cambodia?"
-      },
-      {
-        "role": "assistant",
-        "content": " The most popular tourist attractions in Cambodia that you shouldn't miss include:\n\n1. Angkor Wat: A world-famous temple complex featuring impressive architecture and intricate carvings.\n2. Siem Reap: Known for its bustling markets, lively nightlife, and proximity to the temples of Angkor.\n3. Phnom Penh: Home to the Royal Palace, Silver Pagoda, and National Museum, offering a glimpse into Cambodia's royal history and Khmer art.\n4. Battambang: Famous for its colonial architecture, stunning temples, and rich countryside landscapes.\n5. Sihanoukville: A coastal city with beautiful beaches and islands, ideal for relaxation and water sports."
-      }
-    ]
-  },
-  {
-    "session_id": "session_098694d3",
-    "title": "Hotels in Siem Reap",
-    "updated_at": "2026-08-11 15:56:17",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hotels in Siem Reap"
-      },
-      {
-        "role": "assistant",
-        "content": " In the heart of Cambodia lies Siem Reap, a city renowned for its rich Khmer heritage and famous attractions like Angkor Wat and Pub Street. If you're planning to visit, there are numerous accommodations available catering to various budgets. During November to February, which is the best time to visit Siem Reap due to favorable weather conditions, many travelers choose to stay at hotels such as the Park Hyatt Siem Reap, Shinta Mani Resort, and Angkor Village Resort. Enjoy your trip exploring this ancient city!"
-      }
-    ]
-  },
-  {
-    "session_id": "session_39f2636c",
-    "title": "Hi",
-    "updated_at": "2026-08-11 15:55:44",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hi"
-      },
-      {
-        "role": "assistant",
-        "content": " Hello! I'm delighted to help you with your query about Cambodia. The climate in Cambodia is tropical, and the best time to visit is from November to February when it's cooler and drier. When visiting temples, please dress respectfully by covering your shoulders and knees. Enjoy your trip! 😊"
-      }
-    ]
-  },
-  {
-    "session_id": "session_96e32dc2",
-    "title": "Hello",
-    "updated_at": "2026-08-11 15:52:27",
-    "message_count": 2,
-    "messages": [
-      {
-        "role": "user",
-        "content": "Hello"
-      },
-      {
-        "role": "assistant",
-        "content": " Hello there! How can I assist you today with your inquiries about Cambodia? If you're looking for general travel tips, tourist attractions, or any other information, feel free to ask away! Here are some popular destinations and activities that might help you get started:\n\n1. Angkor Wat - A massive temple complex built during the Khmer Empire in the early 12th century, it is the largest religious monument in the world and is a UNESCO World Heritage Site.\n\n2. Siem Reap - A major tourist hub that serves as the gateway to Angkor Wat, featuring various markets, restaurants, and hotels.\n\n3. Battambang - Located in northwestern Cambodia, this city offers an authentic rural experience with its beautiful colonial architecture and abundant rice fields.\n\n4. Phnom Penh - The capital city of Cambodia, where you can visit the Royal Palace, Silver Pagoda, National Museum, and the infamous Tuol Sleng Genocide Museum to learn about the country's tragic past.\n\n5. Koh Rong and Koh Rong Samloem - Two islands located in the Gulf of Thailand that offer pristine beaches, clear waters, and various water sports activities for travelers seeking a peaceful getaway.\n\n6. Tonle Sap Lake - The largest freshwater lake in Southeast Asia, home to floating villages, bird sanctuaries, and various wildlife.\n\n7. Banteay Srei - A small but intricately decorated temple built in pink sandstone, located about 30 kilometers northeast of Angkor Wat.\n\n8. Preah Vihear Temple - Another ancient temple complex situated atop a 525-meter cliff and located near the border with Thailand, it is a UNESCO World Heritage Site and offers breathtaking views over the surrounding landscape."
+        "content": " In Cambodia, there are several destinations that cater to various interests. Here's a list of recommended places along with explanations as to why they are suitable for different types of travelers.\n\n1. Siem Reap — Best for temples and history: This city is the gateway to Angkor Wat, the world-famous temple complex that represents the pinnacle of Khmer architecture. Siem Reap offers numerous other ancient temples like Bayon Temple and Ta Prohm, which are enshrouded in lush jungle.\n\n2. Phnom Penh — Best for culture and city life: As the capital city, Phnom Penh showcases a blend of traditional Khmer and French colonial architecture. Visitors can explore museums such as the National Museum and the Tuol Sleng Genocide Museum to learn about Cambodia's history.\n\n3. Kampot — Best for nature and relaxation: Located along the coast, Kampot offers serene landscapes, riverside promenades, and tranquil beaches like Kep Beach. Travelers can also take a boat trip through the Bokor National Park to visit abandoned colonial buildings and waterfalls.\n\n4. Battambang — Best for local culture: This rural city boasts a unique blend of traditional Khmer and Chinese influences. Battambang is home to various charming temples, old mansions, and the famous Bamboo Train, offering an authentic Cambodian experience.\n\n5. Mondulkiri — Best for nature and adventure: Located in northeastern Cambodia, Mondulkiri offers pristine forests, waterfalls, and the opportunity to interact with elephants at rescue centers like Elephant Lover's Project.\n\n6. Koh Rong — Best for beaches and islands: For those seeking paradisiacal beaches, Koh Rong is an ideal destination. The island offers crystal-clear waters, white sandy beaches, and a variety of accommodations to suit different budgets.\n\nTo help you plan your trip, I recommend Siem Reap + Phnom Penh for a first-time visit because they offer a strong combination of history and Cambodian culture. If you provide more details about your number of days, budget, and interests, I can create a personalized itinerary tailored to your preferences. Enjoy your trip to Cambodia!"
       }
     ]
   }

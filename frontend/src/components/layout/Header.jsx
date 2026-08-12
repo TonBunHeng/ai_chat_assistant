@@ -1,5 +1,5 @@
 import React from 'react';
-import { Compass, Globe, Menu, X, Sparkles, Wifi, WifiOff, AlertTriangle, Sun, Moon } from 'lucide-react';
+import { Compass, Globe, Menu, X, Sparkles, Wifi, WifiOff, AlertTriangle, Sun, Moon, Settings, ChevronDown } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const Header = ({
@@ -8,7 +8,10 @@ const Header = ({
   isMobileMenuOpen,
   setIsMobileMenuOpen,
   isOnline,
-  mode = 'online'
+  mode = 'online',
+  onOpenSettings,
+  isSidebarCollapsed,
+  onToggleSidebarCollapse
 }) => {
   const { isDarkMode, toggleTheme } = useTheme();
 
@@ -17,96 +20,115 @@ const Header = ({
   };
 
   return (
-    <header className="bg-white dark:bg-[#1E293B] border-b border-[#E2E8F0] dark:border-slate-800 sticky top-0 z-30 shadow-xs transition-colors duration-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="bg-white/80 dark:bg-[#18181b]/80 backdrop-blur-md border-b border-[#f3f4f6] dark:border-[#27272a] sticky top-0 z-30 transition-colors duration-200">
+      <div className="w-full px-4 sm:px-6 h-14 flex items-center justify-between">
         
-        {/* Left Side: Brand Logo & Title */}
+        {/* Left Side: Mobile Hamburger, Desktop Collapse Toggle & Brand Logo */}
         <div className="flex items-center space-x-3">
+          {/* Mobile Drawer Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:text-[#0F766E] dark:hover:text-[#14B8A6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Toggle sidebar"
+            className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-[#2563eb] hover:bg-slate-100 dark:hover:bg-[#27272a] transition-colors"
+            aria-label="Toggle mobile menu"
           >
-            {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
-          <div className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0F766E] to-[#14B8A6] flex items-center justify-center text-white shadow-md shadow-[#0F766E]/20">
-              <Compass size={24} className="animate-spin-slow" />
+          {/* Desktop Sidebar Collapse Toggle Button */}
+          <button
+            onClick={onToggleSidebarCollapse}
+            className="hidden md:flex p-2 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
+            aria-label="Toggle sidebar collapse"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            <Menu size={19} />
+          </button>
+
+          {/* Brand Logo & Model Pill */}
+          <div className="flex items-center space-x-3">
+            <div className="w-9 h-9 rounded-xl bg-[#003E83] flex items-center justify-center text-white shadow-sm">
+              <Compass size={22} className="animate-spin-slow" />
             </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <h1 className="font-bold text-lg text-[#0F172A] dark:text-white tracking-tight">
-                  AIChat_Support
-                </h1>
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-[#14B8A6]/10 text-[#0F766E] dark:text-[#14B8A6] border border-[#14B8A6]/20">
-                  <Sparkles size={10} /> Cambodia AI
-                </span>
+            
+            <div className="flex items-center space-x-2">
+              <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white hidden sm:inline">
+                Cambodia AI
+              </span>
+
+              {/* Model Selector Badge */}
+              <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#27272a] border border-[#f3f4f6] dark:border-[#27272a] text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-200 dark:hover:bg-[#3f3f46] transition-colors cursor-pointer">
+                <Sparkles size={13} className="text-[#2563eb]" />
+                <span className="text-[11px]">Tourism AI v2.5</span>
+                <ChevronDown size={12} className="text-slate-400" />
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
-                {language === 'km' ? 'ជំនួយការទេសចរណ៍ឆ្លាតវៃកម្ពុជា' : 'Cambodia AI Tourism Assistant'}
-              </p>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Connection Status Badge, Theme Toggle & Language Switcher */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
+        {/* Right Side: Status Badge, Dark Mode, Language & Settings */}
+        <div className="flex items-center space-x-2">
           
           {/* Status Indicator Badge */}
           {!isOnline ? (
-            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold">
-              <WifiOff size={14} className="text-slate-500 dark:text-slate-400" />
-              <span className="hidden sm:inline">Offline Mode</span>
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium">
+              <WifiOff size={13} className="text-slate-500" />
+              <span className="hidden sm:inline text-[11px]">Offline</span>
             </div>
           ) : mode === 'fallback' ? (
-            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-semibold">
-              <AlertTriangle size={14} className="text-amber-500" />
-              <span className="hidden sm:inline">Local Fallback</span>
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-medium">
+              <AlertTriangle size={13} className="text-amber-500" />
+              <span className="hidden sm:inline text-[11px]">Fallback</span>
             </div>
           ) : (
-            <div className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <Wifi size={14} className="text-emerald-600 dark:text-emerald-400" />
-              <span className="hidden sm:inline">Online AI</span>
+            <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 text-xs font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+              <Wifi size={13} className="text-blue-600 dark:text-blue-400" />
+              <span className="hidden sm:inline text-[11px]">Online</span>
             </div>
           )}
 
           {/* Dark / Light Mode Toggle Button */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-amber-400 hover:text-slate-900 dark:hover:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
-            aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
-            title={isDarkMode ? (language === 'km' ? 'ប្តូរទៅ Dark Mode' : 'Switch to Light Mode') : (language === 'km' ? 'ប្តូរទៅ Light Mode' : 'Switch to Dark Mode')}
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-amber-400 hover:text-slate-900 dark:hover:text-amber-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+            aria-label="Toggle dark mode"
+            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
-            {isDarkMode ? <Sun size={18} className="text-amber-400" /> : <Moon size={18} className="text-slate-700" />}
+            {isDarkMode ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-slate-700" />}
           </button>
 
           {/* Language Switcher */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
             <button
               onClick={() => toggleLanguage('en')}
-              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all ${
                 language === 'en'
                   ? 'bg-white dark:bg-slate-700 text-[#0F766E] dark:text-[#14B8A6] shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <span>🇬🇧</span>
-              <span>EN</span>
+              EN
             </button>
             <button
               onClick={() => toggleLanguage('km')}
-              className={`flex items-center space-x-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-2 py-1 rounded-lg text-xs font-semibold transition-all ${
                 language === 'km'
                   ? 'bg-white dark:bg-slate-700 text-[#0F766E] dark:text-[#14B8A6] shadow-xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <span>🇰🇭</span>
-              <span>KM</span>
+              KM
             </button>
           </div>
+
+          {/* Settings Modal Launcher Button */}
+          <button
+            onClick={onOpenSettings}
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
+            title="Settings & Profile"
+          >
+            <Settings size={17} />
+          </button>
         </div>
 
       </div>
@@ -115,4 +137,5 @@ const Header = ({
 };
 
 export default Header;
+
 

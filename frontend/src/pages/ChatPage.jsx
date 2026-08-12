@@ -3,10 +3,10 @@ import Header from '../components/layout/Header';
 import Sidebar from '../components/layout/Sidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import ChatInput from '../components/chat/ChatInput';
+import SettingsModal from '../components/modals/SettingsModal';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { performOfflineSearch } from '../utils/offlineSearch';
 import { sendMessage, fetchChatSessions, fetchChatSession, deleteChatSession, clearAllChatSessions } from '../services/chatApi';
-
 
 const ChatPage = () => {
   const isOnline = useOnlineStatus();
@@ -18,6 +18,38 @@ const ChatPage = () => {
   const [error, setError] = useState(null);
   const [currentMode, setCurrentMode] = useState('online');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    try {
+      const stored = localStorage.getItem('cambodia_ai_sidebar_collapsed');
+      return stored !== null ? JSON.parse(stored) : false;
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cambodia_ai_sidebar_collapsed', JSON.stringify(isSidebarCollapsed));
+    } catch (e) {}
+  }, [isSidebarCollapsed]);
+
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  
+  // User Profile state with localStorage persistence
+  const [userProfile, setUserProfile] = useState(() => {
+    try {
+      const stored = localStorage.getItem('cambodia_ai_user_profile');
+      return stored ? JSON.parse(stored) : { name: 'Traveler', email: '', travelStyle: 'cultural', preferredDestinations: ['siem_reap'] };
+    } catch (e) {
+      return { name: 'Traveler', email: '', travelStyle: 'cultural', preferredDestinations: ['siem_reap'] };
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('cambodia_ai_user_profile', JSON.stringify(userProfile));
+    } catch (e) {}
+  }, [userProfile]);
 
   // Update current mode state when network changes
   useEffect(() => {
@@ -28,7 +60,7 @@ const ChatPage = () => {
     }
   }, [isOnline]);
 
-  // Load chat sessions for the sidebar without reopening the previous conversation.
+  // Load chat sessions for the sidebar
   useEffect(() => {
     const initChat = async () => {
       let loadedSessions = [];
@@ -37,7 +69,6 @@ const ChatPage = () => {
       } else {
         loadedSessions = loadLocalSessions();
       }
-
       setSessions(Array.isArray(loadedSessions) ? loadedSessions : []);
     };
     initChat();
@@ -114,7 +145,7 @@ const ChatPage = () => {
         console.warn('Online session fetch failed, checking local sessions:', err);
       }
     }
-    // Fallback to local session check
+
     const local = Array.isArray(sessions) ? sessions.find((s) => s.session_id === sessionId) : null;
     if (local && local.messages && Array.isArray(local.messages)) {
       const formattedMsgs = local.messages.map((m, idx) => ({
@@ -155,8 +186,7 @@ const ChatPage = () => {
     handleNewChat();
   };
 
-
-  // Delete single specific session
+  // Delete single session
   const handleDeleteSession = async (sessionId) => {
     if (isOnline) {
       try {
@@ -182,9 +212,8 @@ const ChatPage = () => {
     }
   };
 
-
-  // Main Send Message Handler (Automatic Online/Offline/Fallback Routing)
-  const handleSendMessage = async (text) => {
+  // Send Message Handler
+  const handleSendMessage = async (text, attachments = []) => {
     if (!text || !text.trim() || isLoading) return;
 
     setError(null);
@@ -195,6 +224,7 @@ const ChatPage = () => {
       id: Date.now(),
       sender: 'user',
       message: userMessageText,
+      attachments: attachments,
       created_at: new Date().toISOString()
     };
 
@@ -206,7 +236,7 @@ const ChatPage = () => {
       let respMode = 'offline';
       let activeSid = currentSessionId;
 
-      // 1. First, try sending message to FastAPI backend
+      // 1. Try sending message to FastAPI backend
       try {
         const response = await sendMessage({
           message: userMessageText,
@@ -243,10 +273,10 @@ const ChatPage = () => {
           if (isOnline) loadSessions();
         }
       } catch (err) {
-        console.warn('Backend API call unreached. Switching to client-side offline Ollama search:', err);
+        console.warn('Backend API call unreached. Switching to client-side offline search:', err);
       }
 
-      // 2. Fallback to direct client-side Ollama search if backend was unreached
+      // 2. Client-side search fallback if backend unreachable
       if (!aiMsg) {
         const offlineRes = await performOfflineSearch(userMessageText, language);
         activeSid = activeSid || `off_${Date.now()}`;
@@ -264,7 +294,7 @@ const ChatPage = () => {
         setCurrentMode('offline');
       }
 
-      // Append AI message and persist local session state
+      // Append AI response
       if (aiMsg && activeSid) {
         localStorage.setItem('aichat_last_active_session_id', activeSid);
         setMessages((prev) => {
@@ -283,7 +313,6 @@ const ChatPage = () => {
         });
       }
 
-
     } catch (e) {
       console.error('Error in chat handler:', e);
       setError('Failed to process message.');
@@ -292,9 +321,19 @@ const ChatPage = () => {
     }
   };
 
+  // Regenerate last AI response
+  const handleRegenerate = async () => {
+    if (messages.length === 0 || isLoading) return;
+    const lastUserMsg = [...messages].reverse().find((m) => m.sender === 'user' || m.role === 'user');
+    if (lastUserMsg && lastUserMsg.message) {
+      handleSendMessage(lastUserMsg.message);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      {/* Top Header with dynamic Mode Indicator */}
+    <div className="flex flex-col h-screen bg-[#f8fafc] dark:bg-[#18181b] text-slate-900 dark:text-slate-100 transition-colors duration-200 overflow-hidden font-sans">
+      
+      {/* Header */}
       <Header
         language={language}
         setLanguage={setLanguage}
@@ -302,11 +341,14 @@ const ChatPage = () => {
         setIsMobileMenuOpen={setIsMobileMenuOpen}
         isOnline={isOnline}
         mode={currentMode}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebarCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
-      {/* Main Content Layout */}
+      {/* Main Container */}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Left Sidebar Drawer */}
+        {/* Left Sidebar */}
         <Sidebar
           sessions={sessions}
           currentSessionId={currentSessionId}
@@ -318,6 +360,10 @@ const ChatPage = () => {
           language={language}
           isOpen={isMobileMenuOpen}
           setIsOpen={setIsMobileMenuOpen}
+          isCollapsed={isSidebarCollapsed}
+          setIsCollapsed={setIsSidebarCollapsed}
+          onOpenSettings={() => setIsSettingsOpen(true)}
+          userProfile={userProfile}
         />
 
         {/* Chat Window & Input Area */}
@@ -327,6 +373,7 @@ const ChatPage = () => {
             isLoading={isLoading}
             error={error}
             onSendMessage={handleSendMessage}
+            onRegenerate={handleRegenerate}
             language={language}
           />
           <ChatInput
@@ -336,6 +383,16 @@ const ChatPage = () => {
           />
         </main>
       </div>
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        language={language}
+        setLanguage={setLanguage}
+        userProfile={userProfile}
+        setUserProfile={setUserProfile}
+      />
     </div>
   );
 };

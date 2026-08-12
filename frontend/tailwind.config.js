@@ -8,14 +8,25 @@ export default {
   theme: {
     extend: {
       colors: {
+        primary: {
+          DEFAULT: "var(--color-primary)",
+          hover: "var(--color-primary-hover)",
+        },
+        brand: {
+          blue: "var(--color-brand-blue)",
+        },
+        sidebar: {
+          border: "var(--color-sidebar-border)",
+          darkBorder: "var(--color-sidebar-dark-border)",
+        },
         tourism: {
-          primary: "#0F766E",   /* Deep Teal */
-          secondary: "#14B8A6", /* Bright Teal */
-          accent: "#0D9488",    /* Medium Teal */
-          dark: "#0F172A",      /* Slate 900 */
-          light: "#F8FAFC",     /* Slate 50 */
-          border: "#E2E8F0",    /* Slate 200 */
-          muted: "#64748B"      /* Slate 500 */
+          primary: "#003E83",   /* Deep Blue */
+          secondary: "#2563eb", /* Royal Blue */
+          accent: "#002e62",    /* Dark Primary */
+          dark: "#18181b",      /* Dark Background */
+          light: "#ffffff",     /* Light Background */
+          border: "#f3f4f6",    /* Light Border */
+          muted: "#6b7280"      /* Muted Text */
         }
       },
       fontFamily: {
