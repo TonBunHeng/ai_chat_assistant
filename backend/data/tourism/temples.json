@@ -1,0 +1,38 @@
+[
+  {
+    "id": "tpl_angkorwat",
+    "name": "Angkor Wat",
+    "name_km": "ប្រាសាទអង្គរវត្ត",
+    "province": "Siem Reap",
+    "category": "Temple",
+    "description": "Largest religious monument in the world, built by King Suryavarman II in the 12th century.",
+    "description_km": "វិមានសាសនាធំជាងគេបំផុតនៅលើពិភពលោក កសាងឡើងដោយព្រះបាទសូរ្យវរ្ម័នទី២ នៅសតវត្សរ៍ទី១២។",
+    "opening_hours": "05:00 AM - 05:30 PM",
+    "entrance_fee": "Included in Angkor Pass ($37 1-day, $62 3-day, $72 7-day)",
+    "tags": ["Heritage", "UNESCO", "Temple", "Siem Reap", "Architecture"]
+  },
+  {
+    "id": "tpl_bayon",
+    "name": "Bayon Temple",
+    "name_km": "ប្រាសាទបាយ័ន",
+    "province": "Siem Reap",
+    "category": "Temple",
+    "description": "Iconic temple at the center of Angkor Thom known for its 216 giant smiling face towers of Avalokiteshvara.",
+    "description_km": "ប្រាសាទដ៏ល្បីល្បាញនៅចំកណ្តាលអង្គរធំ មានកំពូលមុខញញឹមចំនួន ២១៦ ដែលតំណាងឲ្យព្រះពោធិសត្វលោកេសិវរ។",
+    "opening_hours": "07:30 AM - 05:30 PM",
+    "entrance_fee": "Included in Angkor Pass",
+    "tags": ["Heritage", "Angkor Thom", "Temple", "Siem Reap"]
+  },
+  {
+    "id": "tpl_taprohm",
+    "name": "Ta Prohm",
+    "name_km": "ប្រាសាទតាព្រហ្ម",
+    "province": "Siem Reap",
+    "category": "Temple",
+    "description": "Famous 'Tomb Raider' temple left largely as it was found, entwined with giant silk-cotton tree roots.",
+    "description_km": "ប្រាសាទដែលល្បីល្បាញតាមរយៈរឿង Tomb Raider ដែលមានឫសឈើធំៗព័ទ្ធជុំវិញជញ្ជាំងប្រាសាទ។",
+    "opening_hours": "07:30 AM - 05:30 PM",
+    "entrance_fee": "Included in Angkor Pass",
+    "tags": ["Heritage", "Nature", "Temple", "Siem Reap"]
+  }
+]

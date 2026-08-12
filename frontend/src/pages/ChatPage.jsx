@@ -1,0 +1,343 @@
+import React, { useState, useEffect } from 'react';
+import Header from '../components/layout/Header';
+import Sidebar from '../components/layout/Sidebar';
+import ChatWindow from '../components/chat/ChatWindow';
+import ChatInput from '../components/chat/ChatInput';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { performOfflineSearch } from '../utils/offlineSearch';
+import { sendMessage, fetchChatSessions, fetchChatSession, deleteChatSession, clearAllChatSessions } from '../services/chatApi';
+
+
+const ChatPage = () => {
+  const isOnline = useOnlineStatus();
+  const [language, setLanguage] = useState('en');
+  const [sessions, setSessions] = useState([]);
+  const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [currentMode, setCurrentMode] = useState('online');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Update current mode state when network changes
+  useEffect(() => {
+    if (!isOnline) {
+      setCurrentMode('offline');
+    } else {
+      setCurrentMode('online');
+    }
+  }, [isOnline]);
+
+  // Load chat sessions for the sidebar without reopening the previous conversation.
+  useEffect(() => {
+    const initChat = async () => {
+      let loadedSessions = [];
+      if (isOnline) {
+        loadedSessions = await loadSessions();
+      } else {
+        loadedSessions = loadLocalSessions();
+      }
+
+      setSessions(Array.isArray(loadedSessions) ? loadedSessions : []);
+    };
+    initChat();
+  }, [isOnline]);
+
+  const loadSessions = async () => {
+    try {
+      const data = await fetchChatSessions();
+      const sessionList = data || [];
+      setSessions(sessionList);
+      return sessionList;
+    } catch (err) {
+      console.warn('Could not fetch online sessions. Falling back to local sessions storage:', err);
+      return loadLocalSessions();
+    }
+  };
+
+  const loadLocalSessions = () => {
+    try {
+      const stored = localStorage.getItem('aichat_local_sessions');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setSessions(parsed);
+        return parsed;
+      }
+    } catch (e) {
+      console.error('Error reading local sessions from localStorage:', e);
+    }
+    return [];
+  };
+
+  const saveLocalSession = (newSession) => {
+    try {
+      const stored = localStorage.getItem('aichat_local_sessions');
+      let localSessions = stored ? JSON.parse(stored) : [];
+      const idx = localSessions.findIndex((s) => s.session_id === newSession.session_id);
+      if (idx >= 0) {
+        localSessions[idx] = newSession;
+      } else {
+        localSessions.unshift(newSession);
+      }
+      localStorage.setItem('aichat_local_sessions', JSON.stringify(localSessions));
+      setSessions(localSessions);
+    } catch (e) {
+      console.error('Error saving local session:', e);
+    }
+  };
+
+  // Switch chat session
+  const handleSelectSession = async (sessionId) => {
+    if (!sessionId) return;
+    setCurrentSessionId(sessionId);
+    localStorage.setItem('aichat_last_active_session_id', sessionId);
+    setError(null);
+    if (isOnline) {
+      try {
+        const data = await fetchChatSession(sessionId);
+        const resData = (data && data.data) ? data.data : data;
+        if (resData && resData.messages && Array.isArray(resData.messages)) {
+          const formattedMsgs = resData.messages.map((m, idx) => ({
+            id: m.id || (idx + 1),
+            sender: m.sender || (m.role === 'assistant' ? 'ai' : m.role || 'user'),
+            message: m.message || m.content || '',
+            mode: m.mode || 'online',
+            created_at: m.created_at || new Date().toISOString()
+          }));
+          setMessages(formattedMsgs);
+          if (resData.metadata && resData.metadata.language) {
+            setLanguage(resData.metadata.language);
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('Online session fetch failed, checking local sessions:', err);
+      }
+    }
+    // Fallback to local session check
+    const local = Array.isArray(sessions) ? sessions.find((s) => s.session_id === sessionId) : null;
+    if (local && local.messages && Array.isArray(local.messages)) {
+      const formattedMsgs = local.messages.map((m, idx) => ({
+        id: m.id || (idx + 1),
+        sender: m.sender || (m.role === 'assistant' ? 'ai' : m.role || 'user'),
+        message: m.message || m.content || '',
+        mode: m.mode || 'offline',
+        created_at: m.created_at || new Date().toISOString()
+      }));
+      setMessages(formattedMsgs);
+    }
+  };
+
+  // Create New Chat
+  const handleNewChat = () => {
+    setCurrentSessionId(null);
+    localStorage.removeItem('aichat_last_active_session_id');
+    setMessages([]);
+    setError(null);
+  };
+
+  // Clear / Delete all chat history
+  const handleClearChat = async () => {
+    if (isOnline) {
+      try {
+        await clearAllChatSessions();
+      } catch (err) {
+        console.warn('Error clearing sessions on server:', err);
+      }
+    }
+    try {
+      localStorage.removeItem('aichat_local_sessions');
+      localStorage.removeItem('aichat_last_active_session_id');
+    } catch (e) {
+      console.error('Error clearing local session storage:', e);
+    }
+    setSessions([]);
+    handleNewChat();
+  };
+
+
+  // Delete single specific session
+  const handleDeleteSession = async (sessionId) => {
+    if (isOnline) {
+      try {
+        await deleteChatSession(sessionId);
+        await loadSessions();
+      } catch (err) {
+        console.warn('Error deleting session on server:', err);
+      }
+    }
+    try {
+      const stored = localStorage.getItem('aichat_local_sessions');
+      if (stored) {
+        let localSessions = JSON.parse(stored);
+        localSessions = localSessions.filter((s) => s.session_id !== sessionId);
+        localStorage.setItem('aichat_local_sessions', JSON.stringify(localSessions));
+      }
+    } catch (e) {
+      console.error('Error updating local sessions:', e);
+    }
+    setSessions((prev) => (Array.isArray(prev) ? prev.filter((s) => s.session_id !== sessionId) : []));
+    if (currentSessionId === sessionId) {
+      handleNewChat();
+    }
+  };
+
+
+  // Main Send Message Handler (Automatic Online/Offline/Fallback Routing)
+  const handleSendMessage = async (text) => {
+    if (!text || !text.trim() || isLoading) return;
+
+    setError(null);
+    const userMessageText = text.trim();
+
+    // Optimistically append user message to UI
+    const tempUserMsg = {
+      id: Date.now(),
+      sender: 'user',
+      message: userMessageText,
+      created_at: new Date().toISOString()
+    };
+
+    setMessages((prev) => [...prev, tempUserMsg]);
+    setIsLoading(true);
+
+    try {
+      let aiMsg = null;
+      let respMode = 'offline';
+      let activeSid = currentSessionId;
+
+      // 1. First, try sending message to FastAPI backend
+      try {
+        const response = await sendMessage({
+          message: userMessageText,
+          language: language,
+          session_id: currentSessionId
+        });
+
+        if (response && (response.success || response.data)) {
+          const resData = response.data || response;
+          const sid = resData.session_id || response.session_id;
+          if (sid) {
+            activeSid = sid;
+            setCurrentSessionId(sid);
+            localStorage.setItem('aichat_last_active_session_id', sid);
+          }
+
+          respMode = resData.mode || (isOnline ? 'online' : 'offline');
+          setCurrentMode(respMode);
+
+          aiMsg = {
+            id: Date.now() + 1,
+            sender: 'ai',
+            message: resData.answer || resData.message || 'No response text available.',
+            mode: respMode,
+            intent: resData.intent,
+            analysis: resData.analysis,
+            summary: resData.summary,
+            sentiment: resData.sentiment,
+            sources: resData.sources || [],
+            suggestions: resData.suggestions || [],
+            created_at: new Date().toISOString()
+          };
+
+          if (isOnline) loadSessions();
+        }
+      } catch (err) {
+        console.warn('Backend API call unreached. Switching to client-side offline Ollama search:', err);
+      }
+
+      // 2. Fallback to direct client-side Ollama search if backend was unreached
+      if (!aiMsg) {
+        const offlineRes = await performOfflineSearch(userMessageText, language);
+        activeSid = activeSid || `off_${Date.now()}`;
+        setCurrentSessionId(activeSid);
+        localStorage.setItem('aichat_last_active_session_id', activeSid);
+
+        aiMsg = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          message: offlineRes.message,
+          mode: 'offline',
+          sources: offlineRes.sources || [],
+          created_at: new Date().toISOString()
+        };
+        setCurrentMode('offline');
+      }
+
+      // Append AI message and persist local session state
+      if (aiMsg && activeSid) {
+        localStorage.setItem('aichat_last_active_session_id', activeSid);
+        setMessages((prev) => {
+          const updated = [...prev, aiMsg];
+          const firstUserMsg = updated.find(m => m.sender === 'user' || m.role === 'user');
+          const cleanTitle = firstUserMsg ? firstUserMsg.message : userMessageText;
+
+          saveLocalSession({
+            session_id: activeSid,
+            title: cleanTitle,
+            language: language,
+            created_at: new Date().toISOString(),
+            messages: updated
+          });
+          return updated;
+        });
+      }
+
+
+    } catch (e) {
+      console.error('Error in chat handler:', e);
+      setError('Failed to process message.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-[#F8FAFC] dark:bg-[#0F172A] text-slate-900 dark:text-slate-100 transition-colors duration-200">
+      {/* Top Header with dynamic Mode Indicator */}
+      <Header
+        language={language}
+        setLanguage={setLanguage}
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
+        isOnline={isOnline}
+        mode={currentMode}
+      />
+
+      {/* Main Content Layout */}
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Left Sidebar Drawer */}
+        <Sidebar
+          sessions={sessions}
+          currentSessionId={currentSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          onClearChat={handleClearChat}
+          onDeleteSession={handleDeleteSession}
+          onQuickQuery={handleSendMessage}
+          language={language}
+          isOpen={isMobileMenuOpen}
+          setIsOpen={setIsMobileMenuOpen}
+        />
+
+        {/* Chat Window & Input Area */}
+        <main className="flex-1 flex flex-col h-full min-w-0">
+          <ChatWindow
+            messages={messages}
+            isLoading={isLoading}
+            error={error}
+            onSendMessage={handleSendMessage}
+            language={language}
+          />
+          <ChatInput
+            onSendMessage={handleSendMessage}
+            isLoading={isLoading}
+            language={language}
+          />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default ChatPage;

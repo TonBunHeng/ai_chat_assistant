@@ -1,0 +1,46 @@
+[
+  {
+    "id": "dest_sr",
+    "name": "Siem Reap",
+    "name_km": "សៀមរាប",
+    "province": "Siem Reap",
+    "category": "Destination",
+    "description": "Gateway to the ancient Angkor region, world famous for Angkor Wat, Pub Street, and rich Khmer heritage.",
+    "description_km": "ច្រកចូលទៅកាន់តំបន់អង្គរដ៏អស្ចារ្យ ព័ទ្ធជុំវិញដោយប្រាសាទបុរាណ ផ្លូវដើររាត្រី (Pub Street) និងវប្បធម៌ខ្មែរ។",
+    "popular_attractions": ["Angkor Wat", "Bayon Temple", "Ta Prohm", "Pub Street", "Tonle Sap Lake"],
+    "best_time_to_visit": "November to February"
+  },
+  {
+    "id": "dest_pp",
+    "name": "Phnom Penh",
+    "name_km": "ភ្នំពេញ",
+    "province": "Phnom Penh",
+    "category": "Destination",
+    "description": "Capital city of Cambodia situated at the confluence of Tonle Sap, Mekong, and Bassac Rivers.",
+    "description_km": "រាជធានីនៃប្រទេសកម្ពុជា ស្ថិតនៅចតុមុខនៃទន្លេសាប ទន្លេមេគង្គ និងទន្លេបាសាក់។",
+    "popular_attractions": ["Royal Palace", "National Museum", "Wat Phnom", "Central Market", "Riverside"],
+    "best_time_to_visit": "November to March"
+  },
+  {
+    "id": "dest_kr",
+    "name": "Koh Rong",
+    "name_km": "កោះរ៉ុង",
+    "province": "Preah Sihanouk",
+    "category": "Beach Destination",
+    "description": "Famous island known for white sand beaches, turquoise waters, bioluminescent plankton, and relaxing resorts.",
+    "description_km": "កោះដ៏ល្បីល្បាញដែលមានឆ្នេរខ្សាច់សស្អាត ទឹកសមុទ្រថ្លាយ៉ង់ និងពន្លឺផ្លេកៗនៃប្លង់តុងនាពេលរាត្រី។",
+    "popular_attractions": ["Long Set Beach", "Sok San Beach", "Bioluminescent Plankton", "Koh Rong Sanloem"],
+    "best_time_to_visit": "December to May"
+  },
+  {
+    "id": "dest_kp",
+    "name": "Kampot",
+    "name_km": "កំពត",
+    "province": "Kampot",
+    "category": "Riverside Town",
+    "description": "Charming riverside city famous for Kampot pepper farms, French colonial architecture, and Bokor Mountain.",
+    "description_km": "ក្រុងមាត់ព្រែកដ៏ស្រស់ស្អាត ល្បីល្បាញដោយសារម្រេចកំពត ស្ថាបត្យកម្មបារាំង និងភ្នំបូកគោ។",
+    "popular_attractions": ["Bokor National Park", "Kampot River", "Pepper Farms", "Salt Fields", "Rabbit Island"],
+    "best_time_to_visit": "November to April"
+  }
+]

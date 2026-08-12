@@ -1,0 +1,22 @@
+[
+  {
+    "id": "beach_kohrong",
+    "name": "Koh Rong Island",
+    "name_km": "ឆ្នេរកោះរ៉ុង",
+    "province": "Preah Sihanouk",
+    "category": "Beach",
+    "description": "Stunning white sand beaches, clear waters, coral reefs, and snorkeling spots.",
+    "description_km": "ឆ្នេរខ្សាច់សស្អាត ទឹកសមុទ្រថ្លាយ៉ង់ មានផ្ទះលំហែកាយ និងកន្លែងមុជទឹកមើលផ្កាថ្ម។",
+    "tags": ["Beach", "Island", "Sihanoukville", "Snorkeling"]
+  },
+  {
+    "id": "beach_ochheuteal",
+    "name": "Ochheuteal Beach",
+    "name_km": "ឆ្នេរអូរឈើទាល",
+    "province": "Preah Sihanouk",
+    "category": "Beach",
+    "description": "Popular lively mainland beach in Sihanoukville lined with seaside restaurants and bars.",
+    "description_km": "ឆ្នេរសមុទ្រដ៏មានប្រជាប្រិយភាពនៅក្រុងព្រះសីហនុ មានហាងអាហារសមុទ្រ និងកន្លែងសម្រាកកម្សាន្ត។",
+    "tags": ["Beach", "Sihanoukville", "Seafood"]
+  }
+]
