@@ -1,10 +1,10 @@
-# 🇰🇭 AI Tourism Information Chatbot (Cambodia) 🤖
+# AI Tourism Information Chatbot (Cambodia)
 
 An intelligent AI Tourism Information Service specialized in Cambodia tourism built with **FastAPI**, **RAG (Retrieval-Augmented Generation)**, **Ollama (`Camtour-On-Mistral-Ai:latest`)**, **SQLite**, and **React + Vite**.
 
 ---
 
-## 🤖 AI Model Details
+## AI Model Details
 
 - **Primary AI Model**: `Camtour-On-Mistral-Ai:latest` (Fine-tuned model running locally via Ollama)
 - **Supported Alternative Models**: `tripmind-ft-gguf`, `llama3.2`, `mistral`
@@ -13,7 +13,7 @@ An intelligent AI Tourism Information Service specialized in Cambodia tourism bu
 
 ---
 
-## 📦 Software & Package Requirements
+## Software & Package Requirements
 
 ### System Prerequisites
 - **Node.js**: v18.0.0 or higher
@@ -37,7 +37,7 @@ An intelligent AI Tourism Information Service specialized in Cambodia tourism bu
 
 ---
 
-## 🚀 How to Run the Project
+## How to Run the Project
 
 ### Step 1: Start Ollama AI Model
 
@@ -89,31 +89,7 @@ npm install
 npm run dev
 ```
 
-- **Frontend App**: `http://localhost:5173`
-
----
-
-## 🧪 Testing the API
-
-```bash
-# Run backend pytest suite
-cd backend
-python3 -m pytest tests/
-```
-
-### cURL Test Example
-```bash
-curl -X POST "http://localhost:8000/api/chat" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "session_id": "test_1",
-       "message": "អង្គរវត្តនៅឯណា?"
-     }'
-```
-
----
-
-## 🗣️ Sample Test Questions
+## Sample Test Questions
 
 ### Khmer Questions
 1. `"អង្គរវត្តនៅឯណា?"`
