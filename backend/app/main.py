@@ -34,6 +34,15 @@ app.include_router(search.router)
 app.include_router(summary.router)
 app.include_router(tourism_routes.router)
 
+@app.on_event("startup")
+def startup_event():
+    try:
+        from app.services.matching_service import matching_service
+        matching_service.index_datasets()
+        print("✅ Pre-indexed similarity dataset successfully on server startup.")
+    except Exception as e:
+        print(f"Startup indexing note: {e}")
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(

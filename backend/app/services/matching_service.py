@@ -1,4 +1,5 @@
 import json
+import threading
 from typing import Dict, Any, List, Optional, Tuple
 from app.core.config import settings
 from app.services.tourism_service import tourism_service
@@ -15,14 +16,16 @@ class SimilarityMatchingService:
     def __init__(self):
         self._item_embeddings: List[Tuple[Dict[str, Any], Any, str]] = []
         self._is_indexed = False
+        self._lock = threading.Lock()
 
     def index_datasets(self, force: bool = False):
         """Index all JSON items for semantic and fuzzy similarity matching."""
-        if self._is_indexed and not force:
-            return
+        with self._lock:
+            if self._is_indexed and not force:
+                return
 
-        all_items = tourism_service.get_all_items()
-        self._item_embeddings = []
+            all_items = tourism_service.get_all_items()
+            self._item_embeddings = []
 
         for item in all_items:
             # Build comprehensive text profile for semantic indexing

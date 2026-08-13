@@ -6,7 +6,7 @@ from app.services.summary_service import summary_service
 router = APIRouter(prefix="/summary", tags=["Summary"])
 
 @router.post("", response_model=StandardResponse)
-async def summarize_tourism_topic(request: SummaryRequest):
+def summarize_tourism_topic(request: SummaryRequest):
     try:
         res = summary_service.generate_summary(
             topic=request.topic,

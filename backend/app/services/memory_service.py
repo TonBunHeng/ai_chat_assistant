@@ -15,11 +15,17 @@ class MemoryService:
         self._restore_from_json_if_needed()
 
     def _get_connection(self):
-        return sqlite3.connect(self.db_path)
+        return sqlite3.connect(self.db_path, timeout=30.0, check_same_thread=False)
 
     def _init_db(self):
         with self._get_connection() as conn:
             cursor = conn.cursor()
+            try:
+                cursor.execute("PRAGMA journal_mode=WAL;")
+                cursor.execute("PRAGMA busy_timeout=30000;")
+            except Exception as e:
+                print(f"MemoryService PRAGMA note: {e}")
+
             # Messages table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS messages (

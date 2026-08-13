@@ -6,7 +6,7 @@ from app.services.tourism_service import tourism_service
 router = APIRouter(prefix="/search", tags=["Search"])
 
 @router.post("", response_model=StandardResponse)
-async def search_tourism_knowledge(query_data: SearchQuery):
+def search_tourism_knowledge(query_data: SearchQuery):
     try:
         results = tourism_service.search_keyword(query_data.query, limit=query_data.limit or 5)
         

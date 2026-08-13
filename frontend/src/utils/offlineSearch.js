@@ -43,35 +43,47 @@ RESPONSE RULES:
 
 User Question: '${query}'`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const hostname = window.location.hostname || 'localhost';
+    const hostsToTry = [`http://${hostname}:11434/api/generate`];
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+      hostsToTry.push('http://localhost:11434/api/generate');
+    }
 
-    const resp = await fetch('http://localhost:11434/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'Camtour-On-Mistral-Ai:latest',
-        prompt: prompt,
-        stream: false,
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
+    for (const url of hostsToTry) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-    if (resp.ok) {
-      const data = await resp.json();
-      if (data && data.response && data.response.trim()) {
-        return {
-          success: true,
-          mode: 'offline',
-          intent: 'general',
-          message: data.response.trim(),
-          sources: [],
-        };
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'Camtour-On-Mistral-Ai:latest',
+            prompt: prompt,
+            stream: false,
+          }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.response && data.response.trim()) {
+            return {
+              success: true,
+              mode: 'offline',
+              intent: 'general',
+              message: data.response.trim(),
+              sources: [],
+            };
+          }
+        }
+      } catch (err) {
+        console.warn(`Direct client-side Camtour-On-Mistral-Ai call to ${url} unreached:`, err);
       }
     }
   } catch (err) {
-    console.warn('Direct client-side Camtour-On-Mistral-Ai call unreached:', err);
+    console.warn('Direct client-side Camtour-On-Mistral-Ai call error:', err);
   }
 
   return {

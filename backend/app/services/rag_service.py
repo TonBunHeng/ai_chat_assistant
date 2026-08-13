@@ -47,8 +47,15 @@ class RAGService:
         matched_item = match_result["matched_item"]
         context_snippet = match_result["formatted_snippet"]
         
-        # 6. Special Itinerary Handling if intent is itinerary_planning
-        if intent == "itinerary_planning" and active_destination:
+        # 6. Intent-specific handling
+        if intent == "greeting":
+            is_km = "km" in detected_lang or any("\u1780" <= c <= "\u17ff" for c in message)
+            answer = (
+                "សួស្តី! 🖐️ ខ្ញុំជា AIChat_Support ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
+                if is_km
+                else "Hello! 👋 Welcome to Cambodia! I'm AIChat_Support, your AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?"
+            )
+        elif intent == "itinerary_planning" and active_destination:
             days = 3
             if entities.get("duration"):
                 try:
@@ -144,8 +151,22 @@ class RAGService:
     def _generate_suggestions(self, intent: str, destination: Optional[str], lang: str) -> List[str]:
         """Generate smart follow-up suggestions for the UI."""
         is_km = "km" in lang
-        dest = destination or "សៀមរាប" if is_km else destination or "Siem Reap"
+        dest = destination or ("សៀមរាប" if is_km else "Siem Reap")
         
+        if intent == "greeting":
+            if is_km:
+                return [
+                    "តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅសៀមរាប?",
+                    "សូមណែនាំម្ហូបអាហារខ្មែរល្បីៗ",
+                    "រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅភ្នំពេញ"
+                ]
+            else:
+                return [
+                    "What are the top places to visit in Siem Reap?",
+                    "Recommend popular Cambodian dishes",
+                    "Create a 3-day Phnom Penh itinerary"
+                ]
+
         if is_km:
             return [
                 f"តើទៅ {dest} គួររៀបចំដំណើរកម្សាន្តប៉ុន្មានថ្ងៃ?",

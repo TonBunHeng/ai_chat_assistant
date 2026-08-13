@@ -57,6 +57,12 @@ const ChatWindow = ({
       text: "What is the best time to visit Cambodia?",
       desc: "Weather seasons, festivals & travel tips",
       icon: <Sun size={20} className="text-blue-500" />
+    },
+    {
+      title: "Travel & Visa Tips",
+      text: "What are essential travel tips, visa & currency for Cambodia?",
+      desc: "Angkor Pass, cash USD/Riel, visa & temple dress code",
+      icon: <HelpCircle size={20} className="text-emerald-500" />
     }
   ];
 
@@ -90,6 +96,12 @@ const ChatWindow = ({
       text: "តើរដូវណាដែលល្អបំផុតសម្រាប់មកទស្សនាកម្ពុជា?",
       desc: "ធាតុអាកាស ពិធីបុណ្យ និងគន្លឹះធ្វើដំណើរ",
       icon: <Sun size={20} className="text-blue-500" />
+    },
+    {
+      title: "គន្លឹះធ្វើដំណើរ & ទិដ្ឋាការ",
+      text: "តើមានគន្លឹះធ្វើដំណើរ ទិដ្ឋាការ និងការប្រើប្រាស់លុយកាក់អ្វីខ្លះ?",
+      desc: "ប័ណ្ណអង្គរ លុយដុល្លារ/រៀល ទិដ្ឋាការ និងការស្លៀកពាក់",
+      icon: <HelpCircle size={20} className="text-emerald-500" />
     }
   ];
 

@@ -9,7 +9,7 @@ from app.utils.validators import validate_chat_message
 router = APIRouter(prefix="/chat", tags=["Chat"])
 
 @router.post("", response_model=StandardResponse[ChatResponseData])
-async def handle_chat_message(request: ChatRequest):
+def handle_chat_message(request: ChatRequest):
     validate_chat_message(request.message)
     try:
         result = rag_service.process_chat_message(
@@ -25,13 +25,13 @@ async def handle_chat_message(request: ChatRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/sessions")
-async def get_chat_sessions():
+def get_chat_sessions():
     """List all active chat sessions."""
     sessions = memory_service.get_all_sessions()
     return {"success": True, "data": sessions}
 
 @router.get("/sessions/{session_id}")
-async def get_chat_session(session_id: str):
+def get_chat_session(session_id: str):
     """Get message history for a specific session."""
     history = memory_service.get_history(session_id, limit=50)
     meta = memory_service.get_session_metadata(session_id)
@@ -46,14 +46,14 @@ async def get_chat_session(session_id: str):
 
 @router.delete("/sessions")
 @router.delete("/sessions/all")
-async def clear_all_sessions():
+def clear_all_sessions():
     """Clear all chat sessions."""
     memory_service.delete_all_sessions()
     return {"success": True, "message": "All chat sessions cleared"}
 
 @router.delete("/sessions/{session_id:path}")
 @router.delete("/{session_id:path}")
-async def delete_chat_session(session_id: str):
+def delete_chat_session(session_id: str):
     """Delete a specific chat session."""
     clean_id = session_id.strip()
     deleted = memory_service.delete_session(clean_id)
