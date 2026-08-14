@@ -102,14 +102,27 @@ const ChatPage = () => {
     }
   };
 
+  const ONE_HOUR_MS = 60 * 60 * 1000;
+
   const loadLocalSessions = () => {
     try {
       const stored = localStorage.getItem('aichat_local_sessions');
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          setSessions(parsed);
-          return parsed;
+          const now = Date.now();
+          // Auto-delete sessions older than 1 hour
+          const validSessions = parsed.filter((s) => {
+            const time = new Date(s.updated_at || s.created_at || now).getTime();
+            return (now - time) < ONE_HOUR_MS;
+          });
+
+          if (validSessions.length !== parsed.length) {
+            localStorage.setItem('aichat_local_sessions', JSON.stringify(validSessions));
+          }
+
+          setSessions(validSessions);
+          return validSessions;
         }
       }
     } catch (e) {

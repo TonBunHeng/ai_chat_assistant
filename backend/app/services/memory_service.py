@@ -187,7 +187,28 @@ class MemoryService:
         return True
 
 
+    def purge_expired_sessions(self, max_age_hours: float = 1.0):
+        """Automatically delete chat sessions and messages older than 1 hour."""
+        try:
+            with self._get_connection() as conn:
+                cursor = conn.cursor()
+                # Delete messages older than 1 hour
+                cursor.execute(
+                    "DELETE FROM messages WHERE datetime(created_at) < datetime('now', ?)",
+                    (f"-{int(max_age_hours * 60)} minutes",)
+                )
+                # Delete sessions older than 1 hour or empty
+                cursor.execute("""
+                    DELETE FROM sessions 
+                    WHERE datetime(updated_at) < datetime('now', ?)
+                       OR session_id NOT IN (SELECT DISTINCT session_id FROM messages)
+                """, (f"-{int(max_age_hours * 60)} minutes",))
+                conn.commit()
+        except Exception as e:
+            print(f"MemoryService purge note: {e}")
+
     def get_all_sessions(self) -> List[Dict[str, Any]]:
+        self.purge_expired_sessions(max_age_hours=1.0)
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
