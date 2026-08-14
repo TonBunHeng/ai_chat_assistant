@@ -27,9 +27,9 @@ class Settings(BaseSettings):
     ]
     
     BASE_DIR: str = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-    SQLITE_DB_PATH: str = os.path.join(BASE_DIR, "storage/conversations/conversations.db")
+    SQLITE_DB_PATH: str = "/tmp/conversations.db" if os.environ.get("VERCEL") else os.path.join(BASE_DIR, "storage/conversations/conversations.db")
     DATA_DIR: str = os.path.join(BASE_DIR, "data/tourism")
-    VECTOR_DB_DIR: str = os.path.join(BASE_DIR, "storage/vector_db")
+    VECTOR_DB_DIR: str = "/tmp/vector_db" if os.environ.get("VERCEL") else os.path.join(BASE_DIR, "storage/vector_db")
     
     MAX_HISTORY_MESSAGES: int = 10
     
