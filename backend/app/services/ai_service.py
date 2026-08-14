@@ -95,27 +95,31 @@ class AIService:
 
         # Try SDK call
         if HAS_GOOGLE_GENAI:
-            try:
-                if not self.client:
-                    self._init_gemini_client()
-                if self.client:
-                    model_name = settings.GEMINI_MODEL
-                    response = self.client.models.generate_content(
-                        model=model_name,
-                        contents=prompt,
-                        config=types.GenerateContentConfig(
-                            system_instruction=system_instruction,
-                            temperature=0.3,
-                            max_output_tokens=1024,
+            candidate_models = [settings.GEMINI_MODEL, "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.7-flash"]
+            # Deduplicate preserving order
+            models_to_try = list(dict.fromkeys(candidate_models))
+            
+            for model_name in models_to_try:
+                try:
+                    if not self.client:
+                        self._init_gemini_client()
+                    if self.client:
+                        response = self.client.models.generate_content(
+                            model=model_name,
+                            contents=prompt,
+                            config=types.GenerateContentConfig(
+                                system_instruction=system_instruction,
+                                temperature=0.3,
+                                max_output_tokens=1024,
+                            )
                         )
-                    )
-                    if response and response.text:
-                        return response.text.strip()
-            except Exception as e:
-                print(f"Gemini SDK Call Note: {e}")
+                        if response and response.text:
+                            return response.text.strip()
+                except Exception as e:
+                    print(f"Gemini SDK Note for {model_name}: {e}")
 
         # REST API fallback for Gemini if SDK fails or alternative model name
-        for model in [settings.GEMINI_MODEL, "gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+        for model in [settings.GEMINI_MODEL, "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.7-flash"]:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 payload = {
@@ -123,7 +127,7 @@ class AIService:
                     "systemInstruction": {"parts": [{"text": system_instruction}]},
                     "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024}
                 }
-                res = requests.post(url, json=payload, timeout=5)
+                res = requests.post(url, json=payload, timeout=8)
                 if res.status_code == 200:
                     data = res.json()
                     candidates = data.get("candidates", [])
@@ -131,13 +135,12 @@ class AIService:
                         parts = candidates[0].get("content", {}).get("parts", [])
                         if parts:
                             return parts[0].get("text", "").strip()
-                elif res.status_code in [400, 401, 403]:
-                    # Auth or Invalid key error - don't retry all models
-                    print(f"Gemini API returned status {res.status_code}: {res.text[:100]}")
+                elif res.status_code in [401, 403]:
+                    # Auth or Invalid key error - don't retry
+                    print(f"Gemini API auth error {res.status_code}: {res.text[:100]}")
                     break
             except Exception as ex:
                 print(f"Gemini REST call failed for model {model}: {ex}")
-                break
 
         return None
 
