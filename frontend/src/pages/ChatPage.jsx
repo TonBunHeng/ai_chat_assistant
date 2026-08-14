@@ -213,13 +213,6 @@ const ChatPage = () => {
 
   // Clear / Delete all chat history
   const handleClearChat = async () => {
-    if (isOnline) {
-      try {
-        await clearAllChatSessions();
-      } catch (err) {
-        console.warn('Error clearing sessions on server:', err);
-      }
-    }
     try {
       localStorage.removeItem('aichat_local_sessions');
       localStorage.removeItem('aichat_last_active_session_id');
@@ -227,32 +220,48 @@ const ChatPage = () => {
       console.error('Error clearing local session storage:', e);
     }
     setSessions([]);
-    handleNewChat();
+    setCurrentSessionId(null);
+    setMessages([]);
+    setError(null);
+
+    if (isOnline) {
+      try {
+        await clearAllChatSessions();
+      } catch (err) {
+        console.warn('Error clearing sessions on server:', err);
+      }
+    }
   };
 
   // Delete single session
   const handleDeleteSession = async (sessionId) => {
-    if (isOnline) {
-      try {
-        await deleteChatSession(sessionId);
-        await loadSessions();
-      } catch (err) {
-        console.warn('Error deleting session on server:', err);
-      }
-    }
+    if (!sessionId) return;
+
     try {
       const stored = localStorage.getItem('aichat_local_sessions');
       if (stored) {
         let localSessions = JSON.parse(stored);
-        localSessions = localSessions.filter((s) => s.session_id !== sessionId);
-        localStorage.setItem('aichat_local_sessions', JSON.stringify(localSessions));
+        if (Array.isArray(localSessions)) {
+          localSessions = localSessions.filter((s) => s.session_id !== sessionId);
+          localStorage.setItem('aichat_local_sessions', JSON.stringify(localSessions));
+        }
       }
     } catch (e) {
       console.error('Error updating local sessions:', e);
     }
+
     setSessions((prev) => (Array.isArray(prev) ? prev.filter((s) => s.session_id !== sessionId) : []));
-    if (currentSessionId === sessionId) {
+
+    if (currentSessionId === sessionId || !currentSessionId || sessions.length <= 1) {
       handleNewChat();
+    }
+
+    if (isOnline) {
+      try {
+        await deleteChatSession(sessionId);
+      } catch (err) {
+        console.warn('Error deleting session on server:', err);
+      }
     }
   };
 

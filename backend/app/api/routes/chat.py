@@ -53,9 +53,10 @@ def clear_all_sessions():
     return {"success": True, "message": "All chat sessions cleared"}
 
 @router.delete("/sessions/{session_id:path}")
-@router.delete("/{session_id:path}")
 def delete_chat_session(session_id: str):
     """Delete a specific chat session."""
     clean_id = session_id.strip()
+    if clean_id.startswith("sessions/"):
+        clean_id = clean_id.replace("sessions/", "", 1).strip()
     deleted = memory_service.delete_session(clean_id)
     return {"success": True, "deleted": deleted, "session_id": clean_id}

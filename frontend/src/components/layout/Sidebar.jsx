@@ -48,8 +48,13 @@ const Sidebar = ({
   const handleConfirmDelete = () => {
     if (deleteModal.deleteScope === 'ALL') {
       if (onClearChat) onClearChat();
-    } else if (deleteModal.deleteScope === 'ONE' && deleteModal.selectedSessionId && onDeleteSession) {
-      onDeleteSession(deleteModal.selectedSessionId);
+    } else if (deleteModal.deleteScope === 'ONE') {
+      const targetId = deleteModal.selectedSessionId || currentSessionId || (sessions[0]?.session_id || '');
+      if (targetId && onDeleteSession) {
+        onDeleteSession(targetId);
+      } else if (onClearChat) {
+        onClearChat();
+      }
     }
     setDeleteModal({ isOpen: false, deleteScope: 'ONE', selectedSessionId: '' });
   };
@@ -289,7 +294,7 @@ const Sidebar = ({
                   {deleteModal.deleteScope === 'ONE' && (
                     <div className="mt-2">
                       <select
-                        value={deleteModal.selectedSessionId}
+                        value={deleteModal.selectedSessionId || (sessions[0]?.session_id || '')}
                         onChange={(e) => setDeleteModal(prev => ({ ...prev, selectedSessionId: e.target.value }))}
                         className="w-full p-2 text-xs bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 font-medium focus:outline-none"
                       >
