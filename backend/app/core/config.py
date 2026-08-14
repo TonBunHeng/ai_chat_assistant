@@ -3,7 +3,7 @@ from typing import List
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    AI_MODE: str = "offline"
+    AI_MODE: str = "online"
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "Camtour-On-Mistral-Ai:latest"
     ONLINE_API_KEY: str = ""
