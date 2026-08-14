@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base API URL (falls back to live Render backend if env var is unset)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://ai-chatbot-pud2.onrender.com/api';
+// Base API URL (defaults to live Vercel backend)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://ai-chatbotapi.vercel.app/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
