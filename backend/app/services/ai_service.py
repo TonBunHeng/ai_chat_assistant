@@ -95,7 +95,7 @@ class AIService:
 
         # Try SDK call
         if HAS_GOOGLE_GENAI:
-            candidate_models = [settings.GEMINI_MODEL, "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.7-flash"]
+            candidate_models = [settings.GEMINI_MODEL, "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-flash-latest"]
             # Deduplicate preserving order
             models_to_try = list(dict.fromkeys(candidate_models))
             
@@ -119,7 +119,8 @@ class AIService:
                     print(f"Gemini SDK Note for {model_name}: {e}")
 
         # REST API fallback for Gemini if SDK fails or alternative model name
-        for model in [settings.GEMINI_MODEL, "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-3.7-flash"]:
+        rest_candidate_models = [settings.GEMINI_MODEL, "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-flash-latest"]
+        for model in list(dict.fromkeys(rest_candidate_models)):
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 payload = {
