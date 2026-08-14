@@ -12,15 +12,9 @@ class EmbeddingService:
         self._init_model()
 
     def _init_model(self):
-        """Attempt to load sentence-transformers model; fallback to lightweight vector model."""
-        try:
-            # pyrefly: ignore [missing-import]
-            from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer("all-MiniLM-L6-v2")
-            print("Loaded SentenceTransformer model: all-MiniLM-L6-v2")
-        except Exception as e:
-            print(f"SentenceTransformer not available ({e}). Using lightweight vector encoder.")
-            self.model = None
+        """Initialize lightweight vector model to fit in low-memory environments like Render 512MB."""
+        self.model = None
+        print("Using lightweight vector encoder (low memory footprint < 50MB).")
 
     def encode(self, text: str) -> np.ndarray:
         """Encode text to vector array."""
