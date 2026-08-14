@@ -60,18 +60,34 @@ const ChatPage = () => {
     }
   }, [isOnline]);
 
-  // Load chat sessions for the sidebar
+  // Load chat sessions and restore active conversation on refresh/load
   useEffect(() => {
+    let isMounted = true;
+
     const initChat = async () => {
-      let loadedSessions = [];
-      if (isOnline) {
-        loadedSessions = await loadSessions();
-      } else {
-        loadedSessions = loadLocalSessions();
+      // 1. Immediately load local cache for zero-flicker UI
+      const localList = loadLocalSessions();
+      
+      const lastSessionId = localStorage.getItem('aichat_last_active_session_id');
+      if (lastSessionId) {
+        handleSelectSession(lastSessionId);
       }
-      setSessions(Array.isArray(loadedSessions) ? loadedSessions : []);
+
+      // 2. Sync online sessions seamlessly
+      if (isOnline) {
+        try {
+          const data = await fetchChatSessions();
+          if (isMounted && data && Array.isArray(data)) {
+            setSessions(data);
+          }
+        } catch (err) {
+          console.warn('Online sessions sync note:', err);
+        }
+      }
     };
+
     initChat();
+    return () => { isMounted = false; };
   }, [isOnline]);
 
   const loadSessions = async () => {
@@ -91,8 +107,10 @@ const ChatPage = () => {
       const stored = localStorage.getItem('aichat_local_sessions');
       if (stored) {
         const parsed = JSON.parse(stored);
-        setSessions(parsed);
-        return parsed;
+        if (Array.isArray(parsed)) {
+          setSessions(parsed);
+          return parsed;
+        }
       }
     } catch (e) {
       console.error('Error reading local sessions from localStorage:', e);
@@ -104,6 +122,7 @@ const ChatPage = () => {
     try {
       const stored = localStorage.getItem('aichat_local_sessions');
       let localSessions = stored ? JSON.parse(stored) : [];
+      if (!Array.isArray(localSessions)) localSessions = [];
       const idx = localSessions.findIndex((s) => s.session_id === newSession.session_id);
       if (idx >= 0) {
         localSessions[idx] = newSession;
@@ -123,11 +142,13 @@ const ChatPage = () => {
     setCurrentSessionId(sessionId);
     localStorage.setItem('aichat_last_active_session_id', sessionId);
     setError(null);
+
+    // 1. Try server fetch if online
     if (isOnline) {
       try {
         const data = await fetchChatSession(sessionId);
         const resData = (data && data.data) ? data.data : data;
-        if (resData && resData.messages && Array.isArray(resData.messages)) {
+        if (resData && resData.messages && Array.isArray(resData.messages) && resData.messages.length > 0) {
           const formattedMsgs = resData.messages.map((m, idx) => ({
             id: m.id || (idx + 1),
             sender: m.sender || (m.role === 'assistant' ? 'ai' : m.role || 'user'),
@@ -146,16 +167,26 @@ const ChatPage = () => {
       }
     }
 
-    const local = Array.isArray(sessions) ? sessions.find((s) => s.session_id === sessionId) : null;
-    if (local && local.messages && Array.isArray(local.messages)) {
-      const formattedMsgs = local.messages.map((m, idx) => ({
-        id: m.id || (idx + 1),
-        sender: m.sender || (m.role === 'assistant' ? 'ai' : m.role || 'user'),
-        message: m.message || m.content || '',
-        mode: m.mode || 'offline',
-        created_at: m.created_at || new Date().toISOString()
-      }));
-      setMessages(formattedMsgs);
+    // 2. Fallback to localStorage sessions
+    try {
+      const stored = localStorage.getItem('aichat_local_sessions');
+      const localList = stored ? JSON.parse(stored) : [];
+      const local = Array.isArray(localList) ? localList.find((s) => s.session_id === sessionId) : null;
+      if (local && local.messages && Array.isArray(local.messages)) {
+        const formattedMsgs = local.messages.map((m, idx) => ({
+          id: m.id || (idx + 1),
+          sender: m.sender || (m.role === 'assistant' ? 'ai' : m.role || 'user'),
+          message: m.message || m.content || '',
+          mode: m.mode || 'offline',
+          created_at: m.created_at || new Date().toISOString()
+        }));
+        setMessages(formattedMsgs);
+        if (local.language) {
+          setLanguage(local.language);
+        }
+      }
+    } catch (e) {
+      console.error('Error reading local session backup:', e);
     }
   };
 
