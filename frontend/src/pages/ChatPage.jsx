@@ -244,29 +244,30 @@ const ChatPage = () => {
           session_id: currentSessionId
         });
 
-        if (response && (response.success || response.data)) {
-          const resData = response.data || response;
-          const sid = resData.session_id || response.session_id;
+        const apiPayload = response?.data?.data ?? response?.data ?? response;
+
+        if (response && (response.success || apiPayload)) {
+          const sid = apiPayload?.session_id || currentSessionId || `session_${Date.now()}`;
           if (sid) {
             activeSid = sid;
             setCurrentSessionId(sid);
             localStorage.setItem('aichat_last_active_session_id', sid);
           }
 
-          respMode = resData.mode || (isOnline ? 'online' : 'offline');
+          respMode = apiPayload?.mode || (isOnline ? 'online' : 'offline');
           setCurrentMode(respMode);
 
           aiMsg = {
             id: Date.now() + 1,
             sender: 'ai',
-            message: resData.answer || resData.message || 'No response text available.',
+            message: apiPayload?.answer || apiPayload?.message || 'No response text available.',
             mode: respMode,
-            intent: resData.intent,
-            analysis: resData.analysis,
-            summary: resData.summary,
-            sentiment: resData.sentiment,
-            sources: resData.sources || [],
-            suggestions: resData.suggestions || [],
+            intent: apiPayload?.intent,
+            analysis: apiPayload?.analysis,
+            summary: apiPayload?.summary,
+            sentiment: apiPayload?.sentiment,
+            sources: apiPayload?.sources || [],
+            suggestions: apiPayload?.suggestions || [],
             created_at: new Date().toISOString()
           };
 
