@@ -6,7 +6,8 @@ class IntentService:
         # Keyword patterns for Khmer and English intents
         self.intent_patterns = {
             "greeting": [
-                r"សួស្តី", r"ជំរាបសួរ", r"hello", r"hi", r"hey", r"good morning", r"good afternoon"
+                r"\b(hello|hi|hey|good\s+morning|good\s+afternoon|good\s+evening)\b",
+                r"(សួស្តី|ជំរាបសួរ)"
             ],
             "itinerary_planning": [
                 r"រៀបចំ", r"ដំណើរកំសាន្ត", r"កម្សាន្ត.*ថ្ងៃ", r"ថ្ងៃ", r"itinerary", r"plan", r"days", r"schedule", r"trip plan"
