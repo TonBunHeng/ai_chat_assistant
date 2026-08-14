@@ -15,7 +15,8 @@ def handle_chat_message(request: ChatRequest):
         result = rag_service.process_chat_message(
             message=request.message,
             session_id=request.session_id,
-            preferred_language=request.language
+            preferred_language=request.language,
+            client_history=request.history
         )
         return StandardResponse(
             success=True,

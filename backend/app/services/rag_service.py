@@ -13,7 +13,8 @@ class RAGService:
         self,
         message: str,
         session_id: Optional[str] = None,
-        preferred_language: Optional[str] = None
+        preferred_language: Optional[str] = None,
+        client_history: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """Process Chat Message through Similarity Matching Layer + Google Gemini AI."""
         # 1. Session Setup
@@ -22,8 +23,18 @@ class RAGService:
         # 2. Language Detection
         detected_lang = preferred_language or language_service.detect_language(message)
         
-        # 3. Retrieve Conversation History & Metadata
+        # 3. Retrieve Conversation History & Metadata (Server SQLite + Client sync)
         history = memory_service.get_history(sid)
+        if (not history or len(history) < (len(client_history) if client_history else 0)) and client_history:
+            formatted_history = []
+            for item in client_history[-10:]:
+                role = item.get("role") or item.get("sender") or "user"
+                role = "assistant" if role in ["ai", "assistant", "bot"] else "user"
+                content = item.get("content") or item.get("message") or ""
+                if content:
+                    formatted_history.append({"role": role, "content": str(content)})
+            if formatted_history:
+                history = formatted_history
         session_meta = memory_service.get_session_metadata(sid)
         
         # 4. Intent & Entity Understanding

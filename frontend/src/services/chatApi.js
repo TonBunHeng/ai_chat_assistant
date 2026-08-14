@@ -14,12 +14,13 @@ const apiClient = axios.create({
 /**
  * Send chat message to AI assistant
  */
-export const sendMessage = async ({ message, language = 'en', session_id = null }) => {
+export const sendMessage = async ({ message, language = 'en', session_id = null, history = [] }) => {
   try {
     const response = await apiClient.post('/chat', {
       message,
       language,
       session_id,
+      history,
     });
     return response.data;
   } catch (error) {

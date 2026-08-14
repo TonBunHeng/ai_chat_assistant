@@ -280,12 +280,21 @@ const ChatPage = () => {
       let respMode = 'offline';
       let activeSid = currentSessionId;
 
-      // 1. Try sending message to FastAPI backend
+      // 1. Try sending message to FastAPI backend with full session context
       try {
+        const historyPayload = messages
+          .filter((m) => m && (m.message || m.content))
+          .map((m) => ({
+            role: m.sender === 'user' || m.role === 'user' ? 'user' : 'assistant',
+            content: m.message || m.content || ''
+          }))
+          .slice(-10);
+
         const response = await sendMessage({
           message: userMessageText,
           language: language,
-          session_id: currentSessionId
+          session_id: currentSessionId,
+          history: historyPayload
         });
 
         const apiPayload = response?.data?.data ?? response?.data ?? response;
