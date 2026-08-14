@@ -95,7 +95,14 @@ class AIService:
 
         # Try SDK call
         if HAS_GOOGLE_GENAI:
-            candidate_models = [settings.GEMINI_MODEL, "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-flash-latest"]
+            candidate_models = [
+                settings.GEMINI_MODEL,
+                "gemini-3.5-flash-lite",
+                "gemini-flash-lite-latest",
+                "gemini-3.6-flash",
+                "gemini-3.1-flash-lite",
+                "gemini-3.7-flash",
+            ]
             # Deduplicate preserving order
             models_to_try = list(dict.fromkeys(candidate_models))
             
@@ -119,7 +126,14 @@ class AIService:
                     print(f"Gemini SDK Note for {model_name}: {e}")
 
         # REST API fallback for Gemini if SDK fails or alternative model name
-        rest_candidate_models = [settings.GEMINI_MODEL, "gemini-3.7-flash", "gemini-3.5-flash-lite", "gemini-flash-lite-latest", "gemini-3.6-flash", "gemini-flash-latest"]
+        rest_candidate_models = [
+            settings.GEMINI_MODEL,
+            "gemini-3.5-flash-lite",
+            "gemini-flash-lite-latest",
+            "gemini-3.6-flash",
+            "gemini-3.1-flash-lite",
+            "gemini-3.7-flash",
+        ]
         for model in list(dict.fromkeys(rest_candidate_models)):
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
@@ -146,8 +160,9 @@ class AIService:
         return None
 
     def _generate_fallback_response(self, message: str, context: Optional[str], is_matched: bool) -> str:
-        """Graceful conversational fallback if LLM service is offline or API key is not yet provided."""
+        """Graceful conversational fallback if LLM service is offline, rate-limited, or API key is not yet provided."""
         is_km = is_khmer_text(message)
+        has_key = bool(settings.effective_gemini_api_key.strip())
 
         if context and context.strip():
             context_excerpt = "\n".join(context.splitlines()[:6])
@@ -157,11 +172,21 @@ class AIService:
                 return f"Here is the key Cambodia tourism information:\n\n{context_excerpt}\n\nDo you have any follow-up questions?"
 
         if is_km:
+            if has_key:
+                return (
+                    "សូមអភ័យទោស! សេវា AI កំពុងមានចរាចរណ៍មមាញឹកបណ្ដោះអាសន្ន។ "
+                    "សូមព្យាយាមសួរសំណួរម្តងទៀតក្នុងរយៈពេលបន្តិចទៀត ឬសួរអំពីតំបន់ទេសចរណ៍នានានៅកម្ពុជា។"
+                )
             return (
                 "សូមអភ័យទោស! ប្រព័ន្ធ AI Gemini មិនទាន់ត្រូវបានភ្ជាប់ API Key ទេ។ "
                 "សូមបំពេញ GEMINI_API_KEY នៅក្នុង backend/.env ដើម្បីប្រើប្រាស់ Gemini AI ពេញលេញ។"
             )
         else:
+            if has_key:
+                return (
+                    "I'm temporarily experiencing high AI traffic. "
+                    "Please try asking your question again in a moment, or feel free to ask about attractions, hotels, food, and destinations in Cambodia!"
+                )
             return (
                 "Welcome to Cambodia AI Tourism Assistant! "
                 "Please configure your GEMINI_API_KEY in backend/.env to unlock full Google Gemini AI capabilities."
