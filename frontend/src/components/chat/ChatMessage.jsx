@@ -57,9 +57,9 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
           <User size={18} />
         ) : (
           <img
-            src="/tourism_app_icon.png"
+            src="/tourism_logo.png"
             alt="Angkor Verse AI"
-            className="w-full h-full object-cover rounded-2xl"
+            className="w-full h-full object-contain p-0.5 rounded-2xl"
           />
         )}
       </div>
