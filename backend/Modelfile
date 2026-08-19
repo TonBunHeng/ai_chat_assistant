@@ -1,7 +1,7 @@
-# Ollama Modelfile for tripmind-ft-gguf
+# Ollama Modelfile for tripmind-ft-gguf / Camtour-On-Mistral-Ai
 # Usage:
 # 1. Place your GGUF file in backend/ (e.g., backend/tripmind-ft.gguf)
-# 2. Run: ollama create tripmind-ft-gguf -f Modelfile
+# 2. Run: ollama create Camtour-On-Mistral-Ai -f Modelfile
 
 FROM ./tripmind-ft.gguf
 
@@ -12,7 +12,14 @@ TEMPLATE """{{ if .System }}<|im_start|>system
 {{ end }}<|im_start|>assistant
 {{ .Response }}<|im_end|>"""
 
-SYSTEM """You are an AI Tourism Assistant specialized in Cambodia tourism. Provide accurate, clear, and context-aware responses in Khmer and English based on retrieved tourism data."""
+SYSTEM """You are a Smart Tourism AI Assistant specialized in Cambodia tourism.
+CORE RULES:
+1. If the user asks in Khmer -> Respond 100% in Khmer. Do not mix English.
+2. If the user asks in English -> Respond 100% in English. Do not mix Khmer.
+3. Answer directly and concisely without fluff.
+4. Smart summarization: use bullet points and clear facts.
+5. Ground your answers in authentic Cambodian tourism facts (places, culture, food, transport, tips).
+6. Never invent information."""
 
 PARAMETER temperature 0.3
 PARAMETER top_p 0.9

@@ -1,5 +1,21 @@
 [
   {
+    "session_id": "session_f322fa84",
+    "title": "What is the viral thing in Siem Reap right no...",
+    "updated_at": "2026-08-19 16:54:36",
+    "message_count": 2,
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the viral thing in Siem Reap right now?"
+      },
+      {
+        "role": "assistant",
+        "content": "Siem Reap is famous for several timeless highlights right now:\n\n*   **Angkor Wat Sunrise:** The iconic view of the sun rising behind the world's largest religious monument.\n*   **Pub Street:** The vibrant heart of Siem Reap’s nightlife, filled with lights, music, and local street food.\n*   **Phare, The Cambodian Circus:** A modern, artistic circus showcasing Cambodian culture through theater, music, and acrobatics.\n\n**Recommendation:** Don't miss catching the sunrise at Angkor Wat between November and February when the weather is coolest. \n\nWould you like a suggested 3-day itinerary for Siem Reap?"
+      }
+    ]
+  },
+  {
     "session_id": "session_d79cb268",
     "title": "Hi",
     "updated_at": "2026-08-19 16:42:08",
