@@ -5,8 +5,8 @@ from app.core.config import settings
 from app.api.routes import health, chat, search, summary, tourism_routes
 
 app = FastAPI(
-    title="AI Tourism Information Chatbot API",
-    description="Intelligent AI Tourism Information Chatbot backend specialized in Cambodia tourism.",
+    title="Angkor Verse AI API",
+    description="Intelligent Angkor Verse AI Tourism Information Service specialized in Cambodia tourism.",
     version="1.0.0",
     debug=settings.DEBUG
 )
@@ -53,7 +53,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/")
 async def root():
     return {
-        "message": "AI Tourism Information Chatbot API is running",
+        "message": "Angkor Verse AI API is running",
         "docs": "/docs",
         "health": "/api/health"
     }

@@ -62,9 +62,9 @@ class RAGService:
         if intent == "greeting":
             is_km = "km" in detected_lang or any("\u1780" <= c <= "\u17ff" for c in message)
             answer = (
-                "សួស្តី! 🖐️ ខ្ញុំជា AIChat_Support ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
+                "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
                 if is_km
-                else "Hello! 👋 Welcome to Cambodia! I'm AIChat_Support, your AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?"
+                else "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?"
             )
         elif intent == "itinerary_planning" and active_destination:
             days = 3

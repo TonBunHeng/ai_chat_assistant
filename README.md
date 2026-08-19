@@ -1,4 +1,4 @@
-# AI Tourism Information Chatbot (Cambodia)
+# Angkor Verse AI - Tourism Information Service (Cambodia)
 
 An intelligent AI Tourism Information Service specialized in Cambodia tourism built with **FastAPI**, **RAG (Retrieval-Augmented Generation)**, **Ollama (`Camtour-On-Mistral-Ai:latest`)**, **SQLite**, and **React + Vite**.
 

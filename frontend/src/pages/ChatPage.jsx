@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/layout/Header';
-import Sidebar from '../components/layout/Sidebar';
 import ChatWindow from '../components/chat/ChatWindow';
 import ChatInput from '../components/chat/ChatInput';
 import SettingsModal from '../components/modals/SettingsModal';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
 import { performOfflineSearch } from '../utils/offlineSearch';
-import { sendMessage, fetchChatSessions, fetchChatSession, deleteChatSession, clearAllChatSessions } from '../services/chatApi';
+import { sendMessage, fetchChatSessions, fetchChatSession, deleteChatSession, clearAllChatSessions } from '../services/chatService';
 
 const ChatPage = () => {
   const isOnline = useOnlineStatus();
@@ -17,21 +16,6 @@ const ChatPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentMode, setCurrentMode] = useState('online');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    try {
-      const stored = localStorage.getItem('cambodia_ai_sidebar_collapsed');
-      return stored !== null ? JSON.parse(stored) : false;
-    } catch (e) {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('cambodia_ai_sidebar_collapsed', JSON.stringify(isSidebarCollapsed));
-    } catch (e) {}
-  }, [isSidebarCollapsed]);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   
@@ -400,50 +384,48 @@ const ChatPage = () => {
       <Header
         language={language}
         setLanguage={setLanguage}
-        isMobileMenuOpen={isMobileMenuOpen}
-        setIsMobileMenuOpen={setIsMobileMenuOpen}
         isOnline={isOnline}
         mode={currentMode}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleSidebarCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        onNewChat={handleNewChat}
       />
 
       {/* Main Container */}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Left Sidebar */}
-        <Sidebar
-          sessions={sessions}
-          currentSessionId={currentSessionId}
-          onSelectSession={handleSelectSession}
-          onNewChat={handleNewChat}
-          onClearChat={handleClearChat}
-          onDeleteSession={handleDeleteSession}
-          onQuickQuery={handleSendMessage}
-          language={language}
-          isOpen={isMobileMenuOpen}
-          setIsOpen={setIsMobileMenuOpen}
-          isCollapsed={isSidebarCollapsed}
-          setIsCollapsed={setIsSidebarCollapsed}
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          userProfile={userProfile}
-        />
-
         {/* Chat Window & Input Area */}
         <main className="flex-1 flex flex-col h-full min-w-0">
-          <ChatWindow
-            messages={messages}
-            isLoading={isLoading}
-            error={error}
-            onSendMessage={handleSendMessage}
-            onRegenerate={handleRegenerate}
-            language={language}
-          />
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            isLoading={isLoading}
-            language={language}
-          />
+          {messages.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 max-w-3xl mx-auto w-full -mt-10 sm:-mt-16 animate-fade-in">
+              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[32px] font-bold tracking-tight text-slate-900 dark:text-white text-center sm:whitespace-nowrap mb-6 select-none leading-snug px-2 max-w-full">
+                {language === 'km' ? 'តើខ្ញុំអាចជួយអ្នកទស្សនាកម្ពុជាយ៉ាងដូចម្តេច?' : 'How can I help tourists visit Cambodia?'}
+              </h1>
+              <div className="w-full max-w-2xl">
+                <ChatInput
+                  onSendMessage={handleSendMessage}
+                  isLoading={isLoading}
+                  language={language}
+                  isCentered={true}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <ChatWindow
+                messages={messages}
+                isLoading={isLoading}
+                error={error}
+                onSendMessage={handleSendMessage}
+                onRegenerate={handleRegenerate}
+                language={language}
+              />
+              <ChatInput
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+                language={language}
+                isCentered={false}
+              />
+            </>
+          )}
         </main>
       </div>
 

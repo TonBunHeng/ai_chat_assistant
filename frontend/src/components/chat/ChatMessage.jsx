@@ -62,7 +62,7 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
         {/* Mode Tag Badge for AI */}
         {!isUser && (
           <div className="flex items-center space-x-2 mb-1.5 px-1 text-[11px]">
-            <span className="font-semibold text-slate-900 dark:text-white">Cambodia Tourism AI</span>
+            <span className="font-semibold text-slate-900 dark:text-white">Angkor Verse AI</span>
             <span>•</span>
             {mode === 'offline' ? (
               <span className="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">

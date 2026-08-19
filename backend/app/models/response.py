@@ -18,5 +18,7 @@ class ChatResponseData(BaseModel):
 
 class StandardResponse(BaseModel, Generic[T]):
     success: bool = True
+    message: str = "Operation successful."
     data: Optional[T] = None
     error: Optional[str] = None
+    errors: Optional[Any] = None

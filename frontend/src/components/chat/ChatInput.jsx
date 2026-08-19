@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Paperclip, X, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Plus, ArrowUp, X, Image as ImageIcon } from 'lucide-react';
 
-const ChatInput = ({ onSendMessage, isLoading, language = 'en' }) => {
+const ChatInput = ({ onSendMessage, isLoading, language = 'en', isCentered = false }) => {
   const [text, setText] = useState('');
   const [attachments, setAttachments] = useState([]);
   const textareaRef = useRef(null);
@@ -53,27 +53,29 @@ const ChatInput = ({ onSendMessage, isLoading, language = 'en' }) => {
     setAttachments((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const hasContent = Boolean(text.trim() || attachments.length > 0);
+
   return (
-    <div className="bg-[#f8fafc] dark:bg-[#18181b] py-2 px-3 sm:px-4 sticky bottom-0 z-20 transition-colors duration-200">
-      <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+    <div className={`w-full ${isCentered ? 'px-2 py-0' : 'bg-[#f8fafc] dark:bg-[#18181b] py-2 px-3 sm:px-4 sticky bottom-0 z-20'}`}>
+      <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
         
-        {/* Gemini-Inspired Compact Floating Composer Box */}
-        <div className="relative bg-white dark:bg-[#18181b] border border-[#f3f4f6] dark:border-[#27272a] focus-within:border-[#2563eb] dark:focus-within:border-[#2563eb] focus-within:ring-2 focus-within:ring-[#2563eb]/20 rounded-2xl px-3 py-1.5 shadow-sm transition-all">
+        {/* Solid ChatGPT Pill-Shaped Input Box (No Blur / No Heavy Shadow) */}
+        <div className="relative bg-white dark:bg-[#212121] border border-slate-300 dark:border-zinc-700 focus-within:border-slate-500 dark:focus-within:border-zinc-500 rounded-full px-3.5 py-1.5 sm:py-2 transition-colors">
           
           {/* Attached Files/Images Preview Chips */}
           {attachments.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-1.5 px-1 pt-1">
+            <div className="flex flex-wrap gap-2 mb-2 px-1 pt-1">
               {attachments.map((att, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center space-x-1.5 bg-slate-100 dark:bg-[#27272a] border border-[#f3f4f6] dark:border-[#27272a] px-2.5 py-1 rounded-lg text-xs text-slate-800 dark:text-slate-200"
+                  className="flex items-center space-x-1.5 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 px-2.5 py-1 rounded-full text-xs text-slate-800 dark:text-slate-200"
                 >
                   <ImageIcon size={13} className="text-[#2563eb]" />
                   <span className="truncate max-w-[120px] font-medium">{att.name}</span>
                   <button
                     type="button"
                     onClick={() => removeAttachment(idx)}
-                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full"
+                    className="text-slate-400 hover:text-rose-500 p-0.5 rounded-full transition-colors cursor-pointer"
                   >
                     <X size={12} />
                   </button>
@@ -82,8 +84,8 @@ const ChatInput = ({ onSendMessage, isLoading, language = 'en' }) => {
             </div>
           )}
 
-          {/* Input & Action Buttons Row */}
-          <div className="flex items-center space-x-2">
+          {/* Controls Row */}
+          <div className="flex items-center space-x-1.5 sm:space-x-2">
             
             {/* Hidden File Input */}
             <input
@@ -95,15 +97,15 @@ const ChatInput = ({ onSendMessage, isLoading, language = 'en' }) => {
               className="hidden"
             />
 
-            {/* Paperclip Attachment Icon Button */}
+            {/* Plus / Attach Button (ChatGPT Style) */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
-              className="p-1.5 rounded-xl text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-[#27272a] transition-colors shrink-0 cursor-pointer"
-              title={isKhmer ? 'ភ្ជាប់រូបភាព ឬ ឯកសារ' : 'Attach images or files'}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
+              title={isKhmer ? 'ភ្ជាប់ឯកសារ ឬរូបភាព' : 'Add attachment'}
             >
-              <Paperclip size={18} />
+              <Plus size={18} />
             </button>
 
             {/* Main Textarea */}
@@ -115,35 +117,36 @@ const ChatInput = ({ onSendMessage, isLoading, language = 'en' }) => {
               onKeyDown={handleKeyDown}
               placeholder={
                 isKhmer
-                  ? 'សួរអំពីប្រាសាទបុរាណ សណ្ឋាគារ ហាងអាហារកម្ពុជា...'
-                  : 'Ask about Cambodia places, hotels, food, travel plans...'
+                  ? 'សួរអ្វីមួយអំពីកម្ពុជា...'
+                  : 'Ask something about Cambodia.'
               }
               disabled={isLoading}
-              className="w-full bg-transparent text-xs sm:text-sm text-[#111827] dark:text-[#f4f4f5] placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none resize-none px-1 py-1 max-h-32 min-h-[32px] leading-normal"
+              className="w-full bg-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-zinc-400 focus:outline-none resize-none px-1 py-1 max-h-32 min-h-[28px] leading-normal"
             />
 
-            {/* Send Button */}
+            {/* Arrow-Up Send Button (Always Shown) */}
             <button
               type="submit"
               disabled={(!text.trim() && attachments.length === 0) || isLoading}
-              className={`p-2 rounded-xl text-white font-medium flex items-center justify-center shrink-0 transition-all ${
-                (text.trim() || attachments.length > 0) && !isLoading
-                  ? 'bg-[#003E83] hover:bg-[#002e62] shadow-sm active:scale-95 cursor-pointer'
-                  : 'bg-slate-200 dark:bg-[#27272a] text-slate-400 dark:text-slate-600 cursor-not-allowed'
+              className={`w-8 h-8 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-150 active:scale-95 ${
+                hasContent && !isLoading ? 'opacity-100 cursor-pointer' : 'opacity-40 cursor-not-allowed'
               }`}
               aria-label="Send message"
             >
-              <Send size={16} />
+              <ArrowUp size={17} strokeWidth={2.5} />
             </button>
+
           </div>
         </div>
 
-        {/* Footer Disclaimer */}
-        <p className="text-[11px] text-center text-slate-400 dark:text-slate-500 mt-2.5">
-          {isKhmer
-            ? 'Cambodia Tourism AI ផ្តល់ព័ត៌មានផ្អែកលើទិន្នន័យទេសចរណ៍ផ្លូវការ'
-            : 'Cambodia Tourism AI provides verified travel insights grounded in official database context.'}
-        </p>
+        {/* Footer Disclaimer (Only if bottom pinned) */}
+        {!isCentered && (
+          <p className="text-[11px] text-center text-slate-400 dark:text-zinc-500 mt-2">
+            {isKhmer
+              ? 'Angkor Verse AI ផ្តល់ព័ត៌មានផ្អែកលើទិន្នន័យទេសចរណ៍ផ្លូវការ'
+              : 'Angkor Verse AI can make mistakes. Check important info.'}
+          </p>
+        )}
       </form>
     </div>
   );
