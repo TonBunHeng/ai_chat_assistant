@@ -27,6 +27,41 @@ export const performOfflineSearch = async (query, language = 'en') => {
     };
   }
 
+  // Stop words that should not trigger single attraction matches
+  const STOP_WORDS = new Set([
+    'what', 'is', 'are', 'a', 'an', 'the', 'in', 'on', 'at', 'to', 'for', 'of', 'and', 'or', 'with',
+    'tell', 'me', 'about', 'how', 'where', 'which', 'who', 'why', 'cambodia', 'country', 'tourism',
+    'tourist', 'visit', 'trip', 'travel', 'place', 'places', 'highlight', 'highlights', 'hi', 'hello',
+    'hey', 'please', 'can', 'you', 'i', 'my', 'we', 'our', 'do', 'does', 'did',
+    'កម្ពុជា', 'តើ', 'អ្វី', 'ជា', 'នៅ', 'ពី', 'អំពី', 'ទេសចរណ៍', 'កន្លែង', 'ជួយ', 'សួស្តី', 'ជំរាបសួរ'
+  ]);
+
+  const cleanQuery = q.replace(/[^\w\s\u1780-\u17FF]/g, '').trim();
+
+  // Check if query is a broad Cambodia overview question
+  const isCambodiaOverview =
+    cleanQuery.includes('what is cambodia') ||
+    cleanQuery.includes('tell me about cambodia') ||
+    cleanQuery.includes('about cambodia') ||
+    cleanQuery === 'cambodia' ||
+    cleanQuery === 'cambodia country' ||
+    (cleanQuery.includes('កម្ពុជា') && (cleanQuery.includes('អ្វី') || cleanQuery.includes('ប្រាប់') || cleanQuery.split(/\s+/).length <= 2));
+
+  if (isCambodiaOverview) {
+    return {
+      success: true,
+      mode: 'offline',
+      intent: 'general_tourism',
+      message: isKhmer
+        ? `**ប្រទេសកម្ពុជា (ព្រះរាជាណាចក្រកម្ពុជា)** 🇰🇭\n\nកម្ពុជា គឺជាប្រទេសមួយស្ថិតនៅតំបន់អាស៊ីអាគ្នេយ៍ ដែលមានប្រវត្តិសាស្ត្រសម្បូរបែប វប្បធម៌ចំណាស់ និងសម្បត្តិបេតិកភណ្ឌពិភពលោកដ៏ល្បីល្បាញ៖\n\n- 🏛️ **រាជធានី:** ភ្នំពេញ (មជ្ឈមណ្ឌលសេដ្ឋកិច្ច និងវប្បធម៌)\n- 👑 **បេតិកភណ្ឌពិភពលោក:** ប្រាសាទអង្គរវត្ត (ខេត្តសៀមរាប), ប្រាសាទព្រះវិហារ, ប្រាសាទសម្បូរព្រៃគុក, និងកោះកេរ្តិ៍\n- 🏖️ **ឆ្នេរ និងធម្មជាតិ:** ឆ្នេរសមុទ្រ និងកោះធម្មជាតិ (ខេត្តព្រះសីហនុ និងកែប), ឧទ្យានជាតិភ្នំបូកគោ (ខេត្តកំពត)\n- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, សម្លការីខ្មែរ, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n- 🗣️ **ភាសាផ្លូវការ:** ភាសាខ្មែរ | **រូបិយប័ណ្ណ:** រៀល (KHR) & ដុល្លារ (USD)\n\nតើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ សណ្ឋាគារ ឬរៀបចំគម្រោងដើរលេងនៅកន្លែងណាដែរ?`
+        : `**Cambodia (Kingdom of Cambodia)** 🇰🇭\n\nCambodia is a captivating country in Southeast Asia renowned for its profound heritage, ancient Khmer civilization, and stunning natural landscapes:\n\n- 🏛️ **Capital:** Phnom Penh (home to the Royal Palace, National Museum, and riverside promenade)\n- 🏰 **World Heritage & Temples:** The legendary **Angkor Wat** complex, Bayon, and Ta Prohm in Siem Reap; Preah Vihear, Sambor Prei Kuk, and Koh Ker\n- 🏖️ **Islands & Coastline:** Pristine white sand beaches and tropical islands in Preah Sihanouk (Koh Rong, Koh Rong Sanloem) and Kep\n- 🌿 **Nature & Mountains:** Cardamom Mountains, Bokor National Park in Kampot, and the waterfalls of Mondulkiri\n- 🍲 **Khmer Cuisine:** Signature dishes like Fish Amok, Beef Lok Lak, Nom Banh Chok, and fresh Kampot pepper crab\n- 🗣️ **Language:** Khmer | **Currency:** Cambodian Riel (KHR) & US Dollar (USD)\n\nWould you like recommendations on itineraries, top attractions, hotels, or local transport across Cambodia?`,
+      suggestions: isKhmer
+        ? ['ណែនាំប្រាសាទនៅសៀមរាប', 'ណែនាំឆ្នេរនៅកំពង់សោម', 'ម្ហូបខ្មែរដែលត្រូវតែសាក']
+        : ['What are top places in Siem Reap?', 'Best beaches in Koh Rong', 'Must try Cambodian food'],
+      sources: [],
+    };
+  }
+
   // 1. Try local Ollama LLM if available on the client machine
   try {
     const targetLangDesc = isKhmer
@@ -88,31 +123,37 @@ User Question: '${query}'`;
     // Continue to local dataset matching fallback
   }
 
-  // 2. Intelligent offline dataset search fallback
-  const queryTokens = q.split(/\s+/).filter(Boolean);
+  // 2. Intelligent offline dataset search fallback on meaningful non-stopword tokens
+  const queryTokens = cleanQuery.split(/\s+/).filter(t => t.length > 1 && !STOP_WORDS.has(t));
   const matchedItems = [];
 
-  for (const item of tourismDataset) {
-    let score = 0;
-    const itemText = [
-      item.name,
-      item.name_km,
-      item.province,
-      item.category,
-      item.description,
-      item.description_km,
-      ...(item.tags || []),
-      ...(item.popular_attractions || [])
-    ].join(' ').toLowerCase();
+  if (queryTokens.length > 0) {
+    for (const item of tourismDataset) {
+      let score = 0;
+      const nameEn = (item.name || '').toLowerCase();
+      const nameKm = (item.name_km || '').toLowerCase();
+      const provEn = (item.province || '').toLowerCase();
+      const provKm = (item.province_km || '').toLowerCase();
+      const tags = (item.tags || []).map(t => t.toLowerCase());
 
-    for (const token of queryTokens) {
-      if (token.length > 2 && itemText.includes(token)) {
-        score += 1;
+      if (cleanQuery.length >= 4 && !STOP_WORDS.has(cleanQuery)) {
+        if (nameEn.includes(cleanQuery) || cleanQuery.includes(nameEn)) score += 25;
+        if (nameKm.includes(cleanQuery) || cleanQuery.includes(nameKm)) score += 25;
+        if (provEn.includes(cleanQuery) || cleanQuery.includes(provEn)) score += 12;
       }
-    }
 
-    if (score > 0) {
-      matchedItems.push({ item, score });
+      for (const token of queryTokens) {
+        if (nameEn === token || nameEn.split(/\s+/).includes(token)) score += 15;
+        else if (nameEn.includes(token)) score += 6;
+
+        if (nameKm === token || nameKm.includes(token)) score += 15;
+        if (provEn === token || provEn.split(/\s+/).includes(token)) score += 8;
+        if (tags.some(t => t === token || t.includes(token))) score += 6;
+      }
+
+      if (score >= 6) {
+        matchedItems.push({ item, score });
+      }
     }
   }
 

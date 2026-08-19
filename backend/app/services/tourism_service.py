@@ -61,11 +61,26 @@ class TourismService:
                 results.append(item)
         return results
 
+    # Stop words that should not trigger single attraction matches
+    STOP_WORDS = {
+        "what", "is", "are", "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "with",
+        "tell", "me", "about", "how", "where", "which", "who", "why", "cambodia", "country", "tourism",
+        "tourist", "visit", "trip", "travel", "place", "places", "highlight", "highlights", "hi", "hello",
+        "hey", "please", "can", "you", "i", "my", "we", "our", "do", "does", "did",
+        "កម្ពុជា", "តើ", "អ្វី", "ជា", "នៅ", "ពី", "អំពី", "ទេសចរណ៍", "កន្លែង", "ជួយ", "សួស្តី", "ជំរាបសួរ"
+    }
+
     def search_keyword(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Keyword matching across name, description, tags, province, and tips."""
-        query_lower = query.lower()
-        tokens = [t for t in query_lower.split() if len(t) > 1]
+        query_lower = query.lower().strip()
+        # Remove punctuation
+        import re
+        clean_q = re.sub(r'[^\w\s\u1780-\u17FF]', '', query_lower)
+        tokens = [t for t in clean_q.split() if len(t) > 1 and t not in self.STOP_WORDS]
         
+        if not tokens and clean_q in self.STOP_WORDS:
+            return []
+
         scored_items = []
         for item in self.all_items:
             score = 0
@@ -77,28 +92,33 @@ class TourismService:
             prov_km = (item.get("province_km") or "").lower()
             tags = [t.lower() for t in item.get("tags", [])]
             
-            # Exact or substring match in name (both directions for Khmer unspaced text)
-            if (name_en and (query_lower in name_en or name_en in query_lower)) or \
-               (name_km and (query_lower in name_km or name_km in query_lower)):
-                score += 15
-            if (prov_en and (query_lower in prov_en or prov_en in query_lower)) or \
-               (prov_km and (query_lower in prov_km or prov_km in query_lower)):
-                score += 8
-            if (desc_en and query_lower in desc_en) or (desc_km and query_lower in desc_km):
-                score += 5
+            # Exact or specific place name containment (only if query is meaningful)
+            if len(clean_q) >= 4 and clean_q not in self.STOP_WORDS:
+                if (name_en and (clean_q == name_en or clean_q in name_en or name_en in clean_q)) or \
+                   (name_km and (clean_q == name_km or clean_q in name_km or name_km in clean_q)):
+                    score += 25
+                if (prov_en and (clean_q == prov_en or clean_q in prov_en)) or \
+                   (prov_km and (clean_q == prov_km or clean_q in prov_km)):
+                    score += 12
                 
-            # Token & Tag match
+            # Token & Tag match on non-stop words
             for token in tokens:
-                if (name_en and token in name_en) or (name_km and (token in name_km or name_km in token)):
-                    score += 5
-                if (prov_en and token in prov_en) or (prov_km and (token in prov_km or prov_km in token)):
-                    score += 3
-                if any(token in tag or tag in token for tag in tags):
-                    score += 4
-                if (desc_en and token in desc_en) or (desc_km and token in desc_km):
+                if name_en and (token == name_en or token in name_en.split()):
+                    score += 15
+                elif name_en and token in name_en:
+                    score += 6
+                if name_km and (token == name_km or token in name_km):
+                    score += 15
+                if prov_en and (token == prov_en or token in prov_en.split()):
+                    score += 8
+                if prov_km and (token == prov_km or token in prov_km):
+                    score += 8
+                if any(token == tag or token in tag.split() for tag in tags):
+                    score += 6
+                if (desc_en and f" {token} " in f" {desc_en} ") or (desc_km and token in desc_km):
                     score += 2
                     
-            if score > 0:
+            if score >= 6:
                 scored_items.append((score, item))
                 
         scored_items.sort(key=lambda x: x[0], reverse=True)

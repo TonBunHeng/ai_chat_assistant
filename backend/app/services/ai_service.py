@@ -97,11 +97,9 @@ class AIService:
         if HAS_GOOGLE_GENAI:
             candidate_models = [
                 settings.GEMINI_MODEL,
-                "gemini-3.6-flash",
-                "gemini-3.5-flash-lite",
-                "gemini-3.5-flash",
-                "gemini-3.7-flash",
                 "gemini-flash-latest",
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
             ]
             # Deduplicate preserving order
             models_to_try = [m for m in list(dict.fromkeys(candidate_models)) if m]
@@ -128,11 +126,9 @@ class AIService:
         # REST API fallback for Gemini if SDK fails or alternative model name
         rest_candidate_models = [
             settings.GEMINI_MODEL,
-            "gemini-3.6-flash",
-            "gemini-3.5-flash-lite",
-            "gemini-3.5-flash",
-            "gemini-3.7-flash",
             "gemini-flash-latest",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
         ]
         for model in [m for m in list(dict.fromkeys(rest_candidate_models)) if m]:
             try:
@@ -142,7 +138,7 @@ class AIService:
                     "systemInstruction": {"parts": [{"text": system_instruction}]},
                     "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024}
                 }
-                res = requests.post(url, json=payload, timeout=12)
+                res = requests.post(url, json=payload, timeout=6)
                 if res.status_code == 200:
                     data = res.json()
                     candidates = data.get("candidates", [])
@@ -160,10 +156,12 @@ class AIService:
 
     def _generate_fallback_response(self, message: str, context: Optional[str], is_matched: bool) -> str:
         """Graceful conversational AI response without raw database keys."""
+        import re
         is_km = is_khmer_text(message)
+        clean_msg = re.sub(r'[^\w\s\u1780-\u17FF]', '', message.lower()).strip()
 
-        # 1. If context exists, transform it into natural, fluent conversational prose
-        if context and context.strip():
+        # 1. If context exists and item is matched, transform it into natural, fluent conversational prose
+        if is_matched and context and context.strip():
             ctx_data = {}
             for line in context.splitlines():
                 if ":" in line:
@@ -213,7 +211,41 @@ class AIService:
                 paragraphs.append("Would you like a recommended day itinerary, transportation tips, or dining suggestions around this area?")
                 return "\n\n".join(paragraphs)
 
-        # 2. Search local dataset for relevant keywords if context wasn't already provided
+        # 2. Check if user is asking a broad overview question about Cambodia
+        is_cambodia_overview = (
+            "what is cambodia" in clean_msg or
+            "tell me about cambodia" in clean_msg or
+            "about cambodia" in clean_msg or
+            clean_msg in ["cambodia", "cambodia country", "what is cambodia", "explain cambodia"] or
+            ("កម្ពុជា" in clean_msg and ("អ្វី" in clean_msg or "ប្រាប់" in clean_msg or len(clean_msg.split()) <= 3))
+        )
+
+        if is_cambodia_overview:
+            if is_km:
+                return (
+                    "**ប្រទេសកម្ពុជា (ព្រះរាជាណាចក្រកម្ពុជា)** 🇰🇭\n\n"
+                    "កម្ពុជា គឺជាប្រទេសមួយស្ថិតនៅតំបន់អាស៊ីអាគ្នេយ៍ ដែលមានប្រវត្តិសាស្ត្រសម្បូរបែប វប្បធម៌ចំណាស់ និងសម្បត្តិបេតិកភណ្ឌពិភពលោកដ៏ល្បីល្បាញ៖\n\n"
+                    "- 🏛️ **រាជធានី:** ភ្នំពេញ (មជ្ឈមណ្ឌលសេដ្ឋកិច្ច និងវប្បធម៌)\n"
+                    "- 👑 **បេតិកភណ្ឌពិភពលោក:** ប្រាសាទអង្គរវត្ត (ខេត្តសៀមរាប), ប្រាសាទព្រះវិហារ, ប្រាសាទសម្បូរព្រៃគុក, និងកោះកេរ្តិ៍\n"
+                    "- 🏖️ **ឆ្នេរ និងធម្មជាតិ:** ឆ្នេរសមុទ្រ និងកោះធម្មជាតិ (ខេត្តព្រះសីហនុ និងកែប), ឧទ្យានជាតិភ្នំបូកគោ (ខេត្តកំពត)\n"
+                    "- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, សម្លការីខ្មែរ, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n"
+                    "- 🗣️ **ភាសាផ្លូវការ:** ភាសាខ្មែរ | **រូបិយប័ណ្ណ:** រៀល (KHR) & ដុល្លារ (USD)\n\n"
+                    "តើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ សណ្ឋាគារ ឬរៀបចំគម្រោងដើរលេងនៅកន្លែងណាដែរ?"
+                )
+            else:
+                return (
+                    "**Cambodia (Kingdom of Cambodia)** 🇰🇭\n\n"
+                    "Cambodia is a captivating country in Southeast Asia renowned for its profound heritage, ancient Khmer civilization, and stunning natural landscapes:\n\n"
+                    "- 🏛️ **Capital:** Phnom Penh (home to the Royal Palace, National Museum, and riverside promenade)\n"
+                    "- 🏰 **World Heritage & Temples:** The legendary **Angkor Wat** complex, Bayon, and Ta Prohm in Siem Reap; Preah Vihear, Sambor Prei Kuk, and Koh Ker\n"
+                    "- 🏖️ **Islands & Coastline:** Pristine white sand beaches and tropical islands in Preah Sihanouk (Koh Rong, Koh Rong Sanloem) and Kep\n"
+                    "- 🌿 **Nature & Mountains:** Cardamom Mountains, Bokor National Park in Kampot, and the waterfalls of Mondulkiri\n"
+                    "- 🍲 **Khmer Cuisine:** Signature dishes like Fish Amok, Beef Lok Lak, Nom Banh Chok, and fresh Kampot pepper crab\n"
+                    "- 🗣️ **Language:** Khmer | **Currency:** Cambodian Riel (KHR) & US Dollar (USD)\n\n"
+                    "Would you like recommendations on itineraries, top attractions, hotels, or local transport across Cambodia?"
+                )
+
+        # 3. Search local dataset for specific distinctive keywords
         try:
             from app.services.tourism_service import tourism_service
             items = tourism_service.search_keyword(message, limit=2)
@@ -229,7 +261,7 @@ class AIService:
         except Exception:
             pass
 
-        # 3. Dynamic general tourism greeting & overview
+        # 4. Dynamic general tourism greeting & overview
         if is_km:
             return (
                 "សូមស្វាគមន៍មកកាន់ Angkor Verse AI! 🇰🇭\n\n"

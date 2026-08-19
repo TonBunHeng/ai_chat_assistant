@@ -59,36 +59,59 @@ class SimilarityMatchingService:
 
         return " | ".join(parts)
 
+    NON_PLACE_QUERIES = {
+        "hi", "hello", "hey", "good morning", "good afternoon", "good evening", "greetings",
+        "what is cambodia", "tell me about cambodia", "about cambodia", "cambodia", "cambodia country",
+        "who are you", "what can you do", "help", "thanks", "thank you", "bye", "goodbye",
+        "what is cambodia ?", "tell me about cambodia ?", "about cambodia ?",
+        "សួស្តី", "ជំរាបសួរ", "កម្ពុជា", "តើអ្វីទៅជាកម្ពុជា", "ប្រាប់អំពីកម្ពុជា"
+    }
+
     def compute_fuzzy_score(self, query: str, item: Dict[str, Any]) -> float:
-        """Compute fuzzy similarity score (0.0 to 1.0) using rapidfuzz or string matching."""
-        query_lower = query.lower().strip()
-        name_en = str(item.get("name") or "").lower()
-        name_km = str(item.get("name_km") or "").lower()
-        desc_en = str(item.get("description") or "").lower()
-        desc_km = str(item.get("description_km") or "").lower()
+        """Compute fuzzy similarity score (0.0 to 1.0) with exact word and token matching."""
+        import re
+        import difflib
+        
+        clean_q = re.sub(r'[^\w\s\u1780-\u17FF]', '', query.lower()).strip()
+        if not clean_q or len(clean_q) < 3 or clean_q in self.NON_PLACE_QUERIES:
+            return 0.0
 
+        name_en = str(item.get("name") or "").lower().strip()
+        name_km = str(item.get("name_km") or "").lower().strip()
+        
         scores = []
+        
+        # 1. Check exact or clean full name match
+        for name in [name_en, name_km]:
+            if not name:
+                continue
+            if clean_q == name:
+                return 1.0
+            # If place name is contained with word boundaries in query (e.g. "tell me about Angkor Wat")
+            if len(name) >= 4 and (f" {name} " in f" {clean_q} " or clean_q.startswith(name) or clean_q.endswith(name)):
+                scores.append(0.95)
+            # If query is contained in place name (e.g. "angkor wat" in "angkor wat temple")
+            elif len(clean_q) >= 4 and (f" {clean_q} " in f" {name} " or name.startswith(clean_q)):
+                len_ratio = len(clean_q) / len(name)
+                scores.append(0.80 + 0.18 * len_ratio)
+            else:
+                # Sequence matcher on whole name
+                ratio = difflib.SequenceMatcher(None, clean_q, name).ratio()
+                if ratio >= 0.75:
+                    scores.append(ratio)
 
-        if HAS_RAPIDFUZZ:
-            # Direct title matching
-            if name_en:
-                scores.append(fuzz.ratio(query_lower, name_en) / 100.0)
-                scores.append(fuzz.partial_ratio(query_lower, name_en) / 100.0)
-                scores.append(fuzz.token_set_ratio(query_lower, name_en) / 100.0)
-            if name_km:
-                scores.append(fuzz.ratio(query_lower, name_km) / 100.0)
-                scores.append(fuzz.partial_ratio(query_lower, name_km) / 100.0)
-                scores.append(fuzz.token_set_ratio(query_lower, name_km) / 100.0)
-            if desc_en:
-                scores.append(fuzz.partial_ratio(query_lower, desc_en) / 100.0 * 0.85)
-            if desc_km:
-                scores.append(fuzz.partial_ratio(query_lower, desc_km) / 100.0 * 0.85)
-        else:
-            # Fallback string matching if rapidfuzz is missing
-            for target in [name_en, name_km]:
-                if target and (query_lower in target or target in query_lower):
-                    len_ratio = min(len(query_lower), len(target)) / max(len(query_lower), len(target))
-                    scores.append(0.8 + 0.2 * len_ratio)
+        # 2. Token overlap on significant words
+        q_tokens = set(clean_q.split())
+        for name in [name_en, name_km]:
+            if not name:
+                continue
+            n_tokens = set(name.split())
+            if n_tokens and n_tokens.issubset(q_tokens):
+                scores.append(0.90)
+            elif q_tokens and n_tokens and len(q_tokens & n_tokens) >= 2:
+                overlap = len(q_tokens & n_tokens) / len(n_tokens)
+                if overlap >= 0.66:
+                    scores.append(0.75 + 0.20 * overlap)
 
         return max(scores) if scores else 0.0
 
@@ -101,6 +124,16 @@ class SimilarityMatchingService:
         Check query against local JSON files using semantic vector similarity + fuzzy matching.
         If top match similarity >= threshold (default 80-90%), return match_found=True and JSON snippet.
         """
+        import re
+        clean_q = re.sub(r'[^\w\s\u1780-\u17FF]', '', query.lower()).strip()
+        if not clean_q or len(clean_q) < 3 or clean_q in self.NON_PLACE_QUERIES:
+            return {
+                "match_found": False,
+                "similarity_score": 0.0,
+                "matched_item": None,
+                "formatted_snippet": ""
+            }
+
         if not self._is_indexed:
             self.index_datasets()
 
@@ -121,20 +154,20 @@ class SimilarityMatchingService:
         best_item = None
 
         for item, item_vec, text_profile in self._item_embeddings:
-            # 1. Semantic Embedding Cosine Similarity Score (0.0 to 1.0)
-            sem_score = embedding_service.compute_similarity(query_vec, item_vec)
-
-            # 2. Fuzzy String Similarity Score (0.0 to 1.0)
+            # 1. Fuzzy String Similarity Score (0.0 to 1.0)
             fuz_score = self.compute_fuzzy_score(query, item)
 
-            # Hybrid score
-            hybrid_score = max(sem_score, fuz_score)
+            # 2. Semantic Embedding Cosine Similarity Score (0.0 to 1.0)
+            sem_score = embedding_service.compute_similarity(query_vec, item_vec)
 
-            if fuz_score >= 0.85:
-                hybrid_score = max(hybrid_score, fuz_score)
+            # Only trust semantic score if there is some token/fuzzy relevance
+            if fuz_score >= 0.75:
+                score = max(sem_score, fuz_score)
+            else:
+                score = fuz_score
 
-            if hybrid_score > best_score:
-                best_score = hybrid_score
+            if score > best_score:
+                best_score = score
                 best_item = item
 
         match_found = best_score >= effective_threshold

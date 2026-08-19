@@ -60,6 +60,8 @@ class RAGService:
         
         # 6. Intent-specific handling
         if intent == "greeting":
+            is_matched = False
+            matched_item = None
             is_km = "km" in detected_lang or any("\u1780" <= c <= "\u17ff" for c in message)
             answer = (
                 "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
