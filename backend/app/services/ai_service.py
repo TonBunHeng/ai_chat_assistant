@@ -97,14 +97,13 @@ class AIService:
         if HAS_GOOGLE_GENAI:
             candidate_models = [
                 settings.GEMINI_MODEL,
-                "gemini-3.5-flash-lite",
-                "gemini-flash-lite-latest",
-                "gemini-3.6-flash",
-                "gemini-3.1-flash-lite",
-                "gemini-3.7-flash",
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro",
             ]
             # Deduplicate preserving order
-            models_to_try = list(dict.fromkeys(candidate_models))
+            models_to_try = [m for m in list(dict.fromkeys(candidate_models)) if m]
             
             for model_name in models_to_try:
                 try:
@@ -128,13 +127,12 @@ class AIService:
         # REST API fallback for Gemini if SDK fails or alternative model name
         rest_candidate_models = [
             settings.GEMINI_MODEL,
-            "gemini-3.5-flash-lite",
-            "gemini-flash-lite-latest",
-            "gemini-3.6-flash",
-            "gemini-3.1-flash-lite",
-            "gemini-3.7-flash",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
         ]
-        for model in list(dict.fromkeys(rest_candidate_models)):
+        for model in [m for m in list(dict.fromkeys(rest_candidate_models)) if m]:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 payload = {
@@ -150,8 +148,7 @@ class AIService:
                         parts = candidates[0].get("content", {}).get("parts", [])
                         if parts:
                             return parts[0].get("text", "").strip()
-                elif res.status_code in [401, 403]:
-                    # Auth or Invalid key error - don't retry
+                elif res.status_code in [400, 401, 403]:
                     print(f"Gemini API auth error {res.status_code}: {res.text[:100]}")
                     break
             except Exception as ex:
@@ -162,7 +159,6 @@ class AIService:
     def _generate_fallback_response(self, message: str, context: Optional[str], is_matched: bool) -> str:
         """Graceful conversational fallback if LLM service is offline, rate-limited, or API key is not yet provided."""
         is_km = is_khmer_text(message)
-        has_key = bool(settings.effective_gemini_api_key.strip())
 
         if context and context.strip():
             context_excerpt = "\n".join(context.splitlines()[:6])
@@ -171,25 +167,42 @@ class AIService:
             else:
                 return f"Here is the key Cambodia tourism information:\n\n{context_excerpt}\n\nDo you have any follow-up questions?"
 
+        # Search local dataset for relevant keywords if context wasn't already provided
+        try:
+            from app.services.tourism_service import tourism_service
+            items = tourism_service.search_keyword(message, limit=2)
+            if items:
+                primary = items[0]
+                if is_km:
+                    desc = primary.get("description_km") or primary.get("description")
+                    name = primary.get("name_km") or primary.get("name")
+                    return f"**{name}** ({primary.get('category', 'កន្លែងទេសចរណ៍')})\n\n{desc}\n\n📍 ទីតាំង៖ {primary.get('province', 'កម្ពុជា')}"
+                else:
+                    desc = primary.get("description") or primary.get("description_km")
+                    name = primary.get("name")
+                    return f"**{name}** ({primary.get('category', 'Tourism Highlight')})\n\n{desc}\n\n📍 Location: {primary.get('province', 'Cambodia')}"
+        except Exception:
+            pass
+
         if is_km:
-            if has_key:
-                return (
-                    "សូមអភ័យទោស! សេវា AI កំពុងមានចរាចរណ៍មមាញឹកបណ្ដោះអាសន្ន។ "
-                    "សូមព្យាយាមសួរសំណួរម្តងទៀតក្នុងរយៈពេលបន្តិចទៀត ឬសួរអំពីតំបន់ទេសចរណ៍នានានៅកម្ពុជា។"
-                )
             return (
-                "សូមអភ័យទោស! ប្រព័ន្ធ AI Gemini មិនទាន់ត្រូវបានភ្ជាប់ API Key ទេ។ "
-                "សូមបំពេញ GEMINI_API_KEY នៅក្នុង backend/.env ដើម្បីប្រើប្រាស់ Gemini AI ពេញលេញ។"
+                "សូមស្វាគមន៍មកកាន់ Angkor Verse AI! 🇰🇭\n\n"
+                "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពី៖\n"
+                "- 🏛️ ប្រាសាទបុរាណនៅសៀមរាប (អង្គរវត្ត, បាយ័ន, តាព្រហ្ម)\n"
+                "- 🏖️ ឆ្នេរ និងកោះល្បីៗ (កោះរ៉ុង, ព្រះសីហនុ)\n"
+                "- 🍲 ម្ហូបអាហារខ្មែរ (អាម៉ុក, នំបញ្ចុក, ឡុកឡាក់)\n"
+                "- 🗓️ គម្រោងដើរលេង និងការធ្វើដំណើរទូទាំងប្រទេសកម្ពុជា\n\n"
+                "តើលោកអ្នកចង់ស្វែងយល់បន្ថែមអំពីប្រធានបទមួយណាដែរ?"
             )
         else:
-            if has_key:
-                return (
-                    "I'm temporarily experiencing high AI traffic. "
-                    "Please try asking your question again in a moment, or feel free to ask about attractions, hotels, food, and destinations in Cambodia!"
-                )
             return (
-                "Welcome to Cambodia AI Tourism Assistant! "
-                "Please configure your GEMINI_API_KEY in backend/.env to unlock full Google Gemini AI capabilities."
+                "Welcome to Angkor Verse AI! 🇰🇭\n\n"
+                "I can help you explore Cambodia tourism:\n"
+                "- 🏛️ **Historic Temples:** Angkor Wat, Bayon, and Ta Prohm in Siem Reap\n"
+                "- 🏖️ **Islands & Beaches:** Koh Rong and Koh Rong Sanloem in Sihanoukville\n"
+                "- 🍲 **Khmer Cuisine:** Fish Amok, Nom Banh Chok, and Beef Lok Lak\n"
+                "- 🗺️ **Travel Itineraries & Transportation** across all provinces\n\n"
+                "How can I assist your trip to Cambodia today?"
             )
 
 
