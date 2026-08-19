@@ -47,13 +47,21 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
       
       {/* Avatar */}
       <div
-        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${
+        className={`w-9 h-9 rounded-2xl flex items-center justify-center shrink-0 shadow-sm overflow-hidden ${
           isUser
             ? 'bg-[#003E83] text-white'
-            : 'bg-[#003E83] text-white shadow-sm'
+            : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
         }`}
       >
-        {isUser ? <User size={18} /> : <Sparkles size={18} />}
+        {isUser ? (
+          <User size={18} />
+        ) : (
+          <img
+            src="/tourism_app_icon.png"
+            alt="Angkor Verse AI"
+            className="w-full h-full object-cover rounded-2xl"
+          />
+        )}
       </div>
 
       {/* Message Content Area */}

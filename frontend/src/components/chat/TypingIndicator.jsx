@@ -7,8 +7,12 @@ const TypingIndicator = ({ language = 'en' }) => {
   return (
     <div className="flex items-start space-x-3 mb-6 animate-fade-in">
       {/* Bot Avatar */}
-      <div className="w-9 h-9 rounded-2xl bg-[#2563eb] text-white flex items-center justify-center shrink-0 shadow-sm">
-        <Sparkles size={18} className="animate-spin-slow" />
+      <div className="w-9 h-9 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+        <img
+          src="/tourism_app_icon.png"
+          alt="Angkor Verse AI"
+          className="w-full h-full object-cover rounded-2xl"
+        />
       </div>
 
       {/* Typing Bubble */}

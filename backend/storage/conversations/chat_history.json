@@ -1,5 +1,37 @@
 [
   {
+    "session_id": "session_026e02b2",
+    "title": "Is Angkor Wat worth visiting?",
+    "updated_at": "2026-08-19 17:00:14",
+    "message_count": 2,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Is Angkor Wat worth visiting?"
+      },
+      {
+        "role": "assistant",
+        "content": "**Direct Answer**\nYes, Angkor Wat is definitely worth visiting. It is globally renowned as the largest religious monument in the world and a masterpiece of Khmer architecture.\n\n**Key Points**\n* 🏛️ **History & Architecture:** Built in the 12th century by King Suryavarman II, showcasing incredible ancient stone carvings and bas-reliefs.\n* 🌅 **Sunrise Views:** Famous for offering one of the most breathtaking sunrise views over its iconic lotus towers.\n* 🎟️ **Ticketing:** Access is included with the Angkor Pass ($37 for 1-day, $62 for 3-day, or $72 for 7-day).\n* ⏰ **Opening Hours:** Open daily from 05:00 AM to 05:30 PM.\n\n**Tip**\nArrive early around 5:00 AM to secure a good spot for the sunrise reflection by the lotus ponds."
+      }
+    ]
+  },
+  {
+    "session_id": "session_203cc55a",
+    "title": "ខ្ញុំចង់ទៅអង្គរវត្ត តើគួរទៅម៉ោងណា?",
+    "updated_at": "2026-08-19 17:00:08",
+    "message_count": 2,
+    "messages": [
+      {
+        "role": "user",
+        "content": "ខ្ញុំចង់ទៅអង្គរវត្ត តើគួរទៅម៉ោងណា?"
+      },
+      {
+        "role": "assistant",
+        "content": "ដើម្បីទស្សនាអង្គរវត្តឱ្យបានស្រស់ស្អាតនិងមានន័យបំផុត លោកអ្នកគួរទៅតាមពេលវេលាខាងក្រោម៖\n\n* **ពេលព្រឹកព្រលឹម (ម៉ោង ៥:០០ ដល់ ៧:០០ព្រឹក):** ជាពេលវេលាល្អបំផុតសម្រាប់ការទស្សនាពន្លឺព្រះអាទិត្យរះ (Sunrise) ឆ្លុះនឹងប៉មអង្គរវត្ត ដែលជាទេសភាពដ៏ល្បីល្បាញបំផុត។\n* **ពេលព្រឹក (ម៉ោង ៧:៣០ ដល់ ១១:០០ព្រឹក):** ជាពេលអាកាសធាតុមិនសូវក្តៅខ្លាំង និងងាយស្រួលដើរមើលក្បាច់ចម្លាក់ក្នុងប្រាសាទ។\n* **ពេលរសៀល (ម៉ោង ៣:០០ ដល់ ៥:៣០ល្ងាច):** ជាពេលដែលពន្លឺព្រះអាទិត្យចាំងចំផ្នែកខាងមុខប្រាសាទ ធ្វើឱ្យការថតរូបស្អាតខ្លាំង និងអាចទស្សនាថ្ងៃលិច (Sunset) បានផងដែរ។\n\n**យោបល់៖** គួរចៀសវាងការដើរទស្សនានៅចន្លោះម៉ោង ១១:ព្រឹក ដល់ ម៉ោង ២:រសៀល ព្រោះអាកាសធាតុក្តៅខ្លាំង។"
+      }
+    ]
+  },
+  {
     "session_id": "session_f322fa84",
     "title": "What is the viral thing in Siem Reap right no...",
     "updated_at": "2026-08-19 16:54:36",
