@@ -157,52 +157,96 @@ class AIService:
         return None
 
     def _generate_fallback_response(self, message: str, context: Optional[str], is_matched: bool) -> str:
-        """Graceful conversational fallback if LLM service is offline, rate-limited, or API key is not yet provided."""
+        """Graceful conversational AI response without raw database keys."""
         is_km = is_khmer_text(message)
 
+        # 1. If context exists, transform it into natural, fluent conversational prose
         if context and context.strip():
-            context_excerpt = "\n".join(context.splitlines()[:6])
-            if is_km:
-                return f"ព័ត៌មានទេសចរណ៍ដែលបានស្វែងរកឃើញ៖\n\n{context_excerpt}\n\nតើអ្នកមានសំណួរអ្វីបន្ថែមទៀតទេ?"
-            else:
-                return f"Here is the key Cambodia tourism information:\n\n{context_excerpt}\n\nDo you have any follow-up questions?"
+            ctx_data = {}
+            for line in context.splitlines():
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    ctx_data[k.strip().upper()] = v.strip()
 
-        # Search local dataset for relevant keywords if context wasn't already provided
+            name = ctx_data.get("NAME") or "Cambodia Attraction"
+            desc = ctx_data.get("DESCRIPTION (KM)" if is_km else "DESCRIPTION (EN)") or ctx_data.get("DESCRIPTION (EN)") or ctx_data.get("DESCRIPTION (KM)") or ""
+            location = ctx_data.get("PROVINCE/LOCATION") or ctx_data.get("PROVINCE")
+            attractions = ctx_data.get("POPULAR ATTRACTIONS")
+            opening = ctx_data.get("OPENING HOURS")
+            fee = ctx_data.get("ENTRANCE FEE")
+            best_time = ctx_data.get("BEST TIME TO VISIT")
+
+            if is_km:
+                paragraphs = [f"**{name}**\n\n{desc}"]
+                details = []
+                if location:
+                    details.append(f"📍 **ទីតាំង:** {location}")
+                if opening:
+                    details.append(f"⏰ **ម៉ោងបើក:** {opening}")
+                if fee:
+                    details.append(f"🎟️ **សំបុត្រ:** {fee}")
+                if best_time:
+                    details.append(f"🗓️ **រដូវល្អបំផុត:** {best_time}")
+                if attractions:
+                    details.append(f"✨ **កន្លែងល្បីៗ:** {attractions}")
+                if details:
+                    paragraphs.append("\n".join(details))
+                paragraphs.append("តើលោកអ្នកចង់ឱ្យខ្ញុំរៀបចំគម្រោងដើរលេង ឬផ្ដល់ព័ត៌មានបន្ថែមអំពីកន្លែងនេះទេ?")
+                return "\n\n".join(paragraphs)
+            else:
+                paragraphs = [f"**{name}**\n\n{desc}"]
+                details = []
+                if location:
+                    details.append(f"📍 **Location:** {location}")
+                if opening:
+                    details.append(f"⏰ **Hours:** {opening}")
+                if fee:
+                    details.append(f"🎟️ **Admission:** {fee}")
+                if best_time:
+                    details.append(f"🗓️ **Best Time to Visit:** {best_time}")
+                if attractions:
+                    details.append(f"✨ **Top Highlights:** {attractions}")
+                if details:
+                    paragraphs.append("\n".join(details))
+                paragraphs.append("Would you like a recommended day itinerary, transportation tips, or dining suggestions around this area?")
+                return "\n\n".join(paragraphs)
+
+        # 2. Search local dataset for relevant keywords if context wasn't already provided
         try:
             from app.services.tourism_service import tourism_service
             items = tourism_service.search_keyword(message, limit=2)
             if items:
                 primary = items[0]
+                name = primary.get("name_km" if is_km else "name") or primary.get("name")
+                desc = primary.get("description_km" if is_km else "description") or primary.get("description") or ""
+                prov = primary.get("province", "Cambodia")
                 if is_km:
-                    desc = primary.get("description_km") or primary.get("description")
-                    name = primary.get("name_km") or primary.get("name")
-                    return f"**{name}** ({primary.get('category', 'កន្លែងទេសចរណ៍')})\n\n{desc}\n\n📍 ទីតាំង៖ {primary.get('province', 'កម្ពុជា')}"
+                    return f"**{name}** ({primary.get('category', 'កន្លែងទេសចរណ៍')})\n\n{desc}\n\n📍 ទីតាំង៖ {prov}\n\nតើអ្នកចង់ឱ្យខ្ញុំណែនាំអ្វីបន្ថែមទៀតទេ?"
                 else:
-                    desc = primary.get("description") or primary.get("description_km")
-                    name = primary.get("name")
-                    return f"**{name}** ({primary.get('category', 'Tourism Highlight')})\n\n{desc}\n\n📍 Location: {primary.get('province', 'Cambodia')}"
+                    return f"**{name}** ({primary.get('category', 'Tourism Highlight')})\n\n{desc}\n\n📍 Location: {prov}\n\nWould you like more details on hotels, restaurants, or how to get there?"
         except Exception:
             pass
 
+        # 3. Dynamic general tourism greeting & overview
         if is_km:
             return (
                 "សូមស្វាគមន៍មកកាន់ Angkor Verse AI! 🇰🇭\n\n"
-                "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពី៖\n"
-                "- 🏛️ ប្រាសាទបុរាណនៅសៀមរាប (អង្គរវត្ត, បាយ័ន, តាព្រហ្ម)\n"
-                "- 🏖️ ឆ្នេរ និងកោះល្បីៗ (កោះរ៉ុង, ព្រះសីហនុ)\n"
-                "- 🍲 ម្ហូបអាហារខ្មែរ (អាម៉ុក, នំបញ្ចុក, ឡុកឡាក់)\n"
-                "- 🗓️ គម្រោងដើរលេង និងការធ្វើដំណើរទូទាំងប្រទេសកម្ពុជា\n\n"
-                "តើលោកអ្នកចង់ស្វែងយល់បន្ថែមអំពីប្រធានបទមួយណាដែរ?"
+                "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានទេសចរណ៍ និងរៀបចំគម្រោងដើរលេងយ៉ាងលម្អិត៖\n"
+                "- 🏛️ **ប្រាសាទបុរាណ:** អង្គរវត្ត, បាយ័ន, តាព្រហ្ម (ខេត្តសៀមរាប)\n"
+                "- 🏖️ **ឆ្នេរ និងកោះ:** កោះរ៉ុង, កោះរ៉ុងសន្លឹម (ខេត្តព្រះសីហនុ)\n"
+                "- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n"
+                "- 🗺️ **មធ្យោបាយធ្វើដំណើរ & សណ្ឋាគារ** ទូទាំងប្រទេស\n\n"
+                "តើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ណាដែរ?"
             )
         else:
             return (
                 "Welcome to Angkor Verse AI! 🇰🇭\n\n"
-                "I can help you explore Cambodia tourism:\n"
-                "- 🏛️ **Historic Temples:** Angkor Wat, Bayon, and Ta Prohm in Siem Reap\n"
-                "- 🏖️ **Islands & Beaches:** Koh Rong and Koh Rong Sanloem in Sihanoukville\n"
-                "- 🍲 **Khmer Cuisine:** Fish Amok, Nom Banh Chok, and Beef Lok Lak\n"
-                "- 🗺️ **Travel Itineraries & Transportation** across all provinces\n\n"
-                "How can I assist your trip to Cambodia today?"
+                "I'm here to help you plan your journey across Cambodia with dynamic recommendations:\n"
+                "- 🏛️ **World Heritage & Temples:** Angkor Wat, Bayon, and Ta Prohm in Siem Reap\n"
+                "- 🏖️ **Tropical Beaches:** Koh Rong and Koh Rong Sanloem in Sihanoukville\n"
+                "- 🍲 **Authentic Khmer Cuisine:** Fish Amok, Nom Banh Chok, and Beef Lok Lak\n"
+                "- 🗺️ **Custom Itineraries & Local Travel Tips**\n\n"
+                "Which destination or travel topic would you like to explore?"
             )
 
 
