@@ -97,10 +97,11 @@ class AIService:
         if HAS_GOOGLE_GENAI:
             candidate_models = [
                 settings.GEMINI_MODEL,
-                "gemini-2.5-flash",
-                "gemini-2.0-flash",
-                "gemini-1.5-flash",
-                "gemini-1.5-pro",
+                "gemini-3.6-flash",
+                "gemini-3.5-flash-lite",
+                "gemini-3.5-flash",
+                "gemini-3.7-flash",
+                "gemini-flash-latest",
             ]
             # Deduplicate preserving order
             models_to_try = [m for m in list(dict.fromkeys(candidate_models)) if m]
@@ -127,10 +128,11 @@ class AIService:
         # REST API fallback for Gemini if SDK fails or alternative model name
         rest_candidate_models = [
             settings.GEMINI_MODEL,
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash-lite",
+            "gemini-3.5-flash",
+            "gemini-3.7-flash",
+            "gemini-flash-latest",
         ]
         for model in [m for m in list(dict.fromkeys(rest_candidate_models)) if m]:
             try:
@@ -140,7 +142,7 @@ class AIService:
                     "systemInstruction": {"parts": [{"text": system_instruction}]},
                     "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024}
                 }
-                res = requests.post(url, json=payload, timeout=8)
+                res = requests.post(url, json=payload, timeout=12)
                 if res.status_code == 200:
                     data = res.json()
                     candidates = data.get("candidates", [])

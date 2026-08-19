@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # Google Gemini AI Configuration
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_MODEL: str = "gemini-3.6-flash"
     
     # Matching Similarity Threshold (80%-90% match)
     SIMILARITY_THRESHOLD: float = 0.80
