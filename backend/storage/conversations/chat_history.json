@@ -1,17 +1,97 @@
 [
   {
-    "session_id": "session_0ec8f992",
-    "title": "Hello",
-    "updated_at": "2026-08-19 15:38:06",
-    "message_count": 2,
+    "session_id": "session_d79cb268",
+    "title": "Hi",
+    "updated_at": "2026-08-19 16:42:08",
+    "message_count": 4,
     "messages": [
       {
         "role": "user",
-        "content": "Hello"
+        "content": "Hi"
       },
       {
         "role": "assistant",
         "content": "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?"
+      },
+      {
+        "role": "user",
+        "content": "What was my budget that I mentioned earlier?"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello again! You haven't mentioned your budget to me yet. Could you let me know how much you plan to spend or what kind of traveler you are (budget, mid-range, or luxury) so I can help you plan?"
+      }
+    ]
+  },
+  {
+    "session_id": "session_dc4f5ca9",
+    "title": "Hi",
+    "updated_at": "2026-08-19 16:35:56",
+    "message_count": 16,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hi"
+      },
+      {
+        "role": "assistant",
+        "content": "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?"
+      },
+      {
+        "role": "user",
+        "content": "What are the best tourist attractions in Cambodia?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here are the top 3 must-visit attractions in Cambodia:\n\n*   **Angkor Wat (Siem Reap):** The world's largest religious monument and a breathtaking ancient temple complex.\n*   **The Royal Palace & Silver Pagoda (Phnom Penh):** Stunning examples of classic Khmer architecture and the official residence of the King.\n*   **Koh Rong Island:** A tropical paradise known for its pristine white-sand beaches and crystal-clear turquoise waters.\n\n**Recommendation:** If you only have a few days, start with Siem Reap to experience the wonder of Angkor Wat.\n\nWould you like help planning a 3-day itinerary for Siem Reap?"
+      },
+      {
+        "role": "user",
+        "content": "What is the best way to travel from Phnom Penh to Siem Reap?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here are the top 3 ways to travel from Phnom Penh to Siem Reap:\n\n*   **Express Bus:** The most affordable and popular option (takes around 5–6 hours with various comfortable operators).\n*   **Private Taxi:** Convenient and flexible door-to-door service (takes about 5 hours).\n*   **Domestic Flight:** The fastest option, taking about 45 minutes.\n\n**Recommendation:** Take an air-conditioned express bus for a comfortable, budget-friendly journey through the countryside.\n\nWould you like bus operator recommendations for this route?"
+      },
+      {
+        "role": "user",
+        "content": "How much should I budget for a 5-day trip?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here is a recommended budget breakdown for a 5-day trip to Cambodia (excluding international flights):\n\n*   **Budget Traveler ($150 – $250):** Stay in hostels, eat street food and local markets, use buses for transport, and stick to essential temple passes.\n*   **Mid-Range Traveler ($400 – $700):** Stay in 3-star hotels, enjoy a mix of local restaurants and nice cafes, use private tuk-tuks, and book guided tours.\n*   **Luxury Traveler ($1,000+):** Stay in 5-star resorts, dine at fine-dining restaurants, hire private cars/guides, and include spa treatments.\n\n**Recommendation:** A mid-range budget of around **$500 per person** offers a very comfortable experience with great hotels and delicious food.\n\nWould you like a hotel recommendation in Siem Reap or Phnom Penh?"
+      },
+      {
+        "role": "user",
+        "content": "Is Cambodian food spicy?"
+      },
+      {
+        "role": "assistant",
+        "content": "No, Cambodian (Khmer) food is generally **not spicy** compared to Thai or Vietnamese cuisine. \n\n*   **Subtle Flavors:** Dishes rely heavily on fresh herbs, lemongrass, garlic, and *kroeung* (a traditional lemongrass paste) rather than chili heat.\n*   **Chilis on the Side:** Chilis and spicy condiments are usually served on the side, allowing you to add heat to your preference.\n\n**Recommendation:** Don't worry if you can't handle spice—traditional dishes like *Amok* (coconut fish curry) and *Lok Lak* (stir-fried beef) are flavorful, savory, and mild.\n\nWould you like recommendations for top traditional Cambodian dishes to try?"
+      },
+      {
+        "role": "user",
+        "content": "What are the important cultural rules in Cambodia? What are the most important historical places in Cambodia?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here are the essential cultural rules and top historical sites in Cambodia:\n\n**Important Cultural Rules:**\n*   **Dress Modestly:** Cover your shoulders and knees when visiting pagodas and temples (like Angkor Wat).\n*   **Head and Feet:** The head is considered the most sacred part of the body and feet the lowest; never touch someone's head or point your feet at people or sacred images.\n*   **Respectful Greetings:** Greet locals with *Sampeah* (placing palms together at chest level) instead of shaking hands.\n\n**Top Historical Places:**\n*   **Angkor Archaeological Park (Siem Reap):** The majestic 12th-century capital of the Khmer Empire, featuring Angkor Wat and Ta Prohm.\n*   **Tuol Sleng Genocide Museum & Choeung Ek (Phnom Penh):** Crucial sites for understanding Cambodia's tragic 20th-century history under the Khmer Rouge.\n*   **Preah Vihear Temple:** A dramatic, cliffside 11th-century Hindu temple on the Dangrek Mountains with breathtaking views.\n\n**Recommendation:** Start your historical journey at Angkor Wat early in the morning, and always remove your shoes when entering Buddhist temples.\n\nWould you like a suggested 3-day itinerary for exploring the Angkor temples?"
+      },
+      {
+        "role": "user",
+        "content": "What are the most important historical places in Cambodia?"
+      },
+      {
+        "role": "assistant",
+        "content": "Here are the top historical places in Cambodia:\n\n*   **Angkor Archaeological Park (Siem Reap):** The magnificent 12th-century capital of the Khmer Empire, featuring world-famous temples like Angkor Wat and Ta Prohm.\n*   **Tuol Sleng Genocide Museum & Killing Fields (Phnom Penh):** Essential, sobering sites documenting the tragic history of the Khmer Rouge regime.\n*   **Preah Vihear Temple:** A breathtaking 11th-century cliffside Hindu temple perched on the Dangrek Mountains near the Thai border.\n\n**Recommendation:** Dedicate at least two days to fully explore the vast temples of the Angkor Archaeological Park.\n\nWould you like tips on the best time of day to visit Angkor Wat?"
+      },
+      {
+        "role": "user",
+        "content": "What have we talked about so far? pls summary like the point"
+      },
+      {
+        "role": "assistant",
+        "content": "Here is a summary of our conversation so far:\n\n*   **Khmer Food:** Discussed that Cambodian food is generally mild, not spicy, with chilis served on the side.\n*   **Cultural Rules:** Covered basic customs like modest temple dress, respecting the head and feet, and using the *Sampeah* greeting.\n*   **Historical Places:** Highlighted key sites including the Angkor Archaeological Park, Tuol Sleng/Killing Fields, and Preah Vihear Temple.\n\nWould you like to explore any of these topics further?"
       }
     ]
   }
