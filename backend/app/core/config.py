@@ -8,11 +8,11 @@ class Settings(BaseSettings):
     
     # Online AI Provider Configuration (Gemini Only)
     ONLINE_AI_PROVIDER: str = "gemini"
-    ONLINE_AI_MODEL: str = "gemini-2.5-flash"
+    ONLINE_AI_MODEL: str = "gemini-3.5-flash-lite"
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-2.5-flash"
+    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
     ONLINE_API_KEY: str = ""
-    ONLINE_MODEL: str = "gemini-2.5-flash"
+    ONLINE_MODEL: str = "gemini-3.5-flash-lite"
     
     # Offline AI Provider Configuration (Ollama)
     OFFLINE_AI_PROVIDER: str = "ollama"
