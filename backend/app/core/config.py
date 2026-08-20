@@ -6,13 +6,13 @@ class Settings(BaseSettings):
     # AI Mode & Orchestration ("auto", "online", "offline", "degraded")
     AI_MODE: str = "auto"
     
-    # Online AI Provider Configuration
+    # Online AI Provider Configuration (Gemini Only)
     ONLINE_AI_PROVIDER: str = "gemini"
-    ONLINE_AI_MODEL: str = "gemini-flash-latest"
+    ONLINE_AI_MODEL: str = "gemini-2.5-flash"
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-flash-latest"
+    GEMINI_MODEL: str = "gemini-2.5-flash"
     ONLINE_API_KEY: str = ""
-    ONLINE_MODEL: str = "gpt-3.5-turbo"
+    ONLINE_MODEL: str = "gemini-2.5-flash"
     
     # Offline AI Provider Configuration (Ollama)
     OFFLINE_AI_PROVIDER: str = "ollama"

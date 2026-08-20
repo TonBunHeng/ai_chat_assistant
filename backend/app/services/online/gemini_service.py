@@ -42,14 +42,15 @@ class GeminiOnlineService:
 
         sys_inst = system_instruction or GEMINI_SYSTEM_INSTRUCTION
 
-        # Active models with verified quotas
+        # Active Gemini models in order of priority
         models_to_try = [
             settings.effective_online_model,
-            "gemini-3.5-flash",
-            "gemini-3.1-flash-lite",
-            "gemini-flash-lite-latest",
-            "gemini-flash-latest",
-            "gemma-4-31b-it"
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-2.5-pro",
+            "gemini-1.5-pro",
+            "gemini-flash-latest"
         ]
         models_to_try = [m for m in list(dict.fromkeys(models_to_try)) if m]
 
