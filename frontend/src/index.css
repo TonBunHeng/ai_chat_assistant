@@ -39,7 +39,7 @@ html {
   }
 }
 
-/* Khmer Font Scaling & Typography Enhancements */
+/* Khmer & English Unified Typography */
 :lang(km),
 .font-khmer,
 [data-lang="km"] {
@@ -58,49 +58,6 @@ html {
 
 .text-\[11px\] {
   font-size: 12px !important;
-}
-
-/* When the app is in Khmer mode */
-html[lang="km"] body {
-  line-height: 1.7;
-}
-
-html[lang="km"] body {
-  line-height: 1.7;
-}
-
-/* Specific scale adjustments for Khmer text in small tags & badges */
-html[lang="km"] .text-\[9px\],
-html[lang="km"] .text-\[10px\] {
-  font-size: 11.5px !important;
-  line-height: 1.35 !important;
-}
-
-html[lang="km"] .text-\[11px\] {
-  font-size: 12.5px !important;
-  line-height: 1.45 !important;
-}
-
-html[lang="km"] .text-xs {
-  font-size: 0.85rem !important; /* ~13.6px */
-  line-height: 1.45rem !important;
-}
-
-html[lang="km"] .text-sm {
-  font-size: 0.975rem !important; /* ~15.6px */
-  line-height: 1.65rem !important;
-}
-
-html[lang="km"] .text-base {
-  font-size: 1.08rem !important; /* ~17.3px */
-  line-height: 1.75rem !important;
-}
-
-/* Ensure Khmer unicode characters in chat bubbles render comfortably */
-.khmer-bubble-text {
-  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
-  font-size: 0.965rem;
-  line-height: 1.75;
 }
 
 /* Pulsing typing animation keyframes */

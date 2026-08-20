@@ -17,7 +17,7 @@ const TypingIndicator = ({ language = 'en' }) => {
 
       {/* Typing Bubble */}
       <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-[#27272a] px-4 py-3 rounded-2xl rounded-tl-xs shadow-2xs flex items-center space-x-2.5">
-        <span className={`${isKhmer ? 'text-[13.5px] font-khmer' : 'text-xs'} text-slate-500 dark:text-slate-400 font-medium`}>
+        <span className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
           {isKhmer ? 'Angkor Verse AI កំពុងគិត...' : 'Angkor Verse AI is thinking'}
         </span>
         <div className="flex items-center space-x-1">
