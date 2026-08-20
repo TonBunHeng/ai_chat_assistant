@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:backend": "cd backend && python3 run.py",
+    "dev": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && (./venv/bin/python run.py || python3 run.py)",
     "dev:frontend": "cd frontend && npm run dev",
-    "dev": "npm --prefix frontend run dev"
+    "build:frontend": "cd frontend && npm run build"
   }
 }

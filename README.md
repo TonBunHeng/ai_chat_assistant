@@ -8,8 +8,38 @@ An intelligent AI Tourism Information Service specialized in Cambodia tourism bu
 
 - **Primary AI Model**: `Camtour-On-Mistral-Ai:latest` (Fine-tuned model running locally via Ollama)
 - **Supported Alternative Models**: `tripmind-ft-gguf`, `llama3.2`, `mistral`
+- **Online Cloud Model**: `gemini-flash-latest` (Google Gemini API)
 - **Embedding Model**: `sentence-transformers` (`all-MiniLM-L6-v2`) for RAG vector search
 - **Offline Fallback**: Built-in RAG Knowledge Synthesizer engine (ensures 100% server availability even if Ollama is restarting)
+
+---
+
+## Chatbot Operating Modes & Capabilities
+
+### 1. AI Execution Modes (Auto Orchestration)
+The system automatically orchestrates between 3 execution tiers based on connectivity and availability:
+
+| Mode | Engine / Provider | Description |
+| :--- | :--- | :--- |
+| 🌐 **Online Mode** | **Google Gemini** (`gemini-flash-latest`) | Uses cloud AI along with real-time live tools (Weather, Currency, Live Events, OSM Places). |
+| 💻 **Offline Mode** | **Local Ollama** (`Camtour-On-Mistral-Ai:latest`) | Runs locally without internet using Ollama, `sentence-transformers` vector search, and local tourism datasets. |
+| 🛡️ **Degraded / Fallback Mode** | **Local Knowledge Engine** | Activated if neither Gemini nor Ollama is reachable; synthesizes answers using cached datasets and rule-based search. |
+
+### 2. Language Modes
+- 🇰🇭 **Khmer Mode (ភាសាខ្មែរ)**: Automatic detection of Khmer script with strict 100% Khmer responses (no mixed English prose).
+- 🇬🇧 **English Mode**: International mode tailored for foreign tourists and visitors.
+
+### 3. Functional & Tool Modes (Intents)
+- 🗺️ **Itinerary Planning Mode**: Generates structured 1-to-5+ day travel schedules with cost/budget breakdown.
+- ☀️ **Weather Advisory Mode**: Provides real-time weather forecasts and seasonal packing recommendations.
+- 💱 **Currency Conversion Mode**: Real-time / cached USD $\leftrightarrow$ KHR (Cambodian Riel) conversion.
+- ⭐ **Smart Recommendation Mode**: Ranks temples, beaches, food, and attractions based on user interest & budget.
+- 🎊 **Events & Cultural Festivals Mode**: Information on Cambodian holidays (Khmer New Year, Water Festival, Pchum Ben, etc.).
+- 🔍 **Vector RAG Search Mode**: Semantic similarity search over curated Cambodia tourism datasets.
+
+### 4. UI Modes
+- ☀️ **Light Theme**
+- 🌙 **Dark Theme**
 
 ---
 

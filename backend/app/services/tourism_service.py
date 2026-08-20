@@ -40,6 +40,22 @@ class TourismService:
     def get_all_items(self) -> List[Dict[str, Any]]:
         return self.all_items
 
+    def get_item_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a specific tourism place item by ID."""
+        for item in self.all_items:
+            if str(item.get("id")) == str(item_id):
+                return item
+        return None
+
+    def get_all_provinces(self) -> List[str]:
+        """Return unique list of provinces in Cambodia dataset."""
+        provinces = set()
+        for item in self.all_items:
+            prov = item.get("province")
+            if prov and prov != "Nationwide":
+                provinces.add(prov)
+        return sorted(list(provinces))
+
     def find_items_by_province(self, province_name: str) -> List[Dict[str, Any]]:
         """Filter tourism items by province name (English or Khmer)."""
         target = province_name.lower()

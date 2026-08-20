@@ -95,8 +95,28 @@ export const chatService = {
     return res?.data ?? res;
   },
 
-  async getCategories() {
-    const res = await api.get('/categories');
+  async getRecommendations(data) {
+    const res = await api.post('/recommendations', data);
+    return res?.data ?? res;
+  },
+
+  async getItinerary(data) {
+    const res = await api.post('/itineraries', data);
+    return res?.data ?? res;
+  },
+
+  async getWeather(province, days = 3) {
+    const res = await api.get('/weather', { params: { province, days } });
+    return res?.data ?? res;
+  },
+
+  async getCurrency() {
+    const res = await api.get('/currency');
+    return res?.data ?? res;
+  },
+
+  async getSystemStatus() {
+    const res = await api.get('/system/status');
     return res?.data ?? res;
   },
 };
@@ -112,5 +132,10 @@ export const fetchHotels = (params) => chatService.getHotels(params);
 export const fetchRestaurants = (params) => chatService.getRestaurants(params);
 export const fetchEvents = (params) => chatService.getEvents(params);
 export const fetchCategories = () => chatService.getCategories();
+export const fetchRecommendations = (data) => chatService.getRecommendations(data);
+export const fetchItinerary = (data) => chatService.getItinerary(data);
+export const fetchWeather = (province, days) => chatService.getWeather(province, days);
+export const fetchCurrency = () => chatService.getCurrency();
+export const fetchSystemStatus = () => chatService.getSystemStatus();
 
 export default chatService;

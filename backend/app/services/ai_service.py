@@ -1,287 +1,98 @@
-import os
-import requests
 from typing import List, Dict, Any, Optional
 from app.core.config import settings
 from app.core.prompts import GEMINI_SYSTEM_INSTRUCTION
-from app.services.ollama_service import ollama_service
+from app.services.online.gemini_service import gemini_online_service
+from app.services.offline.ollama_service import ollama_offline_service
+from app.services.offline.offline_knowledge_service import offline_knowledge_service
 from app.utils.text_utils import is_khmer_text
 
-try:
-    # pyrefly: ignore [missing-import]
-    from google import genai
-    # pyrefly: ignore [missing-import]
-    from google.genai import types
-    HAS_GOOGLE_GENAI = True
-except ImportError:
-    HAS_GOOGLE_GENAI = False
-
 class AIService:
-    def __init__(self):
-        self.client = None
-        self._init_gemini_client()
-
-    def _init_gemini_client(self):
-        api_key = settings.effective_gemini_api_key
-        if HAS_GOOGLE_GENAI and api_key:
-            try:
-                self.client = genai.Client(api_key=api_key)
-            except Exception as e:
-                print(f"AIService: Failed to initialize Gemini client: {e}")
-                self.client = None
-
     def generate_response(
         self,
         message: str,
         conversation_history: List[Dict[str, str]],
         context: Optional[str] = None,
-        is_matched: bool = False
-    ) -> str:
+        is_matched: bool = False,
+        real_time_data_text: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
-        Generate natural, conversational AI response using Google Gemini AI model.
-        - If is_matched=True (80-90%+ similarity match), instructs Gemini to use context as absolute ground truth.
-        - If is_matched=False (no match), instructs Gemini to answer dynamically using general knowledge.
+        Orchestrate natural, conversational response across:
+        1. Online Mode -> app.services.online.gemini_service
+        2. Offline Mode -> app.services.offline.ollama_service
+        3. Degraded Mode -> app.services.offline.offline_knowledge_service
+        with strict language alignment (100% Khmer / 100% English).
         """
+        is_km = is_khmer_text(message)
         system_instruction = GEMINI_SYSTEM_INSTRUCTION
 
-        # Construct prompt content with conversation history & context
+        # Construct prompt content with conversation history & real-time context
         prompt_parts = []
+
+        if real_time_data_text:
+            prompt_parts.append(
+                f"[VERIFIED REAL-TIME DATA / TOOL OUTPUT - ABSOLUTE GROUND TRUTH]:\n"
+                f"{real_time_data_text}\n\n"
+                f"Instruction: Use the above real-time data to answer accurately without inventing details."
+            )
 
         if is_matched and context:
             prompt_parts.append(
-                f"[MATCHED TOURISM DATASET CONTEXT (ABSOLUTE GROUND TRUTH - DO NOT DUMP RAW JSON)]:\n"
+                f"[MATCHED TOURISM DATASET CONTEXT (ABSOLUTE GROUND TRUTH)]:\n"
                 f"{context}\n\n"
-                f"Instruction: The user's question matched our local tourism record. "
-                f"Use the above factual context as the absolute source of truth to formulate a natural, friendly, conversational response. "
-                f"Do not output raw JSON or code keys."
+                f"Instruction: Formulate a natural, friendly, conversational response based on this verified record."
             )
-        else:
+        elif not real_time_data_text:
             prompt_parts.append(
-                f"[DYNAMIC GENERAL KNOWLEDGE MODE]:\n"
-                f"No exact match was found in our local database for this query. "
-                f"Please answer dynamically using your comprehensive AI knowledge in a natural, helpful, conversational tone."
+                f"[GENERAL TOURISM KNOWLEDGE MODE]:\n"
+                f"Answer concisely in a natural, helpful, conversational tone grounded in Cambodian geography and culture."
             )
+
+        if is_km:
+            prompt_parts.append("[LANGUAGE MANDATE: Respond 100% in Khmer (ភាសាខ្មែរ). Do not mix English prose.]")
+        else:
+            prompt_parts.append("[LANGUAGE MANDATE: Respond 100% in English.]")
 
         if conversation_history:
             history_str = "Conversation History:\n"
             for msg in conversation_history[-6:]:
-                role = "User" if msg["role"] == "user" else "Assistant"
-                history_str += f"{role}: {msg['content']}\n"
+                role = "User" if msg.get("role") == "user" else "Assistant"
+                history_str += f"{role}: {msg.get('content', '')}\n"
             prompt_parts.append(history_str)
 
         prompt_parts.append(f"Current User Question: {message}")
         user_prompt = "\n\n".join(prompt_parts)
 
-        # 1. Try Primary: Google Gemini API via official SDK
-        gemini_response = self._call_gemini_api(user_prompt, system_instruction)
-        if gemini_response:
-            return gemini_response
-
-        # 2. Try Fallback: Ollama local model if active
-        if ollama_service.is_available():
-            formatted_messages = [{"role": msg["role"], "content": msg["content"]} for msg in conversation_history]
-            formatted_messages.append({"role": "user", "content": user_prompt})
-            ollama_resp = ollama_service.chat(formatted_messages, system_prompt=system_instruction)
-            if ollama_resp:
-                return ollama_resp
-
-        # 3. Handle missing key / service unreachable gracefully (NO raw JSON dump)
-        return self._generate_fallback_response(message, context, is_matched)
-
-    def _call_gemini_api(self, prompt: str, system_instruction: str) -> Optional[str]:
-        """Call Google Gemini API using google-genai SDK or HTTP endpoint."""
-        api_key = settings.effective_gemini_api_key.strip()
-        if not api_key:
-            return None
-
-        # Try SDK call
-        if HAS_GOOGLE_GENAI:
-            candidate_models = [
-                settings.GEMINI_MODEL,
-                "gemini-flash-latest",
-                "gemini-2.5-flash",
-                "gemini-2.0-flash",
-            ]
-            # Deduplicate preserving order
-            models_to_try = [m for m in list(dict.fromkeys(candidate_models)) if m]
-            
-            for model_name in models_to_try:
-                try:
-                    if not self.client:
-                        self._init_gemini_client()
-                    if self.client:
-                        response = self.client.models.generate_content(
-                            model=model_name,
-                            contents=prompt,
-                            config=types.GenerateContentConfig(
-                                system_instruction=system_instruction,
-                                temperature=0.3,
-                                max_output_tokens=1024,
-                            )
-                        )
-                        if response and response.text:
-                            return response.text.strip()
-                except Exception as e:
-                    print(f"Gemini SDK Note for {model_name}: {e}")
-
-        # REST API fallback for Gemini if SDK fails or alternative model name
-        rest_candidate_models = [
-            settings.GEMINI_MODEL,
-            "gemini-flash-latest",
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-        ]
-        for model in [m for m in list(dict.fromkeys(rest_candidate_models)) if m]:
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-                payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
-                    "systemInstruction": {"parts": [{"text": system_instruction}]},
-                    "generationConfig": {"temperature": 0.3, "maxOutputTokens": 1024}
+        # 1. ONLINE MODE: Try Online Gemini Service (app.services.online.gemini_service)
+        if settings.AI_MODE in ["online", "auto"] and gemini_online_service.is_available():
+            gemini_response = gemini_online_service.generate(user_prompt, system_instruction)
+            if gemini_response:
+                return {
+                    "answer": gemini_response,
+                    "mode": "online",
+                    "model": settings.effective_online_model,
+                    "data_sources": ["gemini_api", "tourism_database"]
                 }
-                res = requests.post(url, json=payload, timeout=6)
-                if res.status_code == 200:
-                    data = res.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        parts = candidates[0].get("content", {}).get("parts", [])
-                        if parts:
-                            return parts[0].get("text", "").strip()
-                elif res.status_code in [400, 401, 403]:
-                    print(f"Gemini API auth error {res.status_code}: {res.text[:100]}")
-                    break
-            except Exception as ex:
-                print(f"Gemini REST call failed for model {model}: {ex}")
 
-        return None
+        # 2. OFFLINE MODE: Try Local Ollama Service (app.services.offline.ollama_service)
+        if ollama_offline_service.is_available():
+            formatted_messages = [{"role": msg.get("role", "user"), "content": msg.get("content", "")} for msg in conversation_history]
+            formatted_messages.append({"role": "user", "content": user_prompt})
+            ollama_resp = ollama_offline_service.chat(formatted_messages, system_prompt=system_instruction)
+            if ollama_resp:
+                return {
+                    "answer": ollama_resp,
+                    "mode": "offline",
+                    "model": settings.effective_offline_model,
+                    "data_sources": ["local_ollama_model", "local_tourism_database"]
+                }
 
-    def _generate_fallback_response(self, message: str, context: Optional[str], is_matched: bool) -> str:
-        """Graceful conversational AI response without raw database keys."""
-        import re
-        is_km = is_khmer_text(message)
-        clean_msg = re.sub(r'[^\w\s\u1780-\u17FF]', '', message.lower()).strip()
-
-        # 1. If context exists and item is matched, transform it into natural, fluent conversational prose
-        if is_matched and context and context.strip():
-            ctx_data = {}
-            for line in context.splitlines():
-                if ":" in line:
-                    k, v = line.split(":", 1)
-                    ctx_data[k.strip().upper()] = v.strip()
-
-            name = ctx_data.get("NAME") or "Cambodia Attraction"
-            desc = ctx_data.get("DESCRIPTION (KM)" if is_km else "DESCRIPTION (EN)") or ctx_data.get("DESCRIPTION (EN)") or ctx_data.get("DESCRIPTION (KM)") or ""
-            location = ctx_data.get("PROVINCE/LOCATION") or ctx_data.get("PROVINCE")
-            attractions = ctx_data.get("POPULAR ATTRACTIONS")
-            opening = ctx_data.get("OPENING HOURS")
-            fee = ctx_data.get("ENTRANCE FEE")
-            best_time = ctx_data.get("BEST TIME TO VISIT")
-
-            if is_km:
-                paragraphs = [f"**{name}**\n\n{desc}"]
-                details = []
-                if location:
-                    details.append(f"📍 **ទីតាំង:** {location}")
-                if opening:
-                    details.append(f"⏰ **ម៉ោងបើក:** {opening}")
-                if fee:
-                    details.append(f"🎟️ **សំបុត្រ:** {fee}")
-                if best_time:
-                    details.append(f"🗓️ **រដូវល្អបំផុត:** {best_time}")
-                if attractions:
-                    details.append(f"✨ **កន្លែងល្បីៗ:** {attractions}")
-                if details:
-                    paragraphs.append("\n".join(details))
-                paragraphs.append("តើលោកអ្នកចង់ឱ្យខ្ញុំរៀបចំគម្រោងដើរលេង ឬផ្ដល់ព័ត៌មានបន្ថែមអំពីកន្លែងនេះទេ?")
-                return "\n\n".join(paragraphs)
-            else:
-                paragraphs = [f"**{name}**\n\n{desc}"]
-                details = []
-                if location:
-                    details.append(f"📍 **Location:** {location}")
-                if opening:
-                    details.append(f"⏰ **Hours:** {opening}")
-                if fee:
-                    details.append(f"🎟️ **Admission:** {fee}")
-                if best_time:
-                    details.append(f"🗓️ **Best Time to Visit:** {best_time}")
-                if attractions:
-                    details.append(f"✨ **Top Highlights:** {attractions}")
-                if details:
-                    paragraphs.append("\n".join(details))
-                paragraphs.append("Would you like a recommended day itinerary, transportation tips, or dining suggestions around this area?")
-                return "\n\n".join(paragraphs)
-
-        # 2. Check if user is asking a broad overview question about Cambodia
-        is_cambodia_overview = (
-            "what is cambodia" in clean_msg or
-            "tell me about cambodia" in clean_msg or
-            "about cambodia" in clean_msg or
-            clean_msg in ["cambodia", "cambodia country", "what is cambodia", "explain cambodia"] or
-            ("កម្ពុជា" in clean_msg and ("អ្វី" in clean_msg or "ប្រាប់" in clean_msg or len(clean_msg.split()) <= 3))
-        )
-
-        if is_cambodia_overview:
-            if is_km:
-                return (
-                    "**ប្រទេសកម្ពុជា (ព្រះរាជាណាចក្រកម្ពុជា)** 🇰🇭\n\n"
-                    "កម្ពុជា គឺជាប្រទេសមួយស្ថិតនៅតំបន់អាស៊ីអាគ្នេយ៍ ដែលមានប្រវត្តិសាស្ត្រសម្បូរបែប វប្បធម៌ចំណាស់ និងសម្បត្តិបេតិកភណ្ឌពិភពលោកដ៏ល្បីល្បាញ៖\n\n"
-                    "- 🏛️ **រាជធានី:** ភ្នំពេញ (មជ្ឈមណ្ឌលសេដ្ឋកិច្ច និងវប្បធម៌)\n"
-                    "- 👑 **បេតិកភណ្ឌពិភពលោក:** ប្រាសាទអង្គរវត្ត (ខេត្តសៀមរាប), ប្រាសាទព្រះវិហារ, ប្រាសាទសម្បូរព្រៃគុក, និងកោះកេរ្តិ៍\n"
-                    "- 🏖️ **ឆ្នេរ និងធម្មជាតិ:** ឆ្នេរសមុទ្រ និងកោះធម្មជាតិ (ខេត្តព្រះសីហនុ និងកែប), ឧទ្យានជាតិភ្នំបូកគោ (ខេត្តកំពត)\n"
-                    "- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, សម្លការីខ្មែរ, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n"
-                    "- 🗣️ **ភាសាផ្លូវការ:** ភាសាខ្មែរ | **រូបិយប័ណ្ណ:** រៀល (KHR) & ដុល្លារ (USD)\n\n"
-                    "តើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ សណ្ឋាគារ ឬរៀបចំគម្រោងដើរលេងនៅកន្លែងណាដែរ?"
-                )
-            else:
-                return (
-                    "**Cambodia (Kingdom of Cambodia)** 🇰🇭\n\n"
-                    "Cambodia is a captivating country in Southeast Asia renowned for its profound heritage, ancient Khmer civilization, and stunning natural landscapes:\n\n"
-                    "- 🏛️ **Capital:** Phnom Penh (home to the Royal Palace, National Museum, and riverside promenade)\n"
-                    "- 🏰 **World Heritage & Temples:** The legendary **Angkor Wat** complex, Bayon, and Ta Prohm in Siem Reap; Preah Vihear, Sambor Prei Kuk, and Koh Ker\n"
-                    "- 🏖️ **Islands & Coastline:** Pristine white sand beaches and tropical islands in Preah Sihanouk (Koh Rong, Koh Rong Sanloem) and Kep\n"
-                    "- 🌿 **Nature & Mountains:** Cardamom Mountains, Bokor National Park in Kampot, and the waterfalls of Mondulkiri\n"
-                    "- 🍲 **Khmer Cuisine:** Signature dishes like Fish Amok, Beef Lok Lak, Nom Banh Chok, and fresh Kampot pepper crab\n"
-                    "- 🗣️ **Language:** Khmer | **Currency:** Cambodian Riel (KHR) & US Dollar (USD)\n\n"
-                    "Would you like recommendations on itineraries, top attractions, hotels, or local transport across Cambodia?"
-                )
-
-        # 3. Search local dataset for specific distinctive keywords
-        try:
-            from app.services.tourism_service import tourism_service
-            items = tourism_service.search_keyword(message, limit=2)
-            if items:
-                primary = items[0]
-                name = primary.get("name_km" if is_km else "name") or primary.get("name")
-                desc = primary.get("description_km" if is_km else "description") or primary.get("description") or ""
-                prov = primary.get("province", "Cambodia")
-                if is_km:
-                    return f"**{name}** ({primary.get('category', 'កន្លែងទេសចរណ៍')})\n\n{desc}\n\n📍 ទីតាំង៖ {prov}\n\nតើអ្នកចង់ឱ្យខ្ញុំណែនាំអ្វីបន្ថែមទៀតទេ?"
-                else:
-                    return f"**{name}** ({primary.get('category', 'Tourism Highlight')})\n\n{desc}\n\n📍 Location: {prov}\n\nWould you like more details on hotels, restaurants, or how to get there?"
-        except Exception:
-            pass
-
-        # 4. Dynamic general tourism greeting & overview
-        if is_km:
-            return (
-                "សូមស្វាគមន៍មកកាន់ Angkor Verse AI! 🇰🇭\n\n"
-                "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានទេសចរណ៍ និងរៀបចំគម្រោងដើរលេងយ៉ាងលម្អិត៖\n"
-                "- 🏛️ **ប្រាសាទបុរាណ:** អង្គរវត្ត, បាយ័ន, តាព្រហ្ម (ខេត្តសៀមរាប)\n"
-                "- 🏖️ **ឆ្នេរ និងកោះ:** កោះរ៉ុង, កោះរ៉ុងសន្លឹម (ខេត្តព្រះសីហនុ)\n"
-                "- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n"
-                "- 🗺️ **មធ្យោបាយធ្វើដំណើរ & សណ្ឋាគារ** ទូទាំងប្រទេស\n\n"
-                "តើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ណាដែរ?"
-            )
-        else:
-            return (
-                "Welcome to Angkor Verse AI! 🇰🇭\n\n"
-                "I'm here to help you plan your journey across Cambodia with dynamic recommendations:\n"
-                "- 🏛️ **World Heritage & Temples:** Angkor Wat, Bayon, and Ta Prohm in Siem Reap\n"
-                "- 🏖️ **Tropical Beaches:** Koh Rong and Koh Rong Sanloem in Sihanoukville\n"
-                "- 🍲 **Authentic Khmer Cuisine:** Fish Amok, Nom Banh Chok, and Beef Lok Lak\n"
-                "- 🗺️ **Custom Itineraries & Local Travel Tips**\n\n"
-                "Which destination or travel topic would you like to explore?"
-            )
-
+        # 3. DEGRADED MODE: Offline Local Knowledge Synthesizer (app.services.offline.offline_knowledge_service)
+        fallback_answer = offline_knowledge_service.synthesize_response(message, context or real_time_data_text, is_matched)
+        return {
+            "answer": fallback_answer,
+            "mode": "degraded",
+            "model": "local_knowledge_engine",
+            "data_sources": ["cached_tourism_database", "local_knowledge_engine"]
+        }
 
 ai_service = AIService()

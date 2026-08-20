@@ -1,82 +1,218 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Query
+from typing import Optional, List
 from app.services.tourism_service import tourism_service
+from app.services.weather_service import weather_service
+from app.services.currency_service import currency_service
+from app.services.events_service import events_service
+from app.services.places_service import places_service
+from app.services.transport_service import transport_service
+from app.services.recommendation_engine import recommendation_engine
+from app.services.itinerary_engine import itinerary_engine
+from app.services.ollama_service import ollama_service
+from app.core.config import settings
+from app.models.chat import RecommendationRequest, ItineraryRequest, CurrencyConvertRequest
 
-router = APIRouter(tags=["Tourism Data"])
+router = APIRouter(tags=["Tourism Intelligence & Data"])
 
-@router.get("/tourist-places")
+# 1. Recommendation API
+@router.post("/recommendations")
+@router.post("/travel/recommendations")
+async def get_recommendations(req: RecommendationRequest):
+    """Calculate multi-factor smart recommendations for Cambodia destinations."""
+    try:
+        results = recommendation_engine.recommend(
+            interests=req.interests,
+            province=req.province,
+            budget_usd=req.budget_usd,
+            duration_days=req.duration_days,
+            travel_style=req.travel_style,
+            limit=req.limit or 5
+        )
+        return {
+            "success": True,
+            "message": f"Generated {len(results)} personalized recommendations.",
+            "data": results
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 2. Itinerary Planning API
+@router.post("/itineraries")
+@router.post("/travel/itineraries")
+async def generate_itinerary(req: ItineraryRequest):
+    """Generate route-optimized day-by-day travel itinerary with budget breakdown."""
+    try:
+        result = itinerary_engine.generate_itinerary(
+            destination=req.destination or "Siem Reap",
+            days=req.days or 3,
+            budget_usd=req.budget,
+            travel_style=req.travel_style or "culture",
+            interests=req.interests,
+            travelers=req.travelers or 2,
+            language=req.language or "en"
+        )
+        return {
+            "success": True,
+            "message": "Itinerary generated successfully.",
+            "data": result
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 3. Places API
 @router.get("/places")
+@router.get("/tourist-places")
 @router.get("/travel/places")
-async def get_tourist_places():
-    destinations = tourism_service.get_dataset("destinations")
-    heritage = tourism_service.get_dataset("heritage_sites")
-    temples = tourism_service.get_dataset("temples")
-    beaches = tourism_service.get_dataset("beaches")
-    places = destinations + heritage + temples + beaches
+async def get_places(category: Optional[str] = None, province: Optional[str] = None):
+    """List all verified tourism destinations, temples, and beaches."""
+    places = places_service.get_all_places(category=category, province=province)
     return {
         "success": True,
-        "message": "Tourist places retrieved successfully.",
+        "message": "Places retrieved successfully.",
+        "total": len(places),
         "data": places
     }
 
-@router.get("/provinces")
-@router.get("/travel/provinces")
-async def get_provinces():
-    provinces = [
-        {"id": 1, "name": "Siem Reap", "name_km": "សៀមរាប", "code": "SR", "description": "Home of Angkor Wat and ancient Khmer history."},
-        {"id": 2, "name": "Phnom Penh", "name_km": "ភ្នំពេញ", "code": "PP", "description": "Capital city of Cambodia."},
-        {"id": 3, "name": "Preah Sihanouk", "name_km": "ព្រះសីហនុ", "code": "SHV", "description": "Coastal province with beautiful islands."},
-        {"id": 4, "name": "Kampot", "name_km": "កំពត", "code": "KP", "description": "Famous for black pepper, caves, and Bokor Mountain."},
-        {"id": 5, "name": "Battambang", "name_km": "បាត់ដំបង", "code": "BB", "description": "Rich culture, colonial buildings, and bamboo train."},
-        {"id": 6, "name": "Kep", "name_km": "កែប", "code": "KEP", "description": "Quiet seaside town famous for crab market."},
-        {"id": 7, "name": "Mondulkiri", "name_km": "មណ្ឌលគិរី", "code": "MK", "description": "Highland nature, waterfalls, and elephant sanctuaries."},
-        {"id": 8, "name": "Ratanakiri", "name_km": "រតនគិរី", "code": "RK", "description": "Volcanic lake Yeak Laom and lush jungles."},
-        {"id": 9, "name": "Koh Kong", "name_km": "កោះកុង", "code": "KK", "description": "Mangrove forests and Cardamom mountains."}
-    ]
+@router.get("/places/{place_id}")
+async def get_place_by_id(place_id: str):
+    """Get verified details for a specific place."""
+    place = places_service.get_place_by_id(place_id)
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found in Cambodia tourism database.")
     return {
         "success": True,
-        "message": "Provinces retrieved successfully.",
-        "data": provinces
+        "message": "Place details retrieved successfully.",
+        "data": place
     }
 
-@router.get("/restaurants")
-async def get_restaurants():
+# 4. Nearby Places API
+@router.get("/nearby")
+@router.get("/places/nearby")
+async def get_nearby_places(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude"),
+    max_distance_km: float = Query(25.0, description="Max search radius in km"),
+    limit: int = Query(6, description="Limit results")
+):
+    """Find nearby attractions and activities sorted by real distance."""
+    nearby = places_service.find_nearby_places(lat=lat, lon=lon, max_distance_km=max_distance_km, limit=limit)
     return {
         "success": True,
-        "message": "Restaurants retrieved successfully.",
-        "data": tourism_service.get_dataset("restaurants")
+        "message": f"Found {len(nearby)} places within {max_distance_km}km.",
+        "data": nearby
     }
 
-@router.get("/hotels")
-async def get_hotels():
-    items = tourism_service.search_keyword("hotel resort accommodation lodge", limit=10)
-    return {
-        "success": True,
-        "message": "Hotels retrieved successfully.",
-        "data": items
-    }
+# 5. Real-Time Weather API
+@router.get("/weather")
+@router.get("/travel/weather")
+async def get_weather(
+    province: str = Query("Siem Reap", description="Cambodian province name"),
+    days: int = Query(3, ge=1, le=7, description="Forecast days")
+):
+    """Get live weather, forecast, and travel suitability advice for any province."""
+    try:
+        weather_data = weather_service.get_weather(province=province, days=days)
+        return {
+            "success": True,
+            "message": f"Weather retrieved for {weather_data['province']}.",
+            "data": weather_data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
+# 6. Verified Events API
 @router.get("/events")
 @router.get("/travel/events")
-async def get_events():
+async def get_events(
+    query: Optional[str] = None,
+    province: Optional[str] = None,
+    month: Optional[str] = None
+):
+    """Retrieve verified Cambodian festivals and events."""
+    events_data = events_service.search_events(query=query, province=province, month=month)
     return {
         "success": True,
-        "message": "Events retrieved successfully.",
-        "data": tourism_service.get_dataset("festivals")
+        "message": events_data["message"],
+        "total": events_data["total"],
+        "data": events_data.get("events", [])
     }
 
-@router.get("/categories")
-@router.get("/travel/categories")
-async def get_categories():
-    categories = [
-        {"id": "heritage", "name": "Heritage & Temples", "name_km": "បេតិកភណ្ឌ និងប្រាសាទ"},
-        {"id": "beach", "name": "Beaches & Islands", "name_km": "ឆ្នេរ និងកោះ"},
-        {"id": "nature", "name": "Nature & Waterfalls", "name_km": "ធម្មជាតិ និងទឹកធ្លាក់"},
-        {"id": "food", "name": "Cambodian Food & Dining", "name_km": "ម្ហូប និងអាហារខ្មែរ"},
-        {"id": "transport", "name": "Transportation & Travel", "name_km": "មធ្យោបាយធ្វើដំណើរ"},
-        {"id": "culture", "name": "Culture & Festivals", "name_km": "វប្បធម៌ និងពិធីបុណ្យ"}
-    ]
+# 7. Currency & Budget API
+@router.get("/currency")
+@router.get("/travel/currency")
+async def get_currency_rate():
+    """Get current USD <-> KHR reference exchange rate."""
+    rate_data = currency_service.get_exchange_rate()
     return {
         "success": True,
-        "message": "Categories retrieved successfully.",
-        "data": categories
+        "message": "Currency exchange rate retrieved.",
+        "data": rate_data
+    }
+
+@router.post("/currency/convert")
+async def convert_currency(req: CurrencyConvertRequest):
+    """Convert amount between USD and KHR."""
+    result = currency_service.convert(req.amount, req.from_currency or "USD", req.to_currency or "KHR")
+    return {
+        "success": True,
+        "message": "Currency converted successfully.",
+        "data": result
+    }
+
+# 8. Transportation Options API
+@router.get("/transport")
+@router.get("/travel/transport")
+async def get_transport_options(
+    origin: str = Query("Siem Reap", description="Origin city"),
+    destination: str = Query("Siem Reap", description="Destination city"),
+    travelers: int = Query(2, ge=1, description="Number of passengers")
+):
+    """Get tailored Cambodian transit options, pricing, and tips."""
+    transit_data = transport_service.get_transport_recommendations(origin=origin, destination=destination, travelers=travelers)
+    return {
+        "success": True,
+        "message": "Transport recommendations retrieved.",
+        "data": transit_data
+    }
+
+# 9. System & AI Status APIs
+@router.get("/system/status")
+@router.get("/ai/status")
+async def get_ai_system_status():
+    """Check availability of AI models (Gemini Online, Ollama Local) and data sources."""
+    has_gemini_key = bool(settings.effective_gemini_api_key)
+    ollama_online = ollama_service.is_available()
+    
+    current_active_mode = "online" if has_gemini_key else ("offline" if ollama_online else "degraded")
+    
+    return {
+        "success": True,
+        "system": "Angkor Verse AI",
+        "active_mode": current_active_mode,
+        "providers": {
+            "online_gemini": {
+                "provider": "Google Gemini",
+                "model": settings.effective_online_model,
+                "configured": has_gemini_key,
+                "status": "ready" if has_gemini_key else "missing_api_key"
+            },
+            "offline_ollama": {
+                "provider": "Ollama Local",
+                "model": settings.effective_offline_model,
+                "endpoint": settings.OLLAMA_BASE_URL,
+                "status": "running" if ollama_online else "stopped"
+            },
+            "degraded_engine": {
+                "provider": "Local Knowledge Synthesizer",
+                "status": "ready"
+            }
+        },
+        "data_services": {
+            "tourism_database": "ready",
+            "weather_service": "ready",
+            "currency_service": "ready",
+            "events_service": "ready",
+            "places_service": "ready",
+            "transport_service": "ready"
+        }
     }

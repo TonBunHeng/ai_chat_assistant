@@ -188,6 +188,7 @@ User Question: '${query}'`;
       intent: 'tourism_search',
       message: messageText,
       sources: topMatches.map(m => ({
+        name: m.name,
         title: m.name,
         category: m.category,
         location: m.province,

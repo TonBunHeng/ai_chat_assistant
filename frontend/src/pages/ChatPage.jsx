@@ -308,12 +308,18 @@ const ChatPage = () => {
             sender: 'ai',
             message: apiPayload?.answer || apiPayload?.message || 'No response text available.',
             mode: respMode,
+            model: apiPayload?.model,
+            data_sources: apiPayload?.data_sources || [],
             intent: apiPayload?.intent,
             analysis: apiPayload?.analysis,
             summary: apiPayload?.summary,
             sentiment: apiPayload?.sentiment,
             sources: apiPayload?.sources || [],
             suggestions: apiPayload?.suggestions || [],
+            weather: apiPayload?.weather,
+            currency: apiPayload?.currency,
+            itinerary: apiPayload?.itinerary,
+            recommendations: apiPayload?.recommendations,
             created_at: new Date().toISOString()
           };
 
