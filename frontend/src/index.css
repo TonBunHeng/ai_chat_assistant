@@ -21,11 +21,16 @@
   --color-text-primary-dark: #f4f4f5;
 }
 
+html {
+  font-size: 106.25%; /* Scales base root font smoothly (1rem = 17px), enhancing legibility for both English & Khmer */
+}
+
 @layer base {
   body {
-    font-family: 'Inter', 'Kantumruy Pro', sans-serif;
+    font-family: 'Inter', 'Kantumruy Pro', system-ui, -apple-system, sans-serif;
     background-color: var(--color-bg-light);
     color: var(--color-text-primary-light);
+    line-height: 1.6;
   }
 
   .dark body {
@@ -42,9 +47,22 @@
   letter-spacing: 0.01em;
 }
 
-/* When the app is in Khmer mode, scale base size slightly up for perfect readability */
-html[lang="km"] {
-  font-size: 106.25%; /* 16px -> 17px */
+/* Scaling adjustments for small tags & badges */
+.text-\[9px\] {
+  font-size: 10px !important;
+}
+
+.text-\[10px\] {
+  font-size: 11px !important;
+}
+
+.text-\[11px\] {
+  font-size: 12px !important;
+}
+
+/* When the app is in Khmer mode */
+html[lang="km"] body {
+  line-height: 1.7;
 }
 
 html[lang="km"] body {

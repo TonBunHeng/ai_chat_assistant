@@ -95,8 +95,8 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
 
         {/* Message Bubble Container */}
         <div
-          className={`px-4 py-3 rounded-2xl shadow-2xs ${
-            hasKhmer ? 'text-[15px] sm:text-[15.5px] leading-[1.75]' : 'text-sm leading-relaxed'
+          className={`px-4 py-3 rounded-2xl shadow-2xs text-[15px] sm:text-[15.5px] ${
+            hasKhmer ? 'leading-[1.75]' : 'leading-relaxed'
           } ${
             isUser
               ? 'bg-[#003E83] text-white rounded-tr-xs font-medium'

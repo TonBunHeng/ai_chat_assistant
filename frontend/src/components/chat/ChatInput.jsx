@@ -121,10 +121,8 @@ const ChatInput = ({ onSendMessage, isLoading, language = 'en', isCentered = fal
                   : 'Ask something about Cambodia.'
               }
               disabled={isLoading}
-              className={`w-full bg-transparent ${
-                isKhmer || /[\u1780-\u17FF]/.test(text)
-                  ? 'text-sm sm:text-[15px] leading-relaxed font-khmer'
-                  : 'text-xs sm:text-sm leading-normal'
+              className={`w-full bg-transparent text-[14px] sm:text-[15px] leading-relaxed ${
+                isKhmer || /[\u1780-\u17FF]/.test(text) ? 'font-khmer' : ''
               } text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-zinc-400 focus:outline-none resize-none px-1 py-1 max-h-32 min-h-[28px]`}
             />
 
