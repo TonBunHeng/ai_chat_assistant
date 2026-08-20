@@ -35,6 +35,14 @@ const ChatPage = () => {
     } catch (e) {}
   }, [userProfile]);
 
+  // Update document language attribute dynamically
+  useEffect(() => {
+    try {
+      document.documentElement.lang = language;
+      document.documentElement.setAttribute('data-lang', language);
+    } catch (e) {}
+  }, [language]);
+
   // Update current mode state when network changes
   useEffect(() => {
     if (!isOnline) {
@@ -402,7 +410,9 @@ const ChatPage = () => {
         <main className="flex-1 flex flex-col h-full min-w-0">
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center px-3 sm:px-4 max-w-3xl mx-auto w-full -mt-10 sm:-mt-16 animate-fade-in">
-              <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-[32px] font-bold tracking-tight text-slate-900 dark:text-white text-center sm:whitespace-nowrap mb-6 select-none leading-snug px-2 max-w-full">
+              <h1 className={`text-xl sm:text-2xl md:text-3xl ${
+                language === 'km' ? 'lg:text-[34px] leading-relaxed font-khmer' : 'lg:text-[32px] leading-snug'
+              } font-bold tracking-tight text-slate-900 dark:text-white text-center sm:whitespace-nowrap mb-6 select-none px-2 max-w-full`}>
                 {language === 'km' ? 'តើខ្ញុំអាចជួយអ្នកទស្សនាកម្ពុជាយ៉ាងដូចម្តេច?' : 'How can I help tourists visit Cambodia?'}
               </h1>
               <div className="w-full max-w-2xl">

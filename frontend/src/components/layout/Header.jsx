@@ -45,11 +45,13 @@ const Header = ({
           {/* New Chat Button */}
           <button
             onClick={onNewChat}
-            className="flex items-center space-x-1.5 h-8 px-3.5 rounded-full bg-[#003E83] hover:bg-[#002e62] dark:bg-[#2563eb] dark:hover:bg-[#1d4ed8] text-white text-xs font-bold shadow-xs transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
+            className={`flex items-center space-x-1.5 h-8 px-3.5 rounded-full bg-[#003E83] hover:bg-[#002e62] dark:bg-[#2563eb] dark:hover:bg-[#1d4ed8] text-white ${
+              isKhmer ? 'text-[13px] font-khmer' : 'text-xs'
+            } font-bold shadow-xs transition-all duration-200 active:scale-95 cursor-pointer shrink-0`}
             title={isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat'}
           >
             <Plus size={14} className="shrink-0" />
-            <span className="text-xs">
+            <span>
               {isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat'}
             </span>
           </button>

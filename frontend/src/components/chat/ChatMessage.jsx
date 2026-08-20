@@ -16,6 +16,7 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
   const mode = message.mode || 'online';
   const modelName = message.model || (mode === 'offline' ? 'CamTour-On-Mistral-Ai' : 'Gemini Flash');
   const textContent = message.message || message.content || '';
+  const hasKhmer = isKhmer || /[\u1780-\u17FF]/.test(textContent);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(textContent);
@@ -31,6 +32,7 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
     if (!text) return '';
     return text.split('\n').map((line, lineIdx) => {
       const parts = line.split(/(\*\*.*?\*\*)/g);
+      const isLineKhmer = /[\u1780-\u17FF]/.test(line);
       const formattedLine = parts.map((part, pIdx) => {
         if (part.startsWith('**') && part.endsWith('**')) {
           return <strong key={pIdx} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>;
@@ -39,7 +41,7 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
       });
 
       return (
-        <span key={lineIdx} className="block mb-1 leading-relaxed">
+        <span key={lineIdx} className={`block mb-1 ${isLineKhmer || hasKhmer ? 'leading-[1.75]' : 'leading-relaxed'}`}>
           {formattedLine}
         </span>
       );
@@ -93,7 +95,9 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
 
         {/* Message Bubble Container */}
         <div
-          className={`px-4 py-3 rounded-2xl shadow-2xs text-sm ${
+          className={`px-4 py-3 rounded-2xl shadow-2xs ${
+            hasKhmer ? 'text-[15px] sm:text-[15.5px] leading-[1.75]' : 'text-sm leading-relaxed'
+          } ${
             isUser
               ? 'bg-[#003E83] text-white rounded-tr-xs font-medium'
               : 'bg-white dark:bg-[#18181b] text-[#111827] dark:text-[#f4f4f5] border border-[#f3f4f6] dark:border-[#27272a] rounded-tl-xs'
