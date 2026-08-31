@@ -298,36 +298,46 @@ const ChatPage = () => {
           history: historyPayload
         });
 
-        const apiPayload = response?.data?.data ?? response?.data ?? response;
+        const resData = response?.data;
+        const apiPayload = (resData && typeof resData === 'object') ? resData : response;
 
-        if (response && (response.success || apiPayload)) {
-          const sid = apiPayload?.session_id || currentSessionId || `session_${Date.now()}`;
+        const answerText =
+          apiPayload?.answer ||
+          apiPayload?.message_text ||
+          (apiPayload?.message && apiPayload.message !== 'Message processed successfully.' ? apiPayload.message : '') ||
+          response?.answer ||
+          response?.message_text ||
+          (response?.message && response.message !== 'Message processed successfully.' ? response.message : '') ||
+          '';
+
+        if (response && (response.success || apiPayload) && answerText) {
+          const sid = apiPayload?.session_id || response?.session_id || currentSessionId || `session_${Date.now()}`;
           if (sid) {
             activeSid = sid;
             setCurrentSessionId(sid);
             localStorage.setItem('aichat_last_active_session_id', sid);
           }
 
-          respMode = apiPayload?.mode || (isOnline ? 'online' : 'offline');
+          respMode = apiPayload?.mode || response?.mode || (isOnline ? 'online' : 'offline');
           setCurrentMode(respMode);
 
           aiMsg = {
             id: Date.now() + 1,
             sender: 'ai',
-            message: apiPayload?.answer || apiPayload?.message || 'No response text available.',
+            message: answerText,
             mode: respMode,
-            model: apiPayload?.model,
-            data_sources: apiPayload?.data_sources || [],
-            intent: apiPayload?.intent,
+            model: apiPayload?.model || response?.model,
+            data_sources: apiPayload?.data_sources || response?.data_sources || [],
+            intent: apiPayload?.intent || response?.intent,
             analysis: apiPayload?.analysis,
             summary: apiPayload?.summary,
             sentiment: apiPayload?.sentiment,
-            sources: apiPayload?.sources || [],
-            suggestions: apiPayload?.suggestions || [],
-            weather: apiPayload?.weather,
-            currency: apiPayload?.currency,
-            itinerary: apiPayload?.itinerary,
-            recommendations: apiPayload?.recommendations,
+            sources: apiPayload?.sources || response?.sources || [],
+            suggestions: apiPayload?.suggestions || response?.suggestions || [],
+            weather: apiPayload?.weather || response?.weather,
+            currency: apiPayload?.currency || response?.currency,
+            itinerary: apiPayload?.itinerary || response?.itinerary,
+            recommendations: apiPayload?.recommendations || response?.recommendations,
             created_at: new Date().toISOString()
           };
 
