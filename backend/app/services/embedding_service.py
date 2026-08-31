@@ -1,8 +1,17 @@
 import os
 import json
+import re
 import numpy as np
 from typing import List, Dict, Any, Tuple, Optional
 from app.core.config import settings
+
+ENGLISH_STOP_WORDS = {
+    "what", "is", "it", "the", "a", "an", "to", "in", "for", "of", "and", "or",
+    "you", "your", "me", "my", "we", "can", "how", "do", "does", "did", "tell",
+    "about", "there", "this", "that", "i", "am", "are", "was", "were", "be", "been",
+    "have", "has", "had", "which", "where", "when", "why", "who", "whom", "will", "would",
+    "should", "could", "please", "just", "now", "any", "some"
+}
 
 class EmbeddingService:
     def __init__(self):
@@ -20,13 +29,12 @@ class EmbeddingService:
             print(f"✅ sentence-transformers ({self.model_name}) loaded successfully.")
         except Exception as e:
             self.model = None
-            # Fast, high-accuracy multi-token semantic hashing for low-memory environments
             print(f"EmbeddingService: sentence-transformers not available or memory-constrained ({e}). Using optimized semantic vector encoder.")
 
     def encode(self, text: str) -> np.ndarray:
         """Encode text into normalized float32 vector with in-memory caching."""
         if not text:
-            return np.zeros(128, dtype=np.float32)
+            return np.zeros(512, dtype=np.float32)
             
         cache_key = text.strip()[:200]
         if cache_key in self._cache:
@@ -48,25 +56,31 @@ class EmbeddingService:
         self._cache[cache_key] = vec
         return vec
 
-    def _fallback_encode(self, text: str, dim: int = 128) -> np.ndarray:
+    def _fallback_encode(self, text: str, dim: int = 512) -> np.ndarray:
         """
-        Deterministic, robust multi-token and n-gram hash vectorizer with L2 normalization.
-        Extracts both word tokens and character 3-grams for high semantic and fuzzy overlap.
+        Deterministic, robust multi-token and n-gram hash vectorizer with stop-word filtering.
+        Extracts content word tokens and character 3-grams for high semantic discrimination.
         """
         vec = np.zeros(dim, dtype=np.float32)
-        clean_text = text.lower().strip()
+        clean_text = re.sub(r'[^\w\s\u1780-\u17FF]', ' ', text.lower()).strip()
         words = clean_text.split()
         
-        # 1. Word token hashes
-        for w in words:
-            h = abs(hash(w)) % dim
-            vec[h] += 1.5
-            
+        # Filter stop words unless the entire text consists only of stop words
+        content_words = [w for w in words if w not in ENGLISH_STOP_WORDS and len(w) > 1]
+        words_to_use = content_words if content_words else words
+
+        # 1. Word token hashes with higher weight for content words
+        for w in words_to_use:
+            h = abs(hash(f"word_{w}")) % dim
+            vec[h] += 3.0
+
         # 2. Character n-grams (3-grams) for robust morphological and fuzzy matching
-        for i in range(len(clean_text) - 2):
-            gram = clean_text[i:i+3]
-            h = abs(hash(gram)) % dim
-            vec[h] += 0.5
+        for w in words_to_use:
+            if len(w) >= 3:
+                for i in range(len(w) - 2):
+                    gram = w[i:i+3]
+                    h = abs(hash(f"gram_{gram}")) % dim
+                    vec[h] += 1.0
             
         norm = np.linalg.norm(vec)
         if norm > 0:

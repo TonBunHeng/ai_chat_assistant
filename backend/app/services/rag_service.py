@@ -208,7 +208,7 @@ class RAGService:
                     "price": retrieved_sources[0].get("price")
                 }
 
-        # 7. Fast-Path Greeting
+        # 7. Fast-Path Greeting, Time, & Identity
         if intent == "greeting":
             answer = (
                 "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ "
@@ -224,6 +224,49 @@ class RAGService:
                 "confidence": 0.98,
                 "fallback_used": False,
                 "data_sources": ["system_greeting"]
+            }
+        elif intent == "time":
+            from datetime import datetime, timezone, timedelta
+            cambodia_tz = timezone(timedelta(hours=7))
+            now_cambodia = datetime.now(cambodia_tz)
+            time_12h = now_cambodia.strftime("%I:%M %p")
+            time_24h = now_cambodia.strftime("%H:%M")
+            date_en = now_cambodia.strftime("%A, %B %d, %Y")
+            
+            kh_digits = {'0': '០', '1': '១', '2': '២', '3': '៣', '4': '៤', '5': '៥', '6': '៦', '7': '៧', '8': '៨', '9': '៩'}
+            time_km_digits = "".join(kh_digits.get(c, c) for c in time_12h)
+            
+            if is_km:
+                answer = f"🕒 ពេលនេះនៅប្រទេសកម្ពុជា (ម៉ោងឥណ្ឌូចិន Indochina Time, UTC+7) គឺម៉ោង **{time_12h}** ({time_24h}) នា **{date_en}**។"
+            else:
+                answer = f"🕒 The current time in Cambodia (Indochina Time, UTC+7) is **{time_12h}** ({time_24h}), **{date_en}**."
+                
+            ai_meta = {
+                "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "provider": "system_clock",
+                "model": "system_realtime",
+                "confidence": 1.0,
+                "fallback_used": False,
+                "data_sources": ["system_time_service"]
+            }
+        elif intent == "identity":
+            if is_km:
+                answer = (
+                    "ខ្ញុំជា **Angkor Verse AI** 🇰🇭 ជំនួយការទេសចរណ៍ឆ្លាតវៃសម្រាប់ប្រទេសកម្ពុជា។ "
+                    "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានលម្អិតអំពីប្រាសាទបុរាណ ឆ្នេរកោះ ម្ហូបអាហារខ្មែរ ប្តូរប្រាក់រៀល-ដុល្លារ ពិនិត្យអាកាសធាតុផ្ទាល់ និងរៀបចំគម្រោងដើរលេង ១ ដល់ ៥ ថ្ងៃឡើងទៅ។"
+                )
+            else:
+                answer = (
+                    "I am **Angkor Verse AI** 🇰🇭, your intelligent travel assistant dedicated to the Kingdom of Cambodia. "
+                    "I can provide verified insights on ancient temples, tropical islands, Khmer cuisine, live weather forecasts, USD/KHR exchange rates, and customized 1-5+ day travel itineraries."
+                )
+            ai_meta = {
+                "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "provider": "system_identity",
+                "model": "system_core",
+                "confidence": 1.0,
+                "fallback_used": False,
+                "data_sources": ["system_identity"]
             }
         else:
             # 8. Central AI Orchestration

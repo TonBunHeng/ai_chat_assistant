@@ -57,9 +57,14 @@ class SimilarityMatchingService:
     NON_PLACE_QUERIES = {
         "hi", "hello", "hey", "good morning", "good afternoon", "good evening", "greetings",
         "what is cambodia", "tell me about cambodia", "about cambodia", "cambodia", "cambodia country",
-        "who are you", "what can you do", "help", "thanks", "thank you", "bye", "goodbye",
-        "what is cambodia ?", "tell me about cambodia ?", "about cambodia ?",
-        "សួស្តី", "ជំរាបសួរ", "កម្ពុជា", "តើអ្វីទៅជាកម្ពុជា", "ប្រាប់អំពីកម្ពុជា"
+        "who are you", "what can you do", "who made you", "how are you", "how are you doing",
+        "what time is it", "what time is it in cambodia", "what time is it now", "what is the time",
+        "what time", "current time", "time in cambodia", "time now", "what date is today", "today date",
+        "help", "thanks", "thank you", "bye", "goodbye",
+        "what is cambodia ?", "tell me about cambodia ?", "about cambodia ?", "what time is it ?",
+        "who are you ?", "how are you ?", "what can you do ?",
+        "សួស្តី", "ជំរាបសួរ", "កម្ពុជា", "តើអ្វីទៅជាកម្ពុជា", "ប្រាប់អំពីកម្ពុជា",
+        "ម៉ោងប៉ុន្មាន", "ម៉ោងប៉ុន្មានហើយ", "ម៉ោងប៉ុន្មានហើយ ?", "តើអ្នកជាអ្នកណា", "សុខសប្បាយទេ"
     }
 
     def compute_fuzzy_score(self, query: str, item: Dict[str, Any]) -> float:
@@ -155,8 +160,11 @@ class SimilarityMatchingService:
             # Weighted hybrid score
             if fuz_score >= 0.75:
                 combined_score = max(sem_score, fuz_score)
+            elif fuz_score > 0.0:
+                combined_score = 0.5 * sem_score + 0.5 * fuz_score
             else:
-                combined_score = 0.6 * sem_score + 0.4 * fuz_score
+                # Pure semantic match requires stronger confidence
+                combined_score = sem_score if sem_score >= 0.68 else 0.0
 
             if combined_score >= threshold:
                 scored_candidates.append({

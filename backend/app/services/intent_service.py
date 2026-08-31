@@ -47,6 +47,12 @@ class IntentService:
             "transportation": [
                 r"\b(transport|transportation|how\s+to\s+get|taxi|bus|train|flight|ferry|speed\s+boat|tuk\s*tuk|passapp|grab|rent|drive|airport|ធ្វើដំណើរ|ជិះអី|ឡានក្រុង|តាក់ស៊ី|ទូក|កាណូត|យន្តហោះ)\b"
             ],
+            "time": [
+                r"\b(what\s+time|what\s+is\s+the\s+time|current\s+time|time\s+now|time\s+in\s+cambodia|time\s+zone|timezone|what\s+day\s+is\s+today|today\s+date|what\s+date|ម៉ោងប៉ុន្មាន|ម៉ោងប៉ុន្មានហើយ|វេលាម៉ោង|ថ្ងៃនេះថ្ងៃអ្វី|កាលបរិច្ឆេទ)\b"
+            ],
+            "identity": [
+                r"^\s*(who\s+are\s+you|what\s+are\s+you|what\s+is\s+your\s+name|who\s+made\s+you|what\s+can\s+you\s+do|តើអ្នកជាអ្នកណា|តើអ្នកជាអ្វី|អ្នកបង្កើតដោយអ្នកណា)\b"
+            ],
             "safety": [
                 r"\b(safety|safe|emergency|police|hospital|doctor|clinic|scam|sim\s*card|internet|vaccine|tap\s*water|សុវត្ថិភាព|អាសន្ន|ប៉ូលិស|មន្ទីរពេទ្យ|ស៊ីមកាត|ទឹកស្អាត|គ្រោះថ្នាក់)\b"
             ],
