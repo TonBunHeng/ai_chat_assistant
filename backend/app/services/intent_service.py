@@ -58,6 +58,9 @@ class IntentService:
             ],
             "place_search": [
                 r"\b(where\s+is|location\s+of|tell\s+me\s+about|information\s+about|find|opening\s+hours|ticket|price\s+of|entrance\s+fee|នៅឯណា|ទីតាំង|តម្លៃសំបុត្រ|ម៉ោងបើក)\b"
+            ],
+            "conversation_summary": [
+                r"\b(what\s+have\s+we\s+talked\s+about|summarize\s+our\s+conversation|summarize\s+chat|what\s+did\s+i\s+ask|recap\s+conversation|conversation\s+summary|chat\s+history|តើយើងបាននិយាយអំពីអ្វីខ្លះ|សង្ខេបការសន្ទនា|សង្ខេបកិច្ចសន្ទនា|សង្ខេបអ្វីដែលបាននិយាយ)\b"
             ]
         }
 

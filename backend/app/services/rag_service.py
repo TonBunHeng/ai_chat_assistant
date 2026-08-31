@@ -186,6 +186,43 @@ class RAGService:
                 ]
                 real_time_blocks.append("[VERIFIED CAMBODIAN FESTIVALS]:\n" + "\n".join(evt_lines))
 
+        # Tool 6: Verified Cambodian Restaurant & Food Search
+        elif intent == "food" or any(w in message.lower() for w in ["amok", "restaurant", "food", "eat", "lok lak", "dining", "ហាងបាយ", "ម្ហូប", "អាហារ"]):
+            verified_rests = places_service.search_restaurants(query=message, province=active_destination, limit=3)
+            if verified_rests:
+                data_type = "place"
+                data_sources_used.append("verified_restaurants_registry")
+                data_content = {
+                    "type": "restaurant",
+                    "restaurants": verified_rests,
+                    "top_match": verified_rests[0]
+                }
+                rest_lines = []
+                for vr in verified_rests:
+                    desc_display = vr.get('description_km') if is_km else vr.get('description')
+                    dishes_str = ", ".join(vr.get('specialty_dishes', []))
+                    rest_lines.append(
+                        f"- {vr.get('name')} ({vr.get('name_km', '')}) in {vr.get('province', '')}: {desc_display} | Specialties: {dishes_str} | Price: {vr.get('price', '')} | Hours: {vr.get('opening_hours', '')}"
+                    )
+                real_time_blocks.append(
+                    "[VERIFIED CAMBODIAN RESTAURANTS - ABSOLUTE GROUND TRUTH]:\n" + "\n".join(rest_lines) +
+                    "\n\nInstruction: Recommend ONLY these verified restaurants with their exact verified details. Do not invent any restaurant names or prices."
+                )
+
+        # Tool 7: Conversation Summary
+        elif intent == "conversation_summary":
+            summary_info = memory_service.get_structured_conversation_summary(sid, effective_lang)
+            data_type = "conversation_summary"
+            data_content = summary_info
+            data_sources_used.append("conversation_memory")
+            real_time_blocks.append(
+                f"[CONVERSATION SUMMARY RECAP]:\n"
+                f"- Active Destination: {summary_info['active_destination']}\n"
+                f"- Topics Discussed: {', '.join(summary_info['topics'])}\n"
+                f"- Total Messages: {summary_info['message_count']}\n"
+                f"- Summary Content: {summary_info['summary_text']}"
+            )
+
         # 6. RAG Retrieval from Tourism Knowledge Base
         rag_context_text, retrieved_sources = matching_service.build_rag_context(
             query=message,
@@ -197,19 +234,31 @@ class RAGService:
         is_matched = bool(retrieved_sources)
         top_sim_score = retrieved_sources[0]["relevance_score"] if retrieved_sources else 0.0
 
-        if retrieved_sources and not itinerary_payload and not recommendations_payload:
+        if retrieved_sources and not itinerary_payload and not recommendations_payload and data_type == "general":
             sources = retrieved_sources
-            if data_type == "general":
-                data_type = "place"
-                data_content = {
-                    "place": retrieved_sources[0]["name"],
-                    "province": retrieved_sources[0].get("province"),
-                    "category": retrieved_sources[0].get("category"),
-                    "price": retrieved_sources[0].get("price")
-                }
+            data_type = "place"
+            data_content = {
+                "place": retrieved_sources[0]["name"],
+                "province": retrieved_sources[0].get("province"),
+                "category": retrieved_sources[0].get("category"),
+                "price": retrieved_sources[0].get("price")
+            }
 
-        # 7. Fast-Path Greeting, Time, & Identity
-        if intent == "greeting":
+        # 7. Fast-Path Greeting, Time, Identity, & Conversation Summary
+        if intent == "conversation_summary":
+            summary_info = memory_service.get_structured_conversation_summary(sid, effective_lang)
+            answer = summary_info["summary_text"]
+            data_type = "conversation_summary"
+            data_content = summary_info
+            ai_meta = {
+                "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "provider": "conversation_memory",
+                "model": "system_memory",
+                "confidence": 1.0,
+                "fallback_used": False,
+                "data_sources": ["conversation_memory"]
+            }
+        elif intent == "greeting":
             answer = (
                 "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ "
                 "តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ម្ហូបអាហារ សណ្ឋាគារ ពិនិត្យអាកាសធាតុ ឬរៀបចំគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"

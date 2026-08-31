@@ -41,6 +41,111 @@ class PlacesService:
             results.append(enhanced)
         return results
 
+    def search_restaurants(
+        self,
+        query: Optional[str] = None,
+        province: Optional[str] = None,
+        cuisine: Optional[str] = None,
+        limit: int = 4
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve strictly verified Cambodian restaurants with no hallucinations.
+        Matches by dish name (e.g., 'fish amok', 'lok lak', 'crab'), province, cuisine, and tags.
+        """
+        all_places = self.get_all_places()
+        restaurants = [
+            p for p in all_places
+            if str(p.get("category", "")).lower() in ["restaurant", "food", "dining"]
+            or any("restaurant" in str(t).lower() or "food" in str(t).lower() for t in p.get("tags", []))
+        ]
+
+        q = (query or "").lower().strip()
+        prov = (province or "").lower().strip() if province and province.lower() != "cambodia" else ""
+        cui = (cuisine or "").lower().strip()
+
+        scored = []
+        for r in restaurants:
+            score = 10
+            r_name = str(r.get("name", "")).lower()
+            r_name_km = str(r.get("name_km", "")).lower()
+            r_prov = str(r.get("province", "")).lower()
+            r_prov_km = str(r.get("province_km", "")).lower()
+            r_cuisine = str(r.get("cuisine", "")).lower()
+            r_desc = str(r.get("description", "")).lower()
+            r_dishes = [str(d).lower() for d in r.get("specialty_dishes", [])]
+            r_tags = [str(t).lower() for t in r.get("tags", [])]
+
+            if prov:
+                if prov in r_prov or prov in r_prov_km:
+                    score += 30
+                else:
+                    # Penalty if looking for a specific province and restaurant is elsewhere
+                    score -= 20
+
+            if q:
+                if q in r_name or q in r_name_km:
+                    score += 40
+                if any(q in d for d in r_dishes):
+                    score += 35
+                if q in r_desc:
+                    score += 20
+                if any(q in t for t in r_tags):
+                    score += 15
+
+                # Key dish keywords
+                if "amok" in q and ("amok" in r_desc or any("amok" in d for d in r_dishes)):
+                    score += 30
+                if "lok lak" in q and ("lok lak" in r_desc or any("lok lak" in d for d in r_dishes)):
+                    score += 30
+                if "crab" in q and ("crab" in r_desc or any("crab" in d for d in r_dishes)):
+                    score += 35
+
+            if cui and (cui in r_cuisine or any(cui in t for t in r_tags)):
+                score += 15
+
+            if score > 0:
+                scored.append((score, r))
+
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [r for _, r in scored[:limit]]
+
+    def search_places_ranked(
+        self,
+        query: Optional[str] = None,
+        category: Optional[str] = None,
+        province: Optional[str] = None,
+        limit: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Deterministic ranking for attractions and destinations."""
+        places = self.get_all_places(category=category, province=province)
+        q = (query or "").lower().strip()
+        
+        scored = []
+        for p in places:
+            score = 10
+            name = str(p.get("name", "")).lower()
+            name_km = str(p.get("name_km", "")).lower()
+            desc = str(p.get("description", "")).lower()
+            tags = [str(t).lower() for t in p.get("tags", [])]
+            
+            if q:
+                if q in name or q in name_km:
+                    score += 40
+                if any(q in t for t in tags):
+                    score += 20
+                if q in desc:
+                    score += 15
+                    
+            if "unesco" in tags:
+                score += 20
+            if "angkor" in name or "wat" in name:
+                score += 15
+                
+            scored.append((score, p))
+            
+        scored.sort(key=lambda x: x[0], reverse=True)
+        return [p for _, p in scored[:limit]]
+
     def get_place_by_id(self, place_id: str) -> Optional[Dict[str, Any]]:
         """Get single place by ID with enriched details."""
         item = tourism_service.get_item_by_id(place_id)
@@ -60,23 +165,7 @@ class PlacesService:
 
     def get_popular_places(self, limit: int = 6) -> List[Dict[str, Any]]:
         """Get top popular Cambodian attractions."""
-        all_places = self.get_all_places()
-        # Prioritize UNESCO, world heritage, and famous temples
-        scored = []
-        for p in all_places:
-            score = 10
-            tags = [t.lower() for t in p.get("tags", [])]
-            name = p.get("name", "").lower()
-            if "unesco" in tags:
-                score += 20
-            if "angkor" in name or "wat" in name:
-                score += 15
-            if "palace" in name or "museum" in name:
-                score += 10
-            scored.append((score, p))
-            
-        scored.sort(key=lambda x: x[0], reverse=True)
-        return [p for _, p in scored[:limit]]
+        return self.search_places_ranked(limit=limit)
 
     def get_related_places(self, place_id: str, limit: int = 3) -> List[Dict[str, Any]]:
         """Get related places in the same province or category."""

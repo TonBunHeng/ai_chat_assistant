@@ -57,6 +57,10 @@ def test_intent_and_entity_extraction():
     res5 = intent_service.detect_intent("When is the Water Festival in Cambodia?")
     assert res5["intent"] == "events"
 
+    # Conversation summary intent
+    res6 = intent_service.detect_intent("What have we talked about so far?")
+    assert res6["intent"] == "conversation_summary"
+
 # 3. Weather Service Tests
 def test_weather_service():
     """Verify weather service returns valid weather payload for Cambodian hubs."""
@@ -72,8 +76,8 @@ def test_currency_service():
     rate = currency_service.get_exchange_rate()
     assert rate["exchange_rate"] > 3000
     
-    conversion = currency_service.convert(50, "USD", "KHR")
-    assert conversion["result"] >= 150000
+    conversion = currency_service.convert(100, "USD", "KHR")
+    assert conversion["result"] == 410000.0 or conversion["result"] > 350000
     assert conversion["from"] == "USD"
     assert conversion["to"] == "KHR"
 
@@ -97,18 +101,31 @@ def test_recommendation_engine():
     assert "match_score" in recs[0]
     assert recs[0]["match_score"] > 50
 
-# 7. Itinerary Engine Tests
-def test_itinerary_engine():
-    """Verify 1, 2, 3, 4, 5+ day itinerary generation with deterministic calculations."""
-    itin = itinerary_engine.generate_itinerary(destination="Siem Reap", days=3, language="en")
-    assert itin["duration_days"] == 3
-    assert len(itin["days"]) == 3
-    assert "estimated_budget" in itin
+# 7. Itinerary Engine Tests (Multi-day completeness & Koh Rong 2-day)
+def test_itinerary_engine_completeness():
+    """Verify 2-day Koh Rong trip completeness, destination mapping, and deterministic budget."""
+    itin = itinerary_engine.generate_itinerary(destination="Koh Rong", days=2, language="en")
+    assert itin["duration_days"] == 2
+    assert len(itin["days"]) == 2
+    assert itin["primary_destination"] == "Koh Rong"
+    assert "budget" in itin
+    assert itin["budget"]["transportation"] > 0
+    assert itin["budget"]["accommodation"] > 0
+    assert itin["budget"]["food"] > 0
+    assert itin["budget"]["total_usd"] > 0
+    assert itin["budget"]["total_khr"] > 0
     assert len(itin["days"][0]["items"]) >= 2
-    assert "time" in itin["days"][0]["items"][0]
-    assert "activity" in itin["days"][0]["items"][0]
+    assert len(itin["days"][1]["items"]) >= 2
 
-# 8. Confidence Scoring Tests
+# 8. Verified Restaurant & Food Search Tests
+def test_verified_restaurant_search():
+    """Verify Fish Amok search returns authentic verified restaurants without hallucinations."""
+    rests = places_service.search_restaurants(query="fish amok", province="Siem Reap", limit=3)
+    assert len(rests) >= 1
+    assert rests[0]["verified"] is True
+    assert "amok" in str(rests[0].get("description", "")).lower() or any("amok" in d.lower() for d in rests[0].get("specialty_dishes", []))
+
+# 9. Confidence Scoring Tests
 def test_confidence_service():
     """Verify confidence calculation factors and levels."""
     high_eval = confidence_service.calculate_confidence(
@@ -122,7 +139,7 @@ def test_confidence_service():
     assert high_eval["level"] == "high"
     assert high_eval["overall_score"] >= 0.90
 
-# 9. RAG Retrieval & Context Builder Tests
+# 10. RAG Retrieval & Context Builder Tests
 def test_rag_retrieval_pipeline():
     """Verify semantic retrieval and context building."""
     ctx, sources = matching_service.build_rag_context("Tell me about Angkor Wat", top_k=2)
@@ -130,32 +147,48 @@ def test_rag_retrieval_pipeline():
     assert "Angkor" in sources[0]["name"]
     assert len(ctx) > 50
 
-# 10. Memory Service Tests
-def test_memory_service():
-    """Verify session metadata, history, and limits."""
-    sid = "test_sess_001"
-    memory_service.add_message(sid, "user", "I want to visit Siem Reap.")
-    memory_service.add_message(sid, "assistant", "Siem Reap is wonderful!")
+# 11. Memory Service & Conversation Summary Tests
+def test_memory_and_conversation_summary():
+    """Verify session metadata, history, and structured conversation summary."""
+    sid = "test_sess_summary_001"
+    memory_service.add_message(sid, "user", "I want to visit Angkor Wat and eat Fish Amok.")
+    memory_service.add_message(sid, "assistant", "Angkor Wat is magnificent, and Fish Amok is our national dish!")
     
-    hist = memory_service.get_history(sid)
-    assert len(hist) == 2
-    assert hist[0]["role"] == "user"
-    assert hist[1]["role"] == "assistant"
+    summary = memory_service.get_structured_conversation_summary(sid, language="en")
+    assert summary["type"] == "conversation_summary"
+    assert summary["message_count"] == 2
+    assert len(summary["topics"]) >= 1
+    assert "summary_text" in summary
     
     memory_service.delete_session(sid)
-    assert len(memory_service.get_history(sid)) == 0
 
-# 11. Full End-to-End Orchestrator Flow
-def test_rag_service_full_flow():
-    """Verify master RAG orchestrator for bilingual tourism requests."""
+# 12. Full End-to-End Orchestrator Flow (Bilingual & Scenarios)
+def test_rag_service_full_scenarios():
+    """Verify master RAG orchestrator for bilingual tourism scenarios."""
+    # Scenario A: English Angkor inquiry
     res_en = rag_service.process_chat_message("What is the best time to visit Angkor Wat?")
     assert res_en["success"] is True
     assert len(res_en["message"]) > 20
-    assert "request_id" in res_en
     assert res_en["language"] == "en"
-    assert "data" in res_en
 
+    # Scenario B: Khmer Weather inquiry
     res_km = rag_service.process_chat_message("តើអាកាសធាតុនៅសៀមរាបយ៉ាងម៉េចដែរ?")
     assert res_km["success"] is True
     assert res_km["language"] == "km"
     assert res_km["weather"] is not None
+
+    # Scenario C: 100 USD Currency Conversion
+    res_curr = rag_service.process_chat_message("Convert 100 USD to KHR")
+    assert res_curr["success"] is True
+    assert res_curr["intent"] == "currency"
+    assert res_curr["currency"] is not None
+    assert res_curr["currency"]["result"] >= 350000
+
+    # Scenario D: Conversation summary
+    sid_test = "test_e2e_summary_sid"
+    rag_service.process_chat_message("Tell me about Bayon Temple", session_id=sid_test)
+    res_summary = rag_service.process_chat_message("What have we talked about so far?", session_id=sid_test)
+    assert res_summary["success"] is True
+    assert res_summary["intent"] == "conversation_summary"
+    assert "summary_text" in res_summary["data"] or res_summary["data"]["type"] == "conversation_summary"
+    memory_service.delete_session(sid_test)

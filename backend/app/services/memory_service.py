@@ -252,6 +252,66 @@ class MemoryService:
         except Exception as e:
             print(f"MemoryService purge note: {e}")
 
+    def get_structured_conversation_summary(self, session_id: str, language: str = "en") -> Dict[str, Any]:
+        """Generate structured conversation recap based on session messages and metadata."""
+        is_km = "km" in language
+        history = self.get_history(session_id, limit=30)
+        meta = self.get_session_metadata(session_id)
+        
+        user_msgs = [m["content"] for m in history if m.get("role") == "user"]
+        assistant_msgs = [m["content"] for m in history if m.get("role") in ["assistant", "ai"]]
+
+        # Extract topics
+        topics = []
+        full_text = " ".join(user_msgs).lower()
+        if any(w in full_text for w in ["angkor", "temple", "bayon", "តាព្រហ្ម", "ប្រាសាទ", "វត្ត"]):
+            topics.append("Angkor & Ancient Temples" if not is_km else "ប្រាសាទបុរាណ និងអង្គរ")
+        if any(w in full_text for w in ["itinerary", "plan", "day", "trip", "គម្រោង", "ដើរលេង"]):
+            topics.append("Custom Travel Itinerary" if not is_km else "គម្រោងដំណើរកម្សាន្ត")
+        if any(w in full_text for w in ["food", "dish", "amok", "eat", "restaurant", "ម្ហូប", "អាហារ", "អាម៉ុក", "ឡុកឡាក់"]):
+            topics.append("Khmer Cuisine & Dining" if not is_km else "ម្ហូបអាហារ និងភោជនីយដ្ឋានខ្មែរ")
+        if any(w in full_text for w in ["weather", "rain", "temperature", "temp", "អាកាសធាតុ", "ភ្លៀង"]):
+            topics.append("Real-Time Weather" if not is_km else "ការព្យាករណ៍អាកាសធាតុ")
+        if any(w in full_text for w in ["riel", "dollar", "exchange", "khr", "usd", "currency", "ប្តូរលុយ", "រៀល"]):
+            topics.append("Currency Exchange & Budget" if not is_km else "អត្រាប្តូរប្រាក់ និងថវិកា")
+        if any(w in full_text for w in ["beach", "koh rong", "island", "sea", "ឆ្នេរ", "កោះ", "កោះរ៉ុង"]):
+            topics.append("Tropical Islands & Beaches" if not is_km else "កោះ និងឆ្នេរសមុទ្រ")
+            
+        if not topics:
+            topics.append("Cambodia Tourism Inquiry" if not is_km else "ព័ត៌មានទេសចរណ៍កម្ពុជា")
+
+        dest = meta.get("destination") or "Siem Reap"
+        style = meta.get("travel_style") or "cultural"
+        
+        # Formulate structured recap text
+        topic_bullets = "\n".join([f"- {t}" for t in topics])
+        if is_km:
+            summary_text = (
+                f"**សង្ខេបកិច្ចសន្ទនារបស់យើងរហូតមកដល់ពេលនេះ៖**\n\n"
+                f"📍 **គោលដៅទេសចរណ៍ចម្បង៖** {dest}\n"
+                f"✨ **ប្រធានបទដែលបានពិភាក្សា៖**\n{topic_bullets}\n\n"
+                f"💬 **ចំនួនសារសរុប៖** {len(history)} សារ\n\n"
+                f"តើអ្នកចង់ឱ្យខ្ញុំជួយលម្អិតបន្ថែមលើប្រធានបទណាមួយទៀតដែរឬទេ?"
+            )
+        else:
+            summary_text = (
+                f"**Here is a summary of our conversation so far:**\n\n"
+                f"📍 **Active Destination:** {dest}\n"
+                f"✨ **Topics Discussed:**\n{topic_bullets}\n\n"
+                f"💬 **Total Conversation Messages:** {len(history)}\n\n"
+                f"Would you like to explore any of these topics further or plan the next step of your journey?"
+            )
+
+        return {
+            "type": "conversation_summary",
+            "topics": topics,
+            "preferences": [style] if style else [],
+            "active_destination": dest,
+            "previous_plans": [f"{dest} Trip Exploration"],
+            "message_count": len(history),
+            "summary_text": summary_text
+        }
+
     def get_all_sessions(self) -> List[Dict[str, Any]]:
         self.purge_expired_sessions(max_age_hours=1.0)
         with self._get_connection() as conn:
