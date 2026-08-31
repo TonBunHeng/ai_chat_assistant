@@ -341,49 +341,92 @@ class RAGService:
         }
 
     def _generate_suggestions(self, intent: str, destination: Optional[str], lang: str) -> List[str]:
-        """Generate smart follow-up suggestions for the UI."""
+        """Generate 3 to 4 smart randomized follow-up suggestions for the UI."""
+        import random
         is_km = "km" in lang
-        dest = destination or ("សៀមរាប" if is_km else "Siem Reap")
+        dest_en = destination or "Siem Reap"
+        dest_km = "សៀមរាប" if (not destination or destination == "Siem Reap") else (
+            "ភ្នំពេញ" if destination == "Phnom Penh" else (
+                "កំពត" if destination == "Kampot" else (
+                    "កោះរ៉ុង" if destination == "Koh Rong" else (
+                        "ព្រះសីហនុ" if destination == "Sihanoukville" else destination
+                    )
+                )
+            )
+        )
         
-        if intent == "greeting":
-            if is_km:
-                return [
-                    "តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅសៀមរាប?",
-                    "តើអាកាសធាតុនៅសៀមរាបថ្ងៃនេះយ៉ាងម៉េចដែរ?",
-                    "រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប"
-                ]
-            else:
-                return [
-                    "What are the top places to visit in Siem Reap?",
-                    "What is the weather like in Siem Reap today?",
-                    "Create a 3-day Siem Reap cultural itinerary"
-                ]
-
-        if intent == "weather":
-            if is_km:
-                return [
-                    f"តើទៅ {dest} គួររៀបចំដំណើរកម្សាន្តប៉ុន្មានថ្ងៃ?",
-                    "តើម្ហូបអាហារល្បីៗនៅទីនោះមានអ្វីខ្លះ?",
-                    "ណែនាំមធ្យោបាយធ្វើដំណើរដែលល្អបំផុត"
-                ]
-            else:
-                return [
-                    f"Create a 3-day itinerary for {dest}",
-                    f"What local dishes should I try in {dest}?",
-                    "What are the best transportation options?"
-                ]
-
+        # Candidate question pools categorized by domain
         if is_km:
-            return [
-                f"តើអាកាសធាតុនៅ {dest} យ៉ាងណាដែរ?",
-                f"តើម្ហូបអាហារល្បីៗនៅ {dest} មានអ្វីខ្លះ?",
-                f"រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅ {dest}"
+            itinerary_pool = [
+                f"រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅ {dest_km}",
+                "រៀបចំដំណើរកម្សាន្ត ៥ ថ្ងៃ ភ្នំពេញ និង សៀមរាប",
+                f"តើទៅ {dest_km} គួររៀបចំដំណើរកម្សាន្តប៉ុន្មានថ្ងៃ?",
+                "រៀបចំគម្រោងលំហែកាយ ២ ថ្ងៃនៅកោះរ៉ុង"
+            ]
+            attractions_pool = [
+                f"តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅ {dest_km}?",
+                "តើប្រាសាទល្បីៗណាខ្លះដែលគួរទៅទស្សនាក្រៅពីអង្គរវត្ត?",
+                "តើពេលវេលាណាដែលល្អបំផុតសម្រាប់មើលថ្ងៃរះនៅប្រាសាទអង្គរវត្ត?",
+                "តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?",
+                "តើនៅឧទ្យានជាតិភ្នំបូកគោមានកន្លែងកម្សាន្តអ្វីខ្លះ?",
+                "តើព្រះបរមរាជវាំងនៅភ្នំពេញមានអ្វីពិសេសខ្លះ?"
+            ]
+            food_pool = [
+                f"តើម្ហូបអាហារល្បីៗនៅ {dest_km} មានអ្វីខ្លះ?",
+                "តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?",
+                "តើអាចរកញ៉ាំអាម៉ុកត្រី និងឡុកឡាក់ឆ្ងាញ់នៅឯណា?",
+                "តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?"
+            ]
+            practical_pool = [
+                f"តើអាកាសធាតុនៅ {dest_km} យ៉ាងណាដែរ?",
+                "តើអត្រាប្តូរប្រាក់ ១ ដុល្លារស្មើនឹងប៉ុន្មានរៀលថ្ងៃនេះ?",
+                "តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?",
+                "តើត្រូវស្លៀកពាក់បែបណាពេលចូលទស្សនាប្រាសាទបុរាណ?",
+                "តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?",
+                "តើពិធីបុណ្យប្រពៃណីខ្មែរល្បីៗមានអ្វីខ្លះ?"
             ]
         else:
-            return [
-                f"What is the weather like in {dest}?",
-                f"What local food should I try in {dest}?",
-                f"Create a 3-day itinerary for {dest}"
+            itinerary_pool = [
+                f"Create a 3-day {dest_en} cultural itinerary",
+                "Plan a 5-day Cambodia highlights trip (Phnom Penh & Siem Reap)",
+                f"How many days are ideal to visit {dest_en}?",
+                "Plan a relaxing 2-day beach getaway to Koh Rong island"
             ]
+            attractions_pool = [
+                f"What are the top attractions to visit in {dest_en}?",
+                "What must-see temples in Siem Reap should I visit besides Angkor Wat?",
+                "What is the best time and spot for Angkor Wat sunrise?",
+                "What are the most beautiful beaches on Koh Rong?",
+                "What can I explore at Bokor National Park in Kampot?",
+                "What are the highlights of the Royal Palace in Phnom Penh?"
+            ]
+            food_pool = [
+                f"What local dishes should I try in {dest_en}?",
+                "What authentic Khmer dishes are must-try in Cambodia?",
+                "Where can I find the best Fish Amok and Beef Lok Lak?",
+                "Tell me about fresh Kampot pepper crab in Kep"
+            ]
+            practical_pool = [
+                f"What is the weather like in {dest_en} today?",
+                "What is the current USD to Cambodian Riel exchange rate?",
+                "How much does an Angkor Wat temple pass cost?",
+                "What is the dress code for visiting ancient temples in Cambodia?",
+                "How do I travel comfortably between Phnom Penh and Siem Reap?",
+                "What traditional Cambodian festivals happen throughout the year?"
+            ]
+
+        # Assemble diverse mix from categories
+        candidates = [
+            random.choice(attractions_pool),
+            random.choice(itinerary_pool),
+            random.choice(food_pool),
+            random.choice(practical_pool)
+        ]
+
+        # De-duplicate while preserving order
+        unique_selected = list(dict.fromkeys(candidates))
+        random.shuffle(unique_selected)
+        target_count = random.choice([3, 4])
+        return unique_selected[:target_count]
 
 rag_service = RAGService()

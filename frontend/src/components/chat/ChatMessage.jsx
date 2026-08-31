@@ -18,6 +18,39 @@ const ChatMessage = ({ message, language = 'en', onRegenerate, onSelectSuggestio
   const textContent = message.message || message.content || '';
   const hasKhmer = isKhmer || /[\u1780-\u17FF]/.test(textContent);
 
+  const displayedSuggestions = React.useMemo(() => {
+    if (isUser) return [];
+    if (message.suggestions && message.suggestions.length >= 3) {
+      return message.suggestions.slice(0, 4);
+    }
+    const defaultEn = [
+      'What are the top attractions to visit in Siem Reap?',
+      'Create a 3-day Siem Reap cultural itinerary',
+      'What authentic Khmer dishes are must-try in Cambodia?',
+      'What is the weather like in Siem Reap today?',
+      'What is the current USD to Cambodian Riel exchange rate?',
+      'What are the most beautiful beaches on Koh Rong?',
+      'How much does an Angkor Wat temple pass cost?',
+      'How do I travel comfortably between Phnom Penh and Siem Reap?'
+    ];
+    const defaultKm = [
+      'តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅសៀមរាប?',
+      'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប',
+      'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?',
+      'តើអាកាសធាតុនៅសៀមរាបថ្ងៃនេះយ៉ាងណាដែរ?',
+      'តើអត្រាប្តូរប្រាក់ ១ ដុល្លារស្មើនឹងប៉ុន្មានរៀលថ្ងៃនេះ?',
+      'តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?',
+      'តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?',
+      'តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?'
+    ];
+    const existing = message.suggestions || [];
+    const pool = hasKhmer || isKhmer ? defaultKm : defaultEn;
+    const additional = pool.filter(p => !existing.includes(p)).sort(() => 0.5 - Math.random());
+    const combined = [...existing, ...additional];
+    const targetCount = Math.random() > 0.5 ? 4 : 3;
+    return combined.slice(0, targetCount);
+  }, [message.suggestions, isUser, hasKhmer, isKhmer]);
+
   const handleCopy = () => {
     navigator.clipboard.writeText(textContent);
     setCopied(true);
@@ -181,13 +214,13 @@ const ChatMessage = ({ message, language = 'en', onRegenerate, onSelectSuggestio
           )}
 
           {/* Contextual Suggestions Chips */}
-          {!isUser && message.suggestions && message.suggestions.length > 0 && onSelectSuggestion && (
+          {!isUser && displayedSuggestions && displayedSuggestions.length > 0 && onSelectSuggestion && (
             <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
               <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">
                 {isKhmer ? 'សំណើបន្ថែម៖' : 'Suggested Questions:'}
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {message.suggestions.map((suggestion, sIdx) => (
+                {displayedSuggestions.map((suggestion, sIdx) => (
                   <button
                     key={sIdx}
                     onClick={() => onSelectSuggestion(suggestion)}

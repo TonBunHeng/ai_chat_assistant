@@ -1,10 +1,37 @@
 import { tourismDataset } from '../data/tourismData';
 
-/**
- * Perform offline tourism search directly over local tourism dataset
- * and generate answers using local Ollama model if available,
- * or provide rich local dataset responses if Ollama is not running.
- */
+const getOfflineSuggestions = (isKhmer, province = 'Siem Reap') => {
+  const destKm = province === 'Phnom Penh' ? 'ភ្នំពេញ' : (province === 'Kampot' ? 'កំពត' : (province === 'Koh Rong' ? 'កោះរ៉ុង' : 'សៀមរាប'));
+  const destEn = province || 'Siem Reap';
+
+  const poolKm = [
+    `តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅ ${destKm}?`,
+    `រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅ ${destKm}`,
+    `តើម្ហូបអាហារល្បីៗនៅ ${destKm} មានអ្វីខ្លះ?`,
+    `តើអាកាសធាតុនៅ ${destKm} ថ្ងៃនេះយ៉ាងណាដែរ?`,
+    'តើប្រាសាទល្បីៗណាខ្លះដែលគួរទៅទស្សនាក្រៅពីអង្គរវត្ត?',
+    'តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?',
+    'តើអត្រាប្តូរប្រាក់ ១ ដុល្លារស្មើនឹងប៉ុន្មានរៀលថ្ងៃនេះ?',
+    'តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?'
+  ];
+
+  const poolEn = [
+    `What are the top attractions to visit in ${destEn}?`,
+    `Create a 3-day ${destEn} cultural itinerary`,
+    `What local dishes should I try in ${destEn}?`,
+    `What is the weather like in ${destEn} today?`,
+    'What must-see temples in Siem Reap should I visit besides Angkor Wat?',
+    'What are the most beautiful beaches on Koh Rong?',
+    'What is the current USD to Cambodian Riel exchange rate?',
+    'How much does an Angkor Wat temple pass cost?'
+  ];
+
+  const pool = isKhmer ? poolKm : poolEn;
+  const shuffled = [...pool].sort(() => 0.5 - Math.random());
+  const count = Math.random() > 0.5 ? 4 : 3;
+  return shuffled.slice(0, count);
+};
+
 export const performOfflineSearch = async (query, language = 'en') => {
   const isKhmer = language === 'km' || /[\u1780-\u17FF]/.test(query || '');
   const q = query && query.toLowerCase ? query.toLowerCase().trim() : '';
@@ -20,9 +47,7 @@ export const performOfflineSearch = async (query, language = 'en') => {
       message: isKhmer
         ? 'សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?'
         : "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your local AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?",
-      suggestions: isKhmer
-        ? ['តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅសៀមរាប?', 'ម្ហូបខ្មែរណាខ្លះដែលគួរញ៉ាំ?', 'តើទៅលេងកោះរ៉ុងយ៉ាងដូចម្តេច?']
-        : ['What are the best temples in Siem Reap?', 'What authentic Khmer food should I try?', 'How to visit Koh Rong island?'],
+      suggestions: getOfflineSuggestions(isKhmer, 'Siem Reap'),
       sources: [],
     };
   }
@@ -55,9 +80,7 @@ export const performOfflineSearch = async (query, language = 'en') => {
       message: isKhmer
         ? `**ប្រទេសកម្ពុជា (ព្រះរាជាណាចក្រកម្ពុជា)** 🇰🇭\n\nកម្ពុជា គឺជាប្រទេសមួយស្ថិតនៅតំបន់អាស៊ីអាគ្នេយ៍ ដែលមានប្រវត្តិសាស្ត្រសម្បូរបែប វប្បធម៌ចំណាស់ និងសម្បត្តិបេតិកភណ្ឌពិភពលោកដ៏ល្បីល្បាញ៖\n\n- 🏛️ **រាជធានី:** ភ្នំពេញ (មជ្ឈមណ្ឌលសេដ្ឋកិច្ច និងវប្បធម៌)\n- 👑 **បេតិកភណ្ឌពិភពលោក:** ប្រាសាទអង្គរវត្ត (ខេត្តសៀមរាប), ប្រាសាទព្រះវិហារ, ប្រាសាទសម្បូរព្រៃគុក, និងកោះកេរ្តិ៍\n- 🏖️ **ឆ្នេរ និងធម្មជាតិ:** ឆ្នេរសមុទ្រ និងកោះធម្មជាតិ (ខេត្តព្រះសីហនុ និងកែប), ឧទ្យានជាតិភ្នំបូកគោ (ខេត្តកំពត)\n- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, សម្លការីខ្មែរ, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n- 🗣️ **ភាសាផ្លូវការ:** ភាសាខ្មែរ | **រូបិយប័ណ្ណ:** រៀល (KHR) & ដុល្លារ (USD)\n\nតើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ សណ្ឋាគារ ឬរៀបចំគម្រោងដើរលេងនៅកន្លែងណាដែរ?`
         : `**Cambodia (Kingdom of Cambodia)** 🇰🇭\n\nCambodia is a captivating country in Southeast Asia renowned for its profound heritage, ancient Khmer civilization, and stunning natural landscapes:\n\n- 🏛️ **Capital:** Phnom Penh (home to the Royal Palace, National Museum, and riverside promenade)\n- 🏰 **World Heritage & Temples:** The legendary **Angkor Wat** complex, Bayon, and Ta Prohm in Siem Reap; Preah Vihear, Sambor Prei Kuk, and Koh Ker\n- 🏖️ **Islands & Coastline:** Pristine white sand beaches and tropical islands in Preah Sihanouk (Koh Rong, Koh Rong Sanloem) and Kep\n- 🌿 **Nature & Mountains:** Cardamom Mountains, Bokor National Park in Kampot, and the waterfalls of Mondulkiri\n- 🍲 **Khmer Cuisine:** Signature dishes like Fish Amok, Beef Lok Lak, Nom Banh Chok, and fresh Kampot pepper crab\n- 🗣️ **Language:** Khmer | **Currency:** Cambodian Riel (KHR) & US Dollar (USD)\n\nWould you like recommendations on itineraries, top attractions, hotels, or local transport across Cambodia?`,
-      suggestions: isKhmer
-        ? ['ណែនាំប្រាសាទនៅសៀមរាប', 'ណែនាំឆ្នេរនៅកំពង់សោម', 'ម្ហូបខ្មែរដែលត្រូវតែសាក']
-        : ['What are top places in Siem Reap?', 'Best beaches in Koh Rong', 'Must try Cambodian food'],
+      suggestions: getOfflineSuggestions(isKhmer, 'Cambodia'),
       sources: [],
     };
   }
@@ -194,9 +217,7 @@ User Question: '${query}'`;
         location: m.province,
         description: m.description,
       })),
-      suggestions: isKhmer
-        ? ['តើមានកន្លែងណាទៀតដែលគួរទស្សនា?', 'តើការធ្វើដំណើរមានតម្លៃប៉ុន្មាន?', 'ណែនាំម្ហូបឆ្ងាញ់ៗនៅក្បែរនោះ']
-        : ['What other places should I visit nearby?', 'How do I travel between cities?', 'Recommend local dishes to try'],
+      suggestions: getOfflineSuggestions(isKhmer, primary.province || primary.name),
     };
   }
 
@@ -208,9 +229,7 @@ User Question: '${query}'`;
     message: isKhmer
       ? `សូមស្វាគមន៍មកកាន់កម្ពុជា! 🇰🇭\n\nសម្រាប់ដំណើរកម្សាន្តនៅកម្ពុជា អ្នកអាចស្វែងយល់អំពី៖\n- 🏛️ **ប្រាសាទបុរាណ:** អង្គរវត្ត, បាយ័ន, តាព្រហ្ម (ខេត្តសៀមរាប)\n- 🏖️ **ឆ្នេរ និងកោះ:** កោះរ៉ុង, ឆ្នេរអូរឈើទាល (ខេត្តព្រះសីហនុ)\n- 🍲 **ម្ហូបអាហារ:** អាម៉ុកត្រី, នំបញ្ចុក, ឡុកឡាក់សាច់គោ\n- 🌿 **ធម្មជាតិ:** ឧទ្យានជាតិភ្នំបូកគោ (ខេត្តកំពត)\n\nតើលោកអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីប្រធានបទមួយណាដែរ?`
       : `Welcome to Cambodia! 🇰🇭\n\nHere are some of the top recommendations across the Kingdom of Wonder:\n- 🏛️ **Historic Temples:** Angkor Wat, Bayon, and Ta Prohm in Siem Reap\n- 🏖️ **Beaches & Islands:** Koh Rong and Koh Rong Sanloem in Sihanoukville\n- 🍲 **Must-Try Cuisine:** Fish Amok, Nom Banh Chok, and Beef Lok Lak\n- 🌿 **Nature & Culture:** Bokor National Park in Kampot and the Royal Palace in Phnom Penh\n\nFeel free to ask for specific itineraries, tickets, or travel advice!`,
-    suggestions: isKhmer
-      ? ['ណែនាំប្រាសាទនៅសៀមរាប', 'ណែនាំឆ្នេរនៅកំពង់សោម', 'ម្ហូបខ្មែរដែលត្រូវតែសាក']
-      : ['Tell me about Angkor Wat sunrise', 'Best beaches in Koh Rong', 'Must try Cambodian food'],
+    suggestions: getOfflineSuggestions(isKhmer, 'Cambodia'),
     sources: [],
   };
 };
