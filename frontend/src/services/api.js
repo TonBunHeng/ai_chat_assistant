@@ -9,7 +9,7 @@ const isLocalHost =
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ||
   import.meta.env.VITE_API_URL ||
-  (isLocalHost ? 'http://localhost:8000/api' : 'https://aichat-backend-pi.vercel.app/api');
+  (isLocalHost ? 'http://localhost:8000/api' : '/api');
 
 const api = axios.create({
   baseURL: API_BASE_URL,
