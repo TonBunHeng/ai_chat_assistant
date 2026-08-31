@@ -18,12 +18,12 @@
       <!-- Error Alert Box -->
       <div
         v-if="error"
-        class="my-4 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 text-rose-800 dark:text-rose-300 text-sm flex items-start space-x-3 shadow-xs"
+        class="my-4 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 text-rose-800 dark:text-rose-200 text-sm flex items-start space-x-3 shadow-sm"
       >
         <AlertCircle :size="20" class="text-rose-500 shrink-0 mt-0.5" />
-        <div class="flex-1">
-          <p class="font-semibold">{{ isKhmer ? 'មានបញ្ហាក្នុងការតភ្ជាប់' : 'Connection Warning' }}</p>
-          <p class="text-xs text-rose-600 dark:text-rose-400 mt-0.5">{{ error }}</p>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-rose-900 dark:text-rose-100">{{ isKhmer ? 'មានបញ្ហាក្នុងការតភ្ជាប់' : 'Connection Warning' }}</p>
+          <p class="text-xs text-rose-700 dark:text-rose-300 mt-1 break-words leading-relaxed">{{ error }}</p>
         </div>
       </div>
 

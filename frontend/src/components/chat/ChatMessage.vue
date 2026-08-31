@@ -15,6 +15,9 @@
         v-else
         src="/tourism_logo.png"
         alt="Angkor Verse AI"
+        width="32"
+        height="32"
+        style="max-width: 32px; max-height: 32px;"
         class="w-full h-full object-contain p-0.5 rounded-xl"
       />
     </div>
@@ -28,13 +31,13 @@
         <span>•</span>
         <span
           v-if="mode === 'offline' || mode === 'degraded' || mode === 'fallback'"
-          class="inline-flex items-center gap-1 font-medium px-2 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px]"
+          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px]"
         >
           <WifiOff :size="9" /> Offline
         </span>
         <span
           v-else
-          class="inline-flex items-center gap-1 font-medium px-2 py-0.2 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[10px]"
+          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[10px]"
         >
           <Wifi :size="9" /> Online
         </span>
@@ -115,7 +118,7 @@
                 </h4>
                 <span
                   v-if="src.category || src.type"
-                  class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[9px] uppercase font-semibold px-1.5 py-0.2 rounded-md shrink-0"
+                  class="bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[9px] uppercase font-semibold px-1.5 py-0.5 rounded-md shrink-0"
                 >
                   {{ src.category || src.type }}
                 </span>

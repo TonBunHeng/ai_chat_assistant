@@ -4,7 +4,7 @@
     class="mt-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs overflow-hidden text-slate-800 dark:text-slate-100 w-full"
   >
     <!-- Compact Header Bar -->
-    <div className="px-3 py-2 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent dark:from-blue-900/20 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+    <div class="px-3 py-2 bg-gradient-to-r from-blue-500/10 via-transparent to-transparent dark:from-blue-900/20 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
       <div class="flex items-center space-x-1.5 min-w-0">
         <Sparkles :size="13" class="text-[#003E83] dark:text-blue-400 shrink-0" />
         <span class="font-bold text-xs text-slate-900 dark:text-white truncate">

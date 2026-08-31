@@ -3,7 +3,7 @@ export default {
   darkMode: 'class',
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{vue,js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -32,6 +32,13 @@ export default {
       fontFamily: {
         sans: ['Inter', 'Kantumruy Pro', 'sans-serif'],
         khmer: ['"Kantumruy Pro"', 'sans-serif'],
+      },
+      boxShadow: {
+        'xs': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+        '2xs': '0 0.5px 1px 0 rgba(0, 0, 0, 0.03), 0 0.5px 1.5px 0 rgba(0, 0, 0, 0.05)',
+      },
+      backdropBlur: {
+        'xs': '2px',
       }
     },
   },

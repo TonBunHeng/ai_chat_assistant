@@ -8,6 +8,9 @@
           <img
             src="/tourism_logo.png"
             alt="Angkor Verse AI Logo"
+            width="36"
+            height="36"
+            style="max-width: 36px; max-height: 36px;"
             class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-contain shadow-xs shrink-0"
           />
           <div>

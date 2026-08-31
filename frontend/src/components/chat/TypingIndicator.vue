@@ -5,6 +5,9 @@
       <img
         src="/tourism_logo.png"
         alt="Angkor Verse AI"
+        width="36"
+        height="36"
+        style="max-width: 36px; max-height: 36px;"
         class="w-full h-full object-contain p-0.5 rounded-2xl"
       />
     </div>
