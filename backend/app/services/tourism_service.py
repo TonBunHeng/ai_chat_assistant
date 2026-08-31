@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from typing import List, Dict, Any, Optional
 from app.core.config import settings
 
@@ -8,42 +9,99 @@ class TourismService:
         self.data_dir = data_dir
         self.datasets: Dict[str, List[Dict[str, Any]]] = {}
         self.all_items: List[Dict[str, Any]] = []
+        self._items_by_id: Dict[str, Dict[str, Any]] = {}
         self.load_all_datasets()
 
     def load_all_datasets(self):
-        """Load all 16 JSON datasets into memory."""
+        """
+        Recursively load all JSON datasets across all subdirectories:
+        places/, temples/, beaches/, restaurants/, museums/, activities/,
+        provinces/, cuisine/, culture/, festivals/, transportation/, safety/.
+        """
         self.datasets = {}
         self.all_items = []
+        self._items_by_id = {}
         
         if not os.path.exists(self.data_dir):
+            print(f"TourismService Warning: Data directory does not exist: {self.data_dir}")
             return
             
-        for filename in os.listdir(self.data_dir):
-            if filename.endswith(".json"):
-                category_name = filename[:-5]
-                filepath = os.path.join(self.data_dir, filename)
-                try:
-                    with open(filepath, "r", encoding="utf-8") as f:
-                        data = json.load(f)
-                        if isinstance(data, list):
-                            self.datasets[category_name] = data
-                            for item in data:
-                                # Ensure dataset category tag
-                                item["_source_file"] = category_name
-                                self.all_items.append(item)
-                except Exception as e:
-                    print(f"Error loading tourism dataset {filename}: {e}")
+        for root, _, files in os.walk(self.data_dir):
+            for filename in files:
+                if filename.endswith(".json"):
+                    filepath = os.path.join(root, filename)
+                    # Use directory name or file base as category key
+                    rel_path = os.path.relpath(filepath, self.data_dir)
+                    cat_key = os.path.dirname(rel_path) if os.path.dirname(rel_path) else filename[:-5]
+                    file_stem = filename[:-5]
+                    
+                    try:
+                        with open(filepath, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                            if isinstance(data, list):
+                                # Index under directory category key
+                                if cat_key not in self.datasets:
+                                    self.datasets[cat_key] = []
+                                self.datasets[cat_key].extend(data)
+                                
+                                # Also index under file stem if different
+                                if file_stem != cat_key:
+                                    if file_stem not in self.datasets:
+                                        self.datasets[file_stem] = []
+                                    self.datasets[file_stem].extend(data)
+
+                                for item in data:
+                                    if isinstance(item, dict):
+                                        # Deduplicate by item ID across subdirectories
+                                        item_id = str(item.get("id") or "")
+                                        if item_id and item_id in self._items_by_id:
+                                            continue
+                                            
+                                        item["_source_file"] = rel_path
+                                        if not item.get("category"):
+                                            item["category"] = cat_key
+                                        if "verified" not in item:
+                                            item["verified"] = True
+                                        if "source" not in item and "verified_source" in item:
+                                            item["source"] = item["verified_source"]
+                                        if "last_updated" not in item and "last_verified_at" in item:
+                                            item["last_updated"] = item["last_verified_at"]
+                                            
+                                        if item_id:
+                                            self._items_by_id[item_id] = item
+                                        self.all_items.append(item)
+                    except Exception as e:
+                        print(f"TourismService: Error loading {filepath}: {e}")
 
     def get_dataset(self, name: str) -> List[Dict[str, Any]]:
-        return self.datasets.get(name, [])
+        """Retrieve dataset list by category/file name (e.g. 'temples', 'events', 'festivals', 'beaches')."""
+        clean_name = name.lower().strip()
+        if clean_name in self.datasets:
+            return self.datasets[clean_name]
+        # Check alias
+        aliases = {
+            "events": "festivals",
+            "festival": "festivals",
+            "food": "cuisine",
+            "dishes": "cuisine",
+            "places": "places",
+            "destinations": "places",
+            "tips": "safety",
+            "travel_tips": "safety"
+        }
+        target_key = aliases.get(clean_name, clean_name)
+        return self.datasets.get(target_key, [])
 
     def get_all_items(self) -> List[Dict[str, Any]]:
         return self.all_items
 
     def get_item_by_id(self, item_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific tourism place item by ID."""
+        clean_id = str(item_id).strip()
+        if clean_id in self._items_by_id:
+            return self._items_by_id[clean_id]
         for item in self.all_items:
-            if str(item.get("id")) == str(item_id):
+            if str(item.get("id")) == clean_id:
                 return item
         return None
 
@@ -52,13 +110,13 @@ class TourismService:
         provinces = set()
         for item in self.all_items:
             prov = item.get("province")
-            if prov and prov != "Nationwide":
+            if prov and prov not in ["Nationwide", "Coastal Provinces"]:
                 provinces.add(prov)
         return sorted(list(provinces))
 
     def find_items_by_province(self, province_name: str) -> List[Dict[str, Any]]:
         """Filter tourism items by province name (English or Khmer)."""
-        target = province_name.lower()
+        target = province_name.lower().strip()
         results = []
         for item in self.all_items:
             prov_en = (item.get("province") or "").lower()
@@ -68,16 +126,16 @@ class TourismService:
         return results
 
     def find_items_by_category(self, category: str) -> List[Dict[str, Any]]:
-        """Filter items by category (e.g. 'Heritage', 'Beach', 'Food', 'Temple')."""
-        target = category.lower()
+        """Filter items by category (e.g. 'temple', 'beach', 'museum', 'restaurant', 'activity')."""
+        target = category.lower().strip()
         results = []
         for item in self.all_items:
             cat = (item.get("category") or "").lower()
-            if target in cat:
+            tags = [t.lower() for t in item.get("tags", [])]
+            if target in cat or any(target in t for t in tags):
                 results.append(item)
         return results
 
-    # Stop words that should not trigger single attraction matches
     STOP_WORDS = {
         "what", "is", "are", "a", "an", "the", "in", "on", "at", "to", "for", "of", "and", "or", "with",
         "tell", "me", "about", "how", "where", "which", "who", "why", "cambodia", "country", "tourism",
@@ -89,8 +147,6 @@ class TourismService:
     def search_keyword(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
         """Keyword matching across name, description, tags, province, and tips."""
         query_lower = query.lower().strip()
-        # Remove punctuation
-        import re
         clean_q = re.sub(r'[^\w\s\u1780-\u17FF]', '', query_lower)
         tokens = [t for t in clean_q.split() if len(t) > 1 and t not in self.STOP_WORDS]
         
@@ -108,21 +164,21 @@ class TourismService:
             prov_km = (item.get("province_km") or "").lower()
             tags = [t.lower() for t in item.get("tags", [])]
             
-            # Exact or specific place name containment (only if query is meaningful)
+            # Exact or specific place name containment
             if len(clean_q) >= 4 and clean_q not in self.STOP_WORDS:
                 if (name_en and (clean_q == name_en or clean_q in name_en or name_en in clean_q)) or \
                    (name_km and (clean_q == name_km or clean_q in name_km or name_km in clean_q)):
-                    score += 25
+                    score += 30
                 if (prov_en and (clean_q == prov_en or clean_q in prov_en)) or \
                    (prov_km and (clean_q == prov_km or clean_q in prov_km)):
-                    score += 12
+                    score += 15
                 
-            # Token & Tag match on non-stop words
+            # Token & Tag match
             for token in tokens:
                 if name_en and (token == name_en or token in name_en.split()):
                     score += 15
                 elif name_en and token in name_en:
-                    score += 6
+                    score += 8
                 if name_km and (token == name_km or token in name_km):
                     score += 15
                 if prov_en and (token == prov_en or token in prov_en.split()):
@@ -132,7 +188,7 @@ class TourismService:
                 if any(token == tag or token in tag.split() for tag in tags):
                     score += 6
                 if (desc_en and f" {token} " in f" {desc_en} ") or (desc_km and token in desc_km):
-                    score += 2
+                    score += 3
                     
             if score >= 6:
                 scored_items.append((score, item))

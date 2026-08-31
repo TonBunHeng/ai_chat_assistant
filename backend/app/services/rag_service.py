@@ -1,6 +1,8 @@
-import json
+import uuid
+import time
 from typing import Dict, Any, List, Optional
 from app.core.config import settings
+from app.core.logging import structured_logger
 from app.services.language_service import language_service
 from app.services.intent_service import intent_service
 from app.services.memory_service import memory_service
@@ -22,22 +24,31 @@ class RAGService:
         client_history: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """
-        Master AI Orchestrator:
-        1. Language detection (Strict Khmer vs English).
-        2. Intent & entity understanding.
-        3. Real-Time Tool Execution (Weather, Currency, Events, Itinerary, Recommendations, Places).
-        4. Grounded Context Construction (Zero hallucination).
-        5. AI Generation via Gemini (Online) / Ollama (Offline) / Degraded Engine.
-        6. Structured response synthesis without cluttered duplication.
+        Master AI Orchestration Pipeline:
+        1. Request ID & Session Setup
+        2. Strict Language Detection (Khmer vs English)
+        3. Intent Detection & Entity Extraction
+        4. Smart Intent-Driven Tool Execution
+        5. Grounded RAG Retrieval (all-MiniLM / Vector cosine + fuzzy)
+        6. AI Router Execution (Gemini -> Ollama -> Fallback Engine)
+        7. Response Validation & Multi-Factor Confidence Scoring
+        8. Standard JSON Payload Formulation (React Cards & Android XML)
+        9. Structured Observability Logging
         """
+        start_time = time.time()
+        request_id = f"req_{uuid.uuid4().hex[:12]}"
+        timestamp_str = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
         # 1. Session Setup
         sid = memory_service.get_or_create_session_id(session_id)
         
-        # 2. Strict Language Detection
-        detected_lang = preferred_language or language_service.detect_language(message)
-        is_km = "km" in detected_lang or any("\u1780" <= c <= "\u17ff" for c in message)
-        
-        # 3. Retrieve Conversation History & Sync Client History
+        # 2. Strict Language Detection & Normalization
+        raw_lang = preferred_language or language_service.detect_language(message)
+        detected_lang = language_service.normalize_language_code(raw_lang)
+        is_km = detected_lang == "km" or language_service.is_khmer(message)
+        effective_lang = "km" if is_km else "en"
+
+        # 3. Retrieve & Sync Conversation History
         history = memory_service.get_history(sid)
         if (not history or len(history) < (len(client_history) if client_history else 0)) and client_history:
             formatted_history = []
@@ -50,7 +61,7 @@ class RAGService:
             if formatted_history:
                 history = formatted_history
         session_meta = memory_service.get_session_metadata(sid)
-        
+
         # 4. Intent & Entity Understanding
         intent_info = intent_service.detect_intent(message, history)
         intent = intent_info["intent"]
@@ -58,11 +69,18 @@ class RAGService:
         
         active_destination = entities.get("destination") or session_meta.get("destination") or "Siem Reap"
         if entities.get("destination"):
-            memory_service.update_session_metadata(sid, destination=entities["destination"], language=detected_lang)
+            memory_service.update_session_metadata(
+                sid,
+                destination=entities["destination"],
+                duration=str(entities.get("duration", "")),
+                budget=entities.get("budget"),
+                travel_style=entities.get("travel_style"),
+                language=effective_lang
+            )
 
-        # 5. Real-Time Tools Execution & Focused Context Assembly
+        # 5. Smart Tool Selection & Focused Real-Time Execution
         real_time_blocks = []
-        data_sources_used = ["tourism_database"]
+        data_sources_used = ["tourism_knowledge_base"]
         
         weather_payload = None
         currency_payload = None
@@ -70,40 +88,25 @@ class RAGService:
         itinerary_payload = None
         recommendations_payload = None
         sources = []
-        related_places = []
+        data_type = "general"
+        data_content: Dict[str, Any] = {}
 
-        # Tool Selection Priority (Mutually exclusive primary widgets to avoid visual clutter)
-        is_itinerary_query = (
-            intent == "itinerary_planning" or 
-            any(w in message.lower() for w in ["itinerary", "plan", "day 1", "day 2", "3-day", "4-day", "5-day", "គម្រោង", "ដំណើរកម្សាន្ត"])
-        )
-        is_weather_query = (
-            intent == "weather_travel" or 
-            any(w in message.lower() for w in ["weather", "rain", "temperature", "forecast", "អាកាសធាតុ", "ភ្លៀង"])
-        )
-        is_currency_query = (
-            intent == "currency_conversion" or 
-            any(c in message.lower() for c in ["riel", "khr", "exchange", "convert", "ប្តូរលុយ", "រៀល", "ដុល្លារ"])
-        )
-        is_recommend_query = (
-            not is_itinerary_query and (
-                intent == "recommendation" or 
-                any(r in message.lower() for r in ["recommend", "where to go", "best places", "top places", "attractions", "គួរទៅណា", "កន្លែងណា"])
-            )
-        )
-
-        # Tool A: Itinerary Planning Tool
-        if is_itinerary_query:
-            days = entities.get("duration_days", 3)
-            budget = entities.get("budget_usd")
+        # Tool 1: Itinerary Planning Engine
+        if intent == "itinerary":
+            data_type = "itinerary"
+            days = entities.get("duration_days") or entities.get("duration") or 3
+            budget = entities.get("budget_usd") or entities.get("budget")
             itinerary_payload = itinerary_engine.generate_itinerary(
                 destination=active_destination,
                 days=days,
                 budget_usd=budget,
+                travel_style=entities.get("travel_style", "culture"),
                 interests=entities.get("interests", ["culture", "history"]),
-                language=detected_lang
+                travelers=entities.get("number_of_people", 2),
+                language=effective_lang
             )
             data_sources_used.append("itinerary_engine")
+            data_content = itinerary_payload
             real_time_blocks.append(
                 f"[OPTIMIZED ITINERARY PLAN: {itinerary_payload['title']}]:\n"
                 f"- Destination: {itinerary_payload['destination']}\n"
@@ -111,11 +114,21 @@ class RAGService:
                 f"- Estimated Budget: {itinerary_payload['formatted_total_budget']}"
             )
 
-        # Tool B: Weather Tool
-        if is_weather_query:
+        # Tool 2: Weather Service
+        elif intent == "weather":
+            data_type = "weather"
             weather_payload = weather_service.get_weather(active_destination, days=3)
             data_sources_used.append("weather_service")
             w_curr = weather_payload["current"]
+            data_content = {
+                "type": "weather",
+                "location": weather_payload["province"],
+                "temperature": w_curr["temperature_c"],
+                "condition": w_curr["condition_km"] if is_km else w_curr["condition"],
+                "humidity": w_curr["humidity_percent"],
+                "rain_probability": w_curr["rain_probability"],
+                "travel_advice": weather_payload["travel_advice_km"] if is_km else weather_payload["travel_advice_en"]
+            }
             real_time_blocks.append(
                 f"[REAL-TIME WEATHER FOR {weather_payload['province'].upper()}]:\n"
                 f"- Temperature: {w_curr['temperature_c']}°C ({w_curr['temperature_f']}°F)\n"
@@ -125,114 +138,163 @@ class RAGService:
                 f"- Travel Advice: {weather_payload['travel_advice_km'] if is_km else weather_payload['travel_advice_en']}"
             )
 
-        # Tool C: Currency / Budget Tool
-        if is_currency_query:
-            currency_payload = currency_service.get_exchange_rate()
+        # Tool 3: Currency & Budget Conversion Engine
+        elif intent == "currency":
+            data_type = "currency"
+            budget_amount = entities.get("budget") or 100.0
+            currency_payload = currency_service.convert(amount=budget_amount, from_curr="USD", to_curr="KHR")
             data_sources_used.append("currency_service")
+            data_content = currency_payload
             real_time_blocks.append(
-                f"[LIVE EXCHANGE RATE]:\n"
-                f"- Base Rate: {currency_payload['formatted_rate']}\n"
+                f"[LIVE EXCHANGE RATE & CONVERSION]:\n"
+                f"- Conversion: {currency_payload['formatted']}\n"
+                f"- Reference Rate: 1 USD = {currency_payload['rate']:,.0f} KHR\n"
                 f"- Source: {currency_payload['source']}"
             )
 
-        # Tool D: Recommendation Scoring Tool (Only if not already an itinerary query)
-        if is_recommend_query:
+        # Tool 4: Recommendations Engine
+        elif intent == "recommendation":
+            data_type = "recommendation"
             recommendations_payload = recommendation_engine.recommend(
                 interests=entities.get("interests"),
                 province=active_destination if active_destination != "Cambodia" else None,
-                budget_usd=entities.get("budget_usd"),
-                duration_days=entities.get("duration_days"),
-                limit=3
+                budget_usd=entities.get("budget"),
+                duration_days=entities.get("duration"),
+                travel_style=entities.get("travel_style"),
+                limit=4
             )
             if recommendations_payload:
                 data_sources_used.append("recommendation_engine")
-                rec_lines = [f"- {r['name']} ({r.get('province', '')}) [Match: {r['match_score']}%]: {r.get('description', '')} | Fee: {r.get('price', '')}" for r in recommendations_payload]
-                real_time_blocks.append("[VERIFIED RECOMMENDATION ENGINE SUGGESTIONS]:\n" + "\n".join(rec_lines))
+                data_content = {"recommendations": recommendations_payload}
+                rec_lines = [
+                    f"- {r['name']} ({r.get('province', '')}) [Match: {r['match_score']}%]: {r.get('description', '')} | Fee: {r.get('price', '')}"
+                    for r in recommendations_payload[:3]
+                ]
+                real_time_blocks.append("[VERIFIED RECOMMENDATIONS]:\n" + "\n".join(rec_lines))
 
-        # Tool E: Events & Festivals Tool
-        if intent == "events_festivals" or any(e in message.lower() for e in ["event", "festival", "marathon", "បុណ្យ", "ពិធីបុណ្យ", "អុំទូក"]):
+        # Tool 5: Festivals & Events Service
+        elif intent == "events":
+            data_type = "event"
             events_data = events_service.search_events(query=message, province=active_destination)
             if events_data.get("events"):
                 events_payload = events_data["events"]
                 data_sources_used.append("events_service")
-                evt_lines = [f"- {evt['name']}: {evt.get('typical_period', '')} in {evt.get('location', '')}. {evt.get('description', '')}" for evt in events_payload[:2]]
-                real_time_blocks.append("[VERIFIED CAMBODIAN EVENTS & FESTIVALS]:\n" + "\n".join(evt_lines))
+                data_content = {"events": events_payload}
+                evt_lines = [
+                    f"- {evt['name']} ({evt.get('name_km', '')}): {evt.get('typical_period', '')} in {evt.get('location', '')}. {evt.get('description', '')}"
+                    for evt in events_payload[:2]
+                ]
+                real_time_blocks.append("[VERIFIED CAMBODIAN FESTIVALS]:\n" + "\n".join(evt_lines))
 
-        # 6. Similarity Search against Local Database (only if no dedicated structured tool is active)
-        match_result = matching_service.find_best_match(
+        # 6. RAG Retrieval from Tourism Knowledge Base
+        rag_context_text, retrieved_sources = matching_service.build_rag_context(
             query=message,
-            threshold=settings.SIMILARITY_THRESHOLD
+            top_k=settings.TOP_K,
+            threshold=settings.SIMILARITY_THRESHOLD,
+            max_length=settings.MAX_CONTEXT_LENGTH
         )
-        is_matched = match_result["match_found"]
-        similarity_score = match_result["similarity_score"]
-        matched_item = match_result["matched_item"]
-        context_snippet = match_result["formatted_snippet"]
+        
+        is_matched = bool(retrieved_sources)
+        top_sim_score = retrieved_sources[0]["relevance_score"] if retrieved_sources else 0.0
 
-        if matched_item and not itinerary_payload and not recommendations_payload:
-            sources.append({
-                "id": matched_item.get("id", "src_1"),
-                "name": matched_item.get("name") or matched_item.get("title"),
-                "category": matched_item.get("category", "Cambodia Tourism Record"),
-                "location": matched_item.get("province") or matched_item.get("location", ""),
-                "description": matched_item.get("description", ""),
-                "entrance_fee": matched_item.get("price") or matched_item.get("entrance_fee"),
-                "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={matched_item.get('latitude')},{matched_item.get('longitude')}" if matched_item.get("latitude") else None,
-                "verified_source": matched_item.get("verified_source", "Ministry of Tourism Cambodia")
-            })
+        if retrieved_sources and not itinerary_payload and not recommendations_payload:
+            sources = retrieved_sources
+            if data_type == "general":
+                data_type = "place"
+                data_content = {
+                    "place": retrieved_sources[0]["name"],
+                    "province": retrieved_sources[0].get("province"),
+                    "category": retrieved_sources[0].get("category"),
+                    "price": retrieved_sources[0].get("price")
+                }
 
-        # 7. Greeting Short-circuit
+        # 7. Fast-Path Greeting
         if intent == "greeting":
             answer = (
-                "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ពិនិត្យអាកាសធាតុ ឬរៀបចំគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
+                "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ "
+                "តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ម្ហូបអាហារ សណ្ឋាគារ ពិនិត្យអាកាសធាតុ ឬរៀបចំគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
                 if is_km
-                else "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your Smart Tourism Assistant. How can I help you explore attractions, local food, check live weather, or plan an itinerary today?"
+                else "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your intelligent Tourism Assistant. "
+                     "How can I help you explore temple attractions, authentic cuisine, check live weather, or plan an itinerary today?"
             )
             ai_meta = {
                 "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "provider": "gemini" if settings.effective_gemini_api_key else "ollama",
                 "model": settings.effective_online_model if settings.effective_gemini_api_key else settings.effective_offline_model,
+                "confidence": 0.98,
+                "fallback_used": False,
                 "data_sources": ["system_greeting"]
             }
         else:
-            # 8. Run Central AI Orchestrator
+            # 8. Central AI Orchestration
             combined_real_time = "\n\n".join(real_time_blocks) if real_time_blocks else None
             ai_resp = ai_service.generate_response(
                 message=message,
                 conversation_history=history,
-                context=context_snippet if is_matched else None,
+                context=rag_context_text if is_matched else None,
                 is_matched=is_matched,
-                real_time_data_text=combined_real_time
+                real_time_data_text=combined_real_time,
+                intent=intent,
+                language=effective_lang
             )
             answer = ai_resp["answer"]
             ai_meta = ai_resp
 
         # 9. Save Conversation Memory
-        memory_service.add_message(sid, "user", message, metadata={"intent": intent, "language": detected_lang})
+        memory_service.add_message(sid, "user", message, metadata={"intent": intent, "language": effective_lang})
         memory_service.add_message(sid, "assistant", answer, metadata={"mode": ai_meta.get("mode"), "model": ai_meta.get("model")})
 
-        # 10. Generate Smart Contextual Suggestions
-        suggestions = self._generate_suggestions(intent, active_destination, detected_lang)
+        # 10. Generate Contextual Suggestions
+        suggestions = self._generate_suggestions(intent, active_destination, effective_lang)
 
         # Merge data sources
         final_sources = list(dict.fromkeys(data_sources_used + ai_meta.get("data_sources", [])))
+        latency_ms = (time.time() - start_time) * 1000
+
+        # 11. Structured Observability Logging
+        structured_logger.log_request(
+            request_id=request_id,
+            session_id=sid,
+            intent=intent,
+            language=effective_lang,
+            provider=ai_meta.get("provider", "gemini"),
+            mode=ai_meta.get("mode", "online"),
+            latency_ms=latency_ms,
+            confidence=ai_meta.get("confidence", 0.95),
+            fallback_used=ai_meta.get("fallback_used", False)
+        )
 
         return {
-            "answer": answer,
+            "success": True,
+            "request_id": request_id,
+            "session_id": sid,
+            "language": effective_lang,
             "mode": ai_meta.get("mode", "online"),
-            "model": ai_meta.get("model", "gemini-flash-latest"),
-            "data_sources": final_sources,
-            "language": "km" if is_km else "en",
+            "provider": ai_meta.get("provider", "gemini"),
             "intent": intent,
-            "confidence": intent_info.get("confidence", 0.95),
-            "is_matched": is_matched,
-            "similarity_score": similarity_score,
+            "confidence": ai_meta.get("confidence", 0.95),
+            "message": answer,
+            "answer": answer,  # React compatibility field
+            "model": ai_meta.get("model", "gemini-flash-latest"),
+            "data": {
+                "type": data_type,
+                "location": active_destination,
+                "content": data_content or answer,
+                **data_content
+            },
             "sources": sources,
-            "related_places": related_places,
+            "timestamp": timestamp_str,
+            
+            # Backwards Compatibility Fields
+            "data_sources": final_sources,
+            "related_places": [],
             "suggestions": suggestions,
             "weather": weather_payload,
             "currency": currency_payload,
             "itinerary": itinerary_payload,
             "recommendations": recommendations_payload,
-            "session_id": sid
+            "is_matched": is_matched,
+            "similarity_score": top_sim_score
         }
 
     def _generate_suggestions(self, intent: str, destination: Optional[str], lang: str) -> List[str]:
@@ -254,7 +316,7 @@ class RAGService:
                     "Create a 3-day Siem Reap cultural itinerary"
                 ]
 
-        if intent == "weather_travel":
+        if intent == "weather":
             if is_km:
                 return [
                     f"តើទៅ {dest} គួររៀបចំដំណើរកម្សាន្តប៉ុន្មានថ្ងៃ?",

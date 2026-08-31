@@ -1,10 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends, Request
+import time
+import uuid
+from fastapi import APIRouter, HTTPException, Request
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 from app.models.chat import ChatRequest
 from app.models.response import StandardResponse, ChatResponseData
 from app.services.rag_service import rag_service
 from app.services.memory_service import memory_service
+from app.core.security import security_service
 from app.utils.validators import validate_chat_message
 
 router = APIRouter(tags=["Chat"])
@@ -22,20 +25,37 @@ class TourismCreateChatRequest(BaseModel):
     message_text: Optional[str] = ""
 
 @router.post("/chat", response_model=StandardResponse[ChatResponseData])
-def handle_chat_message(request: ChatRequest):
-    validate_chat_message(request.message)
+def handle_chat_message(request: ChatRequest, req: Request):
+    client_ip = req.client.host if req.client else "127.0.0.1"
+    if not security_service.check_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Please wait a moment before sending another message.")
+
+    clean_message = security_service.sanitize_input(request.message)
+    validate_chat_message(clean_message)
+    
     try:
         result = rag_service.process_chat_message(
-            message=request.message,
+            message=clean_message,
             session_id=request.session_id,
             preferred_language=request.language,
             client_history=request.history
         )
         return StandardResponse(
             success=True,
+            request_id=result.get("request_id"),
+            session_id=result.get("session_id"),
+            language=result.get("language"),
+            mode=result.get("mode"),
+            provider=result.get("provider"),
+            intent=result.get("intent"),
+            confidence=result.get("confidence"),
             message="Message processed successfully.",
-            data=ChatResponseData(**result)
+            data=ChatResponseData(**result),
+            sources=result.get("sources", []),
+            timestamp=result.get("timestamp")
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -54,10 +74,11 @@ def get_chat_sessions():
 @router.post("/chats")
 @router.post("/travel/chats")
 def create_chat(payload: TourismCreateChatRequest):
-    """Create new chat conversation matching tourism-backend-api format."""
+    """Create new chat conversation."""
     text = payload.message or payload.message_text or "New Conversation"
+    clean_text = security_service.sanitize_input(text)
     result = rag_service.process_chat_message(
-        message=text,
+        message=clean_text,
         preferred_language="en",
     )
     sid = result.get("session_id")
@@ -71,7 +92,10 @@ def create_chat(payload: TourismCreateChatRequest):
             "priority": payload.priority,
             "status": "active",
             "last_message": result.get("answer", ""),
-            "answer": result.get("answer", "")
+            "answer": result.get("answer", ""),
+            "language": result.get("language", "en"),
+            "confidence": result.get("confidence", 0.95),
+            "timestamp": result.get("timestamp")
         }
     }
 
@@ -95,18 +119,26 @@ def get_chat_session(session_id: str):
 
 @router.post("/chats/{session_id}/messages")
 @router.post("/travel/chats/{session_id}/messages")
-def send_chat_message_to_session(session_id: str, payload: TourismChatMessageRequest):
-    """Send message to a specific conversation matching tourism-backend-api format."""
-    text = payload.message or payload.message_text or ""
-    validate_chat_message(text)
+def send_chat_message_to_session(session_id: str, payload: TourismChatMessageRequest, req: Request):
+    """Send message to a specific conversation."""
+    client_ip = req.client.host if req.client else "127.0.0.1"
+    if not security_service.check_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Please wait a moment before sending another message.")
+
+    raw_text = payload.message or payload.message_text or ""
+    clean_text = security_service.sanitize_input(raw_text)
+    validate_chat_message(clean_text)
+    
     try:
         result = rag_service.process_chat_message(
-            message=text,
+            message=clean_text,
             session_id=session_id,
             preferred_language=payload.language or "en",
         )
         return {
             "success": True,
+            "request_id": result.get("request_id"),
+            "session_id": session_id,
             "message": "Message sent successfully.",
             "data": {
                 "id": session_id,
@@ -114,10 +146,17 @@ def send_chat_message_to_session(session_id: str, payload: TourismChatMessageReq
                 "sender_type": "ai",
                 "message_text": result.get("answer", ""),
                 "answer": result.get("answer", ""),
+                "mode": result.get("mode", "online"),
+                "provider": result.get("provider", "gemini"),
+                "intent": result.get("intent", "general_qa"),
+                "confidence": result.get("confidence", 0.95),
                 "sources": result.get("sources", []),
                 "suggestions": result.get("suggestions", []),
+                "timestamp": result.get("timestamp")
             }
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

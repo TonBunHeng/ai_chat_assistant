@@ -43,14 +43,32 @@ class MemoryService:
                     session_id TEXT PRIMARY KEY,
                     destination TEXT,
                     duration TEXT,
+                    budget REAL,
+                    travel_style TEXT,
                     language TEXT,
+                    preferences TEXT,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            
+            # Auto-migrate missing columns for existing databases
+            cursor.execute("PRAGMA table_info(sessions)")
+            existing_cols = {col[1] for col in cursor.fetchall()}
+            for col_name, col_type in [
+                ("budget", "REAL"),
+                ("travel_style", "TEXT"),
+                ("language", "TEXT"),
+                ("preferences", "TEXT")
+            ]:
+                if col_name not in existing_cols:
+                    try:
+                        cursor.execute(f"ALTER TABLE sessions ADD COLUMN {col_name} {col_type};")
+                    except Exception as e:
+                        print(f"MemoryService column migration note ({col_name}): {e}")
             conn.commit()
 
     def _restore_from_json_if_needed(self):
-        """If SQLite DB is empty on startup, restore chat history from chat_history.json file."""
+        """Restore chat history from backup if SQLite database is newly created."""
         if not os.path.exists(self.json_backup_path):
             return
         try:
@@ -80,12 +98,11 @@ class MemoryService:
                                     (sid,)
                                 )
                             conn.commit()
-                            print(f"MemoryService: Restored {len(history_data)} chat sessions from {self.json_backup_path}")
         except Exception as e:
             print(f"MemoryService JSON restore note: {e}")
 
     def _sync_to_json_file(self):
-        """Export all chat sessions and messages to storage/conversations/chat_history.json file."""
+        """Export active chat sessions to storage backup."""
         try:
             sessions = self.get_all_sessions()
             full_history = []
@@ -117,7 +134,6 @@ class MemoryService:
                 "INSERT INTO messages (session_id, role, content, metadata) VALUES (?, ?, ?, ?)",
                 (session_id, role, content, meta_json)
             )
-            # Update session timestamp
             cursor.execute(
                 "INSERT INTO sessions (session_id, updated_at) VALUES (?, CURRENT_TIMESTAMP) ON CONFLICT(session_id) DO UPDATE SET updated_at=CURRENT_TIMESTAMP",
                 (session_id,)
@@ -125,35 +141,68 @@ class MemoryService:
             conn.commit()
         self._sync_to_json_file()
 
-
-    def update_session_metadata(self, session_id: str, destination: Optional[str] = None, duration: Optional[str] = None, language: Optional[str] = None):
+    def update_session_metadata(
+        self,
+        session_id: str,
+        destination: Optional[str] = None,
+        duration: Optional[str] = None,
+        budget: Optional[float] = None,
+        travel_style: Optional[str] = None,
+        language: Optional[str] = None,
+        preferences: Optional[Dict[str, Any]] = None
+    ):
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT destination, duration, language FROM sessions WHERE session_id = ?", (session_id,))
+            cursor.execute(
+                "SELECT destination, duration, budget, travel_style, language, preferences FROM sessions WHERE session_id = ?",
+                (session_id,)
+            )
             row = cursor.fetchone()
             
             cur_dest = destination or (row[0] if row else None)
             cur_dur = duration or (row[1] if row else None)
-            cur_lang = language or (row[2] if row else None)
+            cur_bud = budget if budget is not None else (row[2] if row else None)
+            cur_sty = travel_style or (row[3] if row else None)
+            cur_lang = language or (row[4] if row else None)
+            cur_pref = json.dumps(preferences) if preferences else (row[5] if row else None)
             
             cursor.execute("""
-                INSERT INTO sessions (session_id, destination, duration, language, updated_at)
-                VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+                INSERT INTO sessions (session_id, destination, duration, budget, travel_style, language, preferences, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
                 ON CONFLICT(session_id) DO UPDATE SET
                     destination = COALESCE(excluded.destination, sessions.destination),
                     duration = COALESCE(excluded.duration, sessions.duration),
+                    budget = COALESCE(excluded.budget, sessions.budget),
+                    travel_style = COALESCE(excluded.travel_style, sessions.travel_style),
                     language = COALESCE(excluded.language, sessions.language),
+                    preferences = COALESCE(excluded.preferences, sessions.preferences),
                     updated_at = CURRENT_TIMESTAMP
-            """, (session_id, cur_dest, cur_dur, cur_lang))
+            """, (session_id, cur_dest, cur_dur, cur_bud, cur_sty, cur_lang, cur_pref))
             conn.commit()
 
     def get_session_metadata(self, session_id: str) -> Dict[str, Any]:
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT destination, duration, language FROM sessions WHERE session_id = ?", (session_id,))
+            cursor.execute(
+                "SELECT destination, duration, budget, travel_style, language, preferences FROM sessions WHERE session_id = ?",
+                (session_id,)
+            )
             row = cursor.fetchone()
             if row:
-                return {"destination": row[0], "duration": row[1], "language": row[2]}
+                prefs = None
+                if row[5]:
+                    try:
+                        prefs = json.loads(row[5])
+                    except Exception:
+                        pass
+                return {
+                    "destination": row[0],
+                    "duration": row[1],
+                    "budget": row[2],
+                    "travel_style": row[3],
+                    "language": row[4],
+                    "preferences": prefs
+                }
             return {}
 
     def get_history(self, session_id: str, limit: int = settings.MAX_HISTORY_MESSAGES) -> List[Dict[str, str]]:
@@ -164,7 +213,6 @@ class MemoryService:
                 (session_id, limit)
             )
             rows = cursor.fetchall()
-            # Return in chronological order
             return [{"role": r[0], "content": r[1]} for r in reversed(rows)]
 
     def delete_session(self, session_id: str) -> bool:
@@ -186,18 +234,15 @@ class MemoryService:
         self._sync_to_json_file()
         return True
 
-
     def purge_expired_sessions(self, max_age_hours: float = 1.0):
-        """Automatically delete chat sessions and messages older than 1 hour."""
+        """Automatically delete chat sessions and messages older than max_age_hours."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
-                # Delete messages older than 1 hour
                 cursor.execute(
                     "DELETE FROM messages WHERE datetime(created_at) < datetime('now', ?)",
                     (f"-{int(max_age_hours * 60)} minutes",)
                 )
-                # Delete sessions older than 1 hour or empty
                 cursor.execute("""
                     DELETE FROM sessions 
                     WHERE datetime(updated_at) < datetime('now', ?)
@@ -238,6 +283,5 @@ class MemoryService:
                     "title": title
                 })
             return sessions
-
 
 memory_service = MemoryService()

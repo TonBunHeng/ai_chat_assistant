@@ -4,11 +4,15 @@ from app.services.tourism_service import tourism_service
 class EventsService:
     def get_all_events(self) -> List[Dict[str, Any]]:
         """Retrieve all verified Cambodian cultural events & festivals."""
-        return tourism_service.get_dataset("events")
+        festivals = tourism_service.get_dataset("festivals")
+        if not festivals:
+            festivals = tourism_service.get_dataset("events")
+        return festivals
 
     def search_events(self, query: Optional[str] = None, province: Optional[str] = None, month: Optional[str] = None) -> Dict[str, Any]:
         """
-        Search verified events. Returns verified events or clear message if none found.
+        Search verified events with cultural background and timing.
+        Separates event structured data from AI explanation.
         """
         all_events = self.get_all_events()
         if not all_events:
@@ -25,13 +29,13 @@ class EventsService:
 
         for evt in all_events:
             match = True
-            name_en = evt.get("name", "").lower()
-            name_km = evt.get("name_km", "").lower()
-            loc_en = evt.get("location", "").lower()
-            prov_en = evt.get("province", "").lower()
-            period = evt.get("typical_period", "").lower()
-            desc = evt.get("description", "").lower()
-            tags = [t.lower() for t in evt.get("tags", [])]
+            name_en = str(evt.get("name", "")).lower()
+            name_km = str(evt.get("name_km", "")).lower()
+            loc_en = str(evt.get("location", "")).lower()
+            prov_en = str(evt.get("province", "")).lower()
+            period = str(evt.get("typical_period", "")).lower()
+            desc = str(evt.get("description", "")).lower()
+            tags = [str(t).lower() for t in evt.get("tags", [])]
 
             if q:
                 if not (q in name_en or q in name_km or q in loc_en or q in desc or any(q in t for t in tags)):
@@ -44,7 +48,10 @@ class EventsService:
                     match = False
 
             if match:
-                filtered.append(evt)
+                enhanced_evt = dict(evt)
+                if "cultural_significance" not in enhanced_evt:
+                    enhanced_evt["cultural_significance"] = evt.get("description")
+                filtered.append(enhanced_evt)
 
         if not filtered:
             return {
@@ -56,9 +63,9 @@ class EventsService:
 
         return {
             "events": filtered,
-            "message": f"Found {len(filtered)} verified event(s).",
+            "message": f"Found {len(filtered)} verified Cambodian event(s).",
             "total": len(filtered),
-            "source": "Ministry of Tourism Cambodia / National Festivals Committee"
+            "source": "Ministry of Tourism Cambodia / National Committee for Organizing National & International Festivals"
         }
 
 events_service = EventsService()

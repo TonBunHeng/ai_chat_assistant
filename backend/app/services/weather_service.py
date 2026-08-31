@@ -3,11 +3,11 @@ from typing import Dict, Any, Optional, List
 from app.core.config import settings
 from app.services.cache_service import cache_service
 
-# Accurate coordinates for major Cambodian tourist hubs
+# Coordinates for Cambodian provinces and key tourist centers
 CAMBODIA_COORDINATES = {
     "siem reap": {"lat": 13.3633, "lon": 103.8564, "name": "Siem Reap", "name_km": "សៀមរាប"},
     "phnom penh": {"lat": 11.5564, "lon": 104.9282, "name": "Phnom Penh", "name_km": "ភ្នំពេញ"},
-    "preah sihanouk": {"lat": 10.6275, "lon": 103.5221, "name": "Preah Sihanouk (Sihanoukville)", "name_km": "ព្រះសីហនុ"},
+    "preah sihanouk": {"lat": 10.6275, "lon": 103.5221, "name": "Preah Sihanouk", "name_km": "ព្រះសីហនុ"},
     "sihanoukville": {"lat": 10.6275, "lon": 103.5221, "name": "Preah Sihanouk", "name_km": "ព្រះសីហនុ"},
     "koh rong": {"lat": 10.7247, "lon": 103.2389, "name": "Koh Rong", "name_km": "កោះរ៉ុង"},
     "kampot": {"lat": 10.6104, "lon": 104.1818, "name": "Kampot", "name_km": "កំពត"},
@@ -17,7 +17,11 @@ CAMBODIA_COORDINATES = {
     "ratanakiri": {"lat": 13.7333, "lon": 106.9833, "name": "Ratanakiri", "name_km": "រតនគិរី"},
     "preah vihear": {"lat": 14.3908, "lon": 104.6800, "name": "Preah Vihear", "name_km": "ព្រះវិហារ"},
     "koh kong": {"lat": 11.6153, "lon": 102.9838, "name": "Koh Kong", "name_km": "កោះកុង"},
-    "kampong thom": {"lat": 12.7111, "lon": 104.8887, "name": "Kampong Thom", "name_km": "កំពង់ធំ"}
+    "kampong thom": {"lat": 12.7111, "lon": 104.8887, "name": "Kampong Thom", "name_km": "កំពង់ធំ"},
+    "kampong cham": {"lat": 11.9924, "lon": 105.4645, "name": "Kampong Cham", "name_km": "កំពង់ចាម"},
+    "pursat": {"lat": 12.5388, "lon": 103.9192, "name": "Pursat", "name_km": "ពោធិ៍សាត់"},
+    "kratie": {"lat": 12.4881, "lon": 106.0188, "name": "Kratie", "name_km": "ក្រចេះ"},
+    "stung treng": {"lat": 13.5259, "lon": 105.9683, "name": "Stung Treng", "name_km": "ស្ទឹងត្រែង"}
 }
 
 WMO_WEATHER_CODES = {
@@ -44,13 +48,12 @@ class WeatherService:
     def get_weather(self, province: str = "Siem Reap", days: int = 3) -> Dict[str, Any]:
         """
         Fetch real-time weather and forecast for any Cambodian province.
-        Uses Open-Meteo live API when online with automatic caching and offline seasonal fallback.
+        Uses live Open-Meteo API with cache fallback.
         """
-        prov_clean = province.lower().strip()
+        prov_clean = (province or "Siem Reap").lower().strip()
         loc_info = CAMBODIA_COORDINATES.get(prov_clean)
         
         if not loc_info:
-            # Try fuzzy key match
             for k, v in CAMBODIA_COORDINATES.items():
                 if k in prov_clean or prov_clean in k:
                     loc_info = v
@@ -63,7 +66,7 @@ class WeatherService:
         if cached:
             return cached
 
-        # 1. Try Live Open-Meteo API
+        # 1. Try Live Open-Meteo API with timeout
         try:
             url = (
                 f"https://api.open-meteo.com/v1/forecast"
@@ -84,7 +87,6 @@ class WeatherService:
                 humidity = current.get("relative_humidity_2m", 70)
                 wind_spd = current.get("wind_speed_10m", 10.0)
                 
-                # Daily forecast
                 forecast = []
                 dates = daily.get("time", [])
                 max_temps = daily.get("temperature_2m_max", [])
@@ -105,7 +107,7 @@ class WeatherService:
                     })
 
                 rain_today = rain_probs[0] if rain_probs else 20
-                travel_suitability, travel_advice_en, travel_advice_km = self._evaluate_travel_conditions(temp_c, rain_today, code)
+                travel_suitability, advice_en, advice_km = self._evaluate_travel_conditions(temp_c, rain_today, code)
 
                 result = {
                     "province": loc_info["name"],
@@ -124,43 +126,50 @@ class WeatherService:
                     },
                     "forecast": forecast,
                     "travel_suitability": travel_suitability,
-                    "travel_advice_en": travel_advice_en,
-                    "travel_advice_km": travel_advice_km,
+                    "travel_advice_en": advice_en,
+                    "travel_advice_km": advice_km,
                     "is_real_time": True,
-                    "source": "Open-Meteo WMO Real-Time Weather Service"
+                    "source": "Open-Meteo WMO Real-Time Meteorological Service"
                 }
 
                 cache_service.set(cache_key, result, ttl_seconds=settings.CACHE_TTL_WEATHER, source="Open-Meteo")
                 return result
         except Exception as e:
-            print(f"WeatherService: Live API failed, using cached/seasonal norms: {e}")
+            print(f"WeatherService: Live API failed ({e}), checking cached records.")
 
-        # 2. Offline / Degraded Fallback: Seasonal Cambodian Climate Model
-        return self._get_offline_weather(loc_info)
+        # 2. Check for any previous cached data
+        fallback_cache = cache_service.get(f"weather_{loc_info['name'].lower()}_3")
+        if fallback_cache:
+            fallback_cache["is_real_time"] = False
+            fallback_cache["source"] = "Cached Weather Data (Offline)"
+            return fallback_cache
+
+        # 3. Grounded Seasonal Baseline (Explicitly labeled as Historical Norm)
+        return self._get_seasonal_norms(loc_info)
 
     def _evaluate_travel_conditions(self, temp_c: float, rain_prob: int, code: int) -> tuple:
         """Provide intelligent travel advisory based on temperature and rain risk."""
         if rain_prob >= 70 or code in [65, 81, 82, 95, 96]:
             return (
-                "Caution (High Rain / Storm Risk)",
-                "High chance of rain showers. Perfect time for indoor temples, museums, cafes, and spa treatments. Carry waterproof gear.",
+                "Caution (Rain / Shower Risk)",
+                "High probability of rain showers. Great time for indoor museums, cafes, and spa treatments. Carry an umbrella or raincoat.",
                 "មានឱកាសភ្លៀងធ្លាក់ច្រើន។ ស័ក្តិសមសម្រាប់ទស្សនាសារមន្ទីរ ហាងកាហ្វេ និងសកម្មភាពក្នុងម្លប់។ សូមត្រៀមឆត្រ ឬអាវភ្លៀង។"
             )
         elif temp_c >= 35:
             return (
-                "Warm / Hot",
-                "High temperatures expected. Visit outdoor temples early morning (05:30 AM - 09:30 AM) and hydrate frequently.",
+                "Warm / Sunny",
+                "High temperatures expected. Visit outdoor temples early morning (05:30 AM - 09:30 AM) and stay hydrated.",
                 "អាកាសធាតុក្តៅខ្លាំង។ គួរទស្សនាប្រាសាទនៅពេលព្រឹកព្រលឹម និងទទួលទានទឹកឱ្យបានច្រើន។"
             )
         else:
             return (
                 "Ideal for Sightseeing",
-                "Excellent sightseeing weather with pleasant conditions for photography and outdoor temple explorations.",
+                "Pleasant sightseeing weather with excellent conditions for temple photography and outdoor exploration.",
                 "អាកាសធាតុល្អប្រសើរសម្រាប់ការដើរកម្សាន្ត ថតរូប និងទស្សនាប្រាសាទបុរាណ។"
             )
 
-    def _get_offline_weather(self, loc_info: Dict[str, Any]) -> Dict[str, Any]:
-        """Offline fallback based on historical Cambodian tropical norms."""
+    def _get_seasonal_norms(self, loc_info: Dict[str, Any]) -> Dict[str, Any]:
+        """Grounded baseline seasonal norms when internet is unreachable."""
         return {
             "province": loc_info["name"],
             "province_km": loc_info["name_km"],
@@ -171,7 +180,7 @@ class WeatherService:
                 "temperature_f": 87.8,
                 "humidity_percent": 75,
                 "wind_speed_kmh": 12.0,
-                "condition": "Tropical Climate (Cached Norms)",
+                "condition": "Tropical Climate (Historical Seasonal Norm)",
                 "condition_km": "អាកាសធាតុតំបន់ត្រូពិច",
                 "weather_code": 2,
                 "rain_probability": 30
@@ -181,11 +190,11 @@ class WeatherService:
                 {"date": "Day 2", "max_temp_c": 31, "min_temp_c": 24, "rain_probability": 25, "condition": "Mainly clear", "condition_km": "មេឃស្រឡះភាគច្រើន"},
                 {"date": "Day 3", "max_temp_c": 32, "min_temp_c": 25, "rain_probability": 35, "condition": "Warm", "condition_km": "កម្តៅបង្គួរ"}
             ],
-            "travel_suitability": "Good for Travel (Cached Norm)",
-            "travel_advice_en": "Standard tropical weather. Bring sun protection and lightweight breathable clothing.",
+            "travel_suitability": "Good for Travel (Seasonal Baseline)",
+            "travel_advice_en": "Standard tropical climate. Bring sun protection, hats, and light breathable clothing.",
             "travel_advice_km": "អាកាសធាតុតំបន់ក្តៅសើមធម្មតា។ គួរពាក់មួកការពារកម្ដៅថ្ងៃ និងសម្លៀកបំពាក់ស្រាលៗ។",
             "is_real_time": False,
-            "source": "Cached Cambodia Meteorological Norms (Offline Mode)"
+            "source": "Historical Cambodia Meteorological Norms (Offline Mode)"
         }
 
 weather_service = WeatherService()

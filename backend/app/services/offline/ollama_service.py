@@ -7,14 +7,24 @@ class OllamaOfflineService:
     def __init__(self, base_url: str = settings.OLLAMA_BASE_URL, model: str = settings.OLLAMA_MODEL):
         self.base_url = base_url.rstrip("/")
         self.model = model
+        self._cached_available: Optional[bool] = None
+        self._last_check_time: float = 0.0
 
     def is_available(self) -> bool:
-        """Check if local Ollama server is running."""
+        """Check if local Ollama server is running with 10s result caching."""
+        import time
+        now = time.time()
+        if self._cached_available is not None and (now - self._last_check_time) < 10.0:
+            return self._cached_available
+
         try:
-            res = requests.get(f"{self.base_url}/api/tags", timeout=2)
-            return res.status_code == 200
+            res = requests.get(f"{self.base_url}/api/tags", timeout=1.0)
+            self._cached_available = (res.status_code == 200)
         except Exception:
-            return False
+            self._cached_available = False
+
+        self._last_check_time = now
+        return self._cached_available
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> Optional[str]:
         """Generate response from Ollama using generate endpoint."""

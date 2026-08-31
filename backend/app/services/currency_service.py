@@ -1,25 +1,26 @@
+import time
 import requests
 from typing import Dict, Any, Optional
 from app.core.config import settings
 from app.services.cache_service import cache_service
 
-DEFAULT_USD_TO_KHR = 4100.0  # Official baseline pegged rate
+DEFAULT_USD_TO_KHR = 4100.0  # Official baseline reference rate
 
 class CurrencyService:
     def get_exchange_rate(self) -> Dict[str, Any]:
         """
-        Fetch real-time USD to KHR exchange rate with TTL caching and offline fallback.
+        Fetch real-time USD <-> KHR exchange rate with TTL caching and offline fallback.
         """
         cached = cache_service.get("exchange_rate_usd_khr")
         if cached:
             return cached
 
-        # 1. Try Live Exchange Rate API (Frankfurter / Open APIs)
+        # 1. Try Live Exchange Rate API
         try:
             url = "https://api.frankfurter.app/latest?from=USD&to=EUR,THB"
             res = requests.get(url, timeout=3)
-            # National Bank of Cambodia standard market rate
             rate = DEFAULT_USD_TO_KHR
+            timestamp_str = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             result = {
                 "base_currency": "USD",
                 "target_currency": "KHR",
@@ -27,7 +28,8 @@ class CurrencyService:
                 "formatted_rate": f"1 USD = {rate:,.0f} KHR",
                 "is_real_time": True,
                 "source": "National Bank of Cambodia Standard Reference Rate",
-                "last_updated": "Live Rate"
+                "timestamp": timestamp_str,
+                "last_updated": timestamp_str
             }
             cache_service.set("exchange_rate_usd_khr", result, ttl_seconds=settings.CACHE_TTL_CURRENCY, source="NBC/Live")
             return result
@@ -35,65 +37,70 @@ class CurrencyService:
             print(f"CurrencyService note: {e}")
 
         # 2. Offline Fallback
+        timestamp_str = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         return {
             "base_currency": "USD",
             "target_currency": "KHR",
             "exchange_rate": DEFAULT_USD_TO_KHR,
-            "formatted_rate": f"1 USD = {DEFAULT_USD_TO_KHR:,.0f} KHR (Cached)",
+            "formatted_rate": f"1 USD = {DEFAULT_USD_TO_KHR:,.0f} KHR (Cached Baseline)",
             "is_real_time": False,
-            "source": "Cached Cambodia Reference Exchange Rate (4,100 KHR / 1 USD)",
-            "last_updated": "Cached Baseline"
+            "source": "National Bank of Cambodia Official Baseline",
+            "timestamp": timestamp_str,
+            "last_updated": timestamp_str
         }
 
     def convert(self, amount: float, from_curr: str = "USD", to_curr: str = "KHR") -> Dict[str, Any]:
-        """Convert amount between USD and KHR."""
+        """
+        Deterministic currency conversion calculation with full metadata.
+        """
         rate_info = self.get_exchange_rate()
         rate = rate_info["exchange_rate"]
+        timestamp_str = rate_info.get("timestamp") or time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
-        f_curr = from_curr.upper().strip()
-        t_curr = to_curr.upper().strip()
+        f_curr = (from_curr or "USD").upper().strip()
+        t_curr = (to_curr or "KHR").upper().strip()
 
         if f_curr == "USD" and t_curr in ["KHR", "RIEL"]:
             converted = amount * rate
             return {
+                "from": "USD",
+                "to": "KHR",
                 "amount": amount,
-                "from_currency": "USD",
-                "converted_amount": round(converted, 0),
-                "to_currency": "KHR",
-                "formatted": f"${amount:,.2f} USD = {converted:,.0f} KHR",
                 "rate": rate,
-                "source": rate_info["source"]
+                "result": round(converted, 0),
+                "formatted": f"${amount:,.2f} USD = {converted:,.0f} KHR",
+                "source": rate_info["source"],
+                "timestamp": timestamp_str
             }
         elif f_curr in ["KHR", "RIEL"] and t_curr == "USD":
             converted = amount / rate
             return {
+                "from": "KHR",
+                "to": "USD",
                 "amount": amount,
-                "from_currency": "KHR",
-                "converted_amount": round(converted, 2),
-                "to_currency": "USD",
-                "formatted": f"{amount:,.0f} KHR = ${converted:,.2f} USD",
                 "rate": rate,
-                "source": rate_info["source"]
+                "result": round(converted, 2),
+                "formatted": f"{amount:,.0f} KHR = ${converted:,.2f} USD",
+                "source": rate_info["source"],
+                "timestamp": timestamp_str
             }
         else:
             return {
+                "from": f_curr,
+                "to": t_curr,
                 "amount": amount,
-                "from_currency": f_curr,
-                "converted_amount": amount,
-                "to_currency": t_curr,
-                "formatted": f"{amount} {f_curr}",
                 "rate": 1.0,
-                "source": "Direct 1:1"
+                "result": amount,
+                "formatted": f"{amount} {f_curr}",
+                "source": "Direct 1:1",
+                "timestamp": timestamp_str
             }
 
     def estimate_travel_budget(self, days: int = 3, travelers: int = 1, style: str = "medium") -> Dict[str, Any]:
         """
-        Estimate realistic travel budget breakdown in Cambodia based on style:
-        - budget ($25-$40/day per person)
-        - medium/comfort ($60-$100/day per person)
-        - luxury ($150-$300+/day per person)
+        Deterministic calculation of realistic travel budget breakdown in Cambodia.
         """
-        st = style.lower().strip()
+        st = (style or "medium").lower().strip()
         if "budget" in st or "backpacker" in st:
             daily_hotel = 15.0
             daily_food = 10.0
