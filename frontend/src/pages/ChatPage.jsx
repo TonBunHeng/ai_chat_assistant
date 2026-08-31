@@ -347,9 +347,10 @@ const ChatPage = () => {
         aiMsg = {
           id: Date.now() + 1,
           sender: 'ai',
-          message: offlineRes.message,
+          message: offlineRes.message || 'Angkor Verse AI is ready to help explore Cambodia.',
           mode: 'offline',
           sources: offlineRes.sources || [],
+          suggestions: offlineRes.suggestions || [],
           created_at: new Date().toISOString()
         };
         setCurrentMode('offline');
