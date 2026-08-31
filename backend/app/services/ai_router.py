@@ -34,16 +34,16 @@ class AIRouter:
         # 1. Tier 1: Try Gemini Online Service
         if should_try_gemini:
             try:
-                gemini_text = gemini_online_service.generate(
+                gemini_res = gemini_online_service.generate_with_model(
                     prompt=user_prompt,
                     system_instruction=system_instruction
                 )
-                if gemini_text and len(gemini_text.strip()) > 10:
+                if gemini_res and gemini_res.get("text") and len(gemini_res["text"].strip()) > 10:
                     return {
-                        "answer": gemini_text.strip(),
+                        "answer": gemini_res["text"].strip(),
                         "mode": "online",
                         "provider": "gemini",
-                        "model": settings.effective_online_model,
+                        "model": gemini_res.get("model", settings.effective_online_model),
                         "fallback_used": False
                     }
             except Exception as e:

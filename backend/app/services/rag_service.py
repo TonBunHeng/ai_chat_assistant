@@ -318,7 +318,7 @@ class RAGService:
             "confidence": ai_meta.get("confidence", 0.95),
             "message": answer,
             "answer": answer,  # React compatibility field
-            "model": ai_meta.get("model", "gemini-flash-latest"),
+            "model": ai_meta.get("model", settings.effective_online_model),
             "data": {
                 "type": data_type,
                 "location": active_destination,
