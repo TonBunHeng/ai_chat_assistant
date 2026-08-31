@@ -34,6 +34,7 @@ const ChatWindow = ({
             message={msg}
             language={language}
             onRegenerate={onRegenerate}
+            onSelectSuggestion={onSendMessage}
           />
         ))}
 

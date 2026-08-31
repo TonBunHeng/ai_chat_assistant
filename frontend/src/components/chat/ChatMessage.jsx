@@ -8,7 +8,7 @@ import ItineraryCard from './ItineraryCard';
 import WeatherCard from './WeatherCard';
 import RecommendationCard from './RecommendationCard';
 
-const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
+const ChatMessage = ({ message, language = 'en', onRegenerate, onSelectSuggestion }) => {
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const isUser = message.sender === 'user' || message.role === 'user';
@@ -175,6 +175,26 @@ const ChatMessage = ({ message, language = 'en', onRegenerate }) => {
                       </div>
                     )}
                   </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Contextual Suggestions Chips */}
+          {!isUser && message.suggestions && message.suggestions.length > 0 && onSelectSuggestion && (
+            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+              <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">
+                {isKhmer ? 'សំណើបន្ថែម៖' : 'Suggested Questions:'}
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {message.suggestions.map((suggestion, sIdx) => (
+                  <button
+                    key={sIdx}
+                    onClick={() => onSelectSuggestion(suggestion)}
+                    className="text-left text-xs bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 rounded-full px-3 py-1 transition-all duration-150 shadow-2xs cursor-pointer active:scale-95"
+                  >
+                    💡 {suggestion}
+                  </button>
                 ))}
               </div>
             </div>
