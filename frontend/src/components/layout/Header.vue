@@ -46,21 +46,12 @@
         <!-- Status Indicator Badge -->
         <div class="hidden sm:flex items-center">
           <div
-            v-if="!isOnline || mode === 'offline'"
+            v-if="!isOnline || mode === 'offline' || mode === 'degraded' || mode === 'fallback'"
             class="flex items-center space-x-1.5 h-8 px-3 rounded-full bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs"
             title="Running on local offline model & database"
           >
             <WifiOff :size="13" class="text-slate-500" />
             <span>Offline</span>
-          </div>
-
-          <div
-            v-else-if="mode === 'degraded' || mode === 'fallback'"
-            class="flex items-center space-x-1.5 h-8 px-3 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-200/90 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs font-semibold shadow-2xs"
-            title="Local Grounded Knowledge Engine active"
-          >
-            <AlertTriangle :size="13" class="text-amber-500" />
-            <span>Local AI</span>
           </div>
 
           <div

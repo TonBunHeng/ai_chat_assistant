@@ -81,7 +81,7 @@ class AIRouter:
         )
         return {
             "answer": fallback_text,
-            "mode": "degraded",
+            "mode": "offline",
             "provider": "local_fallback",
             "model": "local_knowledge_engine",
             "fallback_used": True
