@@ -144,20 +144,22 @@
 
         <!-- Contextual Suggestions Chips -->
         <div
-          v-if="!isUser && displayedSuggestions && displayedSuggestions.length > 0"
+          v-if="!isUser && isLatest && displayedSuggestions && displayedSuggestions.length > 0"
           class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80"
         >
-          <p class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">
-            {{ isKhmer ? 'សំណើបន្ថែម៖' : 'Suggested Questions:' }}
+          <p class="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">
+            <Sparkles :size="11" class="text-amber-500 shrink-0" />
+            <span>{{ isKhmer ? 'សំណើបន្ថែម៖' : 'Suggested Questions:' }}</span>
           </p>
           <div class="flex flex-wrap gap-1.5">
             <button
               v-for="(suggestion, sIdx) in displayedSuggestions"
               :key="sIdx"
               @click="$emit('select-suggestion', suggestion)"
-              class="text-left text-xs bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 rounded-full px-3 py-1 transition-all duration-150 shadow-2xs cursor-pointer active:scale-95"
+              class="inline-flex items-center gap-1.5 text-left text-xs bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 rounded-full px-3 py-1.5 transition-all duration-150 shadow-2xs cursor-pointer active:scale-95 group"
             >
-              💡 {{ suggestion }}
+              <Compass :size="12" class="text-blue-600 dark:text-blue-400 shrink-0 group-hover:rotate-45 transition-transform" />
+              <span>{{ suggestion }}</span>
             </button>
           </div>
         </div>
@@ -222,7 +224,7 @@
 import { ref, computed } from 'vue';
 import {
   User, Copy, Check, MapPin, ThumbsUp, ThumbsDown, RotateCcw,
-  Wifi, WifiOff, Image as ImageIcon, ExternalLink
+  Wifi, WifiOff, Image as ImageIcon, ExternalLink, Sparkles, Compass
 } from 'lucide-vue-next';
 import ItineraryCard from './ItineraryCard.vue';
 import WeatherCard from './WeatherCard.vue';
@@ -237,6 +239,10 @@ const props = defineProps({
   language: {
     type: String,
     default: 'en',
+  },
+  isLatest: {
+    type: Boolean,
+    default: false,
   },
 });
 

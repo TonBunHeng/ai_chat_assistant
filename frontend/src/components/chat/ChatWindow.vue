@@ -8,6 +8,7 @@
         :key="msg.id || index"
         :message="msg"
         :language="language"
+        :is-latest="index === messages.length - 1 && !isLoading"
         @regenerate="$emit('regenerate')"
         @select-suggestion="(s) => $emit('send-message', s)"
       />
