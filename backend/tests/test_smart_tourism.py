@@ -192,3 +192,42 @@ def test_rag_service_full_scenarios():
     assert res_summary["intent"] == "conversation_summary"
     assert "summary_text" in res_summary["data"] or res_summary["data"]["type"] == "conversation_summary"
     memory_service.delete_session(sid_test)
+
+# 13. Route Shadowing & Bug Fix Regression Tests
+def test_route_shadowing_and_bug_fixes():
+    """Verify route ordering fixes (/places/nearby not shadowed by /places/{place_id}) and embedding determinism."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    from app.services.embedding_service import embedding_service
+    
+    client = TestClient(app)
+    
+    # 1. Nearby places MUST return 200, not 404
+    resp_nearby = client.get("/api/places/nearby?lat=13.41&lon=103.86")
+    assert resp_nearby.status_code == 200
+    assert resp_nearby.json()["success"] is True
+    assert len(resp_nearby.json()["data"]) > 0
+
+    # 2. Direct /places/nearby must also return 200
+    resp_nearby_direct = client.get("/places/nearby?lat=13.41&lon=103.86")
+    assert resp_nearby_direct.status_code == 200
+
+    # 3. /hotels and /restaurants compatibility endpoints must return 200
+    resp_hotels = client.get("/api/hotels")
+    assert resp_hotels.status_code == 200
+    assert resp_hotels.json()["success"] is True
+
+    resp_rests = client.get("/api/restaurants")
+    assert resp_rests.status_code == 200
+    assert resp_rests.json()["success"] is True
+
+    # 4. Individual place details by ID must still work
+    resp_place = client.get("/places/beach_kohrong")
+    assert resp_place.status_code == 200
+    assert "Koh Rong" in resp_place.json()["data"]["name"]
+
+    # 5. Embedding determinism test
+    vec1 = embedding_service.encode("Angkor Wat temple Siem Reap")
+    vec2 = embedding_service.encode("Angkor Wat temple Siem Reap")
+    assert (vec1 == vec2).all()
+

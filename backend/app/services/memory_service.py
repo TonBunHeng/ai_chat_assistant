@@ -234,8 +234,8 @@ class MemoryService:
         self._sync_to_json_file()
         return True
 
-    def purge_expired_sessions(self, max_age_hours: float = 1.0):
-        """Automatically delete chat sessions and messages older than max_age_hours."""
+    def purge_expired_sessions(self, max_age_hours: float = 72.0):
+        """Automatically delete chat sessions and messages older than max_age_hours (default 72 hours / 3 days)."""
         try:
             with self._get_connection() as conn:
                 cursor = conn.cursor()
@@ -313,7 +313,7 @@ class MemoryService:
         }
 
     def get_all_sessions(self) -> List[Dict[str, Any]]:
-        self.purge_expired_sessions(max_age_hours=1.0)
+        self.purge_expired_sessions(max_age_hours=72.0)
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""

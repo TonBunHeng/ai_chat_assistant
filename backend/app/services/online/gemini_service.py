@@ -46,12 +46,11 @@ class GeminiOnlineService:
         # Active high-availability Gemini models ordered for speed & quota resilience
         models_to_try = [
             settings.effective_online_model,
-            "gemini-flash-lite-latest",
-            "gemini-3.5-flash-lite",
-            "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-flash-latest",
-            "gemini-3.7-flash",
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-1.5-flash",
+            "gemini-1.5-flash-8b",
+            "gemini-1.5-pro",
             "gemini-2.5-flash",
         ]
         # Deduplicate while preserving priority order
@@ -98,7 +97,7 @@ class GeminiOnlineService:
 
         # 2. SDK Call fallback
         if HAS_GOOGLE_GENAI and self.client:
-            for sdk_model in ["gemini-flash-lite-latest", "gemini-3.5-flash-lite", settings.effective_online_model]:
+            for sdk_model in [settings.effective_online_model, "gemini-2.0-flash", "gemini-1.5-flash"]:
                 try:
                     response = self.client.models.generate_content(
                         model=sdk_model,

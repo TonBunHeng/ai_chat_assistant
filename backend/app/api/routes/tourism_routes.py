@@ -73,19 +73,29 @@ async def get_places(category: Optional[str] = None, province: Optional[str] = N
         "data": places
     }
 
-@router.get("/places/{place_id}")
-async def get_place_by_id(place_id: str):
-    """Get verified details for a specific place."""
-    place = places_service.get_place_by_id(place_id)
-    if not place:
-        raise HTTPException(status_code=404, detail="Place not found in Cambodia tourism database.")
+@router.get("/hotels")
+async def get_hotels(province: Optional[str] = None):
+    """List verified hotels and accommodations."""
+    hotels = places_service.get_all_places(category="Hotel", province=province)
     return {
         "success": True,
-        "message": "Place details retrieved successfully.",
-        "data": place
+        "message": "Hotels retrieved successfully.",
+        "total": len(hotels),
+        "data": hotels
     }
 
-# 4. Nearby Places API
+@router.get("/restaurants")
+async def get_restaurants(province: Optional[str] = None):
+    """List verified restaurants and dining places."""
+    restaurants = places_service.get_all_places(category="Restaurant", province=province)
+    return {
+        "success": True,
+        "message": "Restaurants retrieved successfully.",
+        "total": len(restaurants),
+        "data": restaurants
+    }
+
+# 4. Nearby Places API (must be declared BEFORE /places/{place_id} to avoid route shadowing)
 @router.get("/nearby")
 @router.get("/places/nearby")
 async def get_nearby_places(
@@ -100,6 +110,18 @@ async def get_nearby_places(
         "success": True,
         "message": f"Found {len(nearby)} places within {max_distance_km}km.",
         "data": nearby
+    }
+
+@router.get("/places/{place_id}")
+async def get_place_by_id(place_id: str):
+    """Get verified details for a specific place."""
+    place = places_service.get_place_by_id(place_id)
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found in Cambodia tourism database.")
+    return {
+        "success": True,
+        "message": "Place details retrieved successfully.",
+        "data": place
     }
 
 # 5. Real-Time Weather API

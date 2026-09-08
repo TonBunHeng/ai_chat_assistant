@@ -81,18 +81,29 @@ export const chatService = {
   },
 
   async getHotels(params = {}) {
-    const res = await api.get('/hotels', { params });
+    const res = await api.get('/hotels', { params: { category: 'Hotel', ...params } });
     return res?.data ?? res;
   },
 
   async getRestaurants(params = {}) {
-    const res = await api.get('/restaurants', { params });
+    const res = await api.get('/restaurants', { params: { category: 'Restaurant', ...params } });
     return res?.data ?? res;
   },
 
   async getEvents(params = {}) {
     const res = await api.get('/events', { params });
     return res?.data ?? res;
+  },
+
+  async getCategories() {
+    try {
+      const res = await this.getPlaces();
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      const categories = Array.from(new Set(list.map((p) => p.category).filter(Boolean)));
+      return categories.length > 0 ? categories : ['Temples & Heritage', 'Beaches & Islands', 'Nature & Eco-Tourism', 'Food & Dining', 'Culture & Arts'];
+    } catch (e) {
+      return ['Temples & Heritage', 'Beaches & Islands', 'Nature & Eco-Tourism', 'Food & Dining', 'Culture & Arts'];
+    }
   },
 
   async getRecommendations(data) {

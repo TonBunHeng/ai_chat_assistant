@@ -17,21 +17,28 @@ class CurrencyService:
 
         # 1. Try Live Exchange Rate API
         try:
-            url = "https://api.frankfurter.app/latest?from=USD&to=EUR,THB"
-            res = requests.get(url, timeout=3)
+            url = "https://open.er-api.com/v6/latest/USD"
+            res = requests.get(url, timeout=2)
             rate = DEFAULT_USD_TO_KHR
+            is_live = False
+            if res.status_code == 200:
+                data = res.json()
+                rates = data.get("rates", {})
+                if "KHR" in rates and rates["KHR"] > 3000:
+                    rate = round(float(rates["KHR"]), 0)
+                    is_live = True
             timestamp_str = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             result = {
                 "base_currency": "USD",
                 "target_currency": "KHR",
                 "exchange_rate": rate,
                 "formatted_rate": f"1 USD = {rate:,.0f} KHR",
-                "is_real_time": True,
-                "source": "National Bank of Cambodia Standard Reference Rate",
+                "is_real_time": is_live,
+                "source": "Live Exchange Rate Feed" if is_live else "National Bank of Cambodia Standard Reference Rate",
                 "timestamp": timestamp_str,
                 "last_updated": timestamp_str
             }
-            cache_service.set("exchange_rate_usd_khr", result, ttl_seconds=settings.CACHE_TTL_CURRENCY, source="NBC/Live")
+            cache_service.set("exchange_rate_usd_khr", result, ttl_seconds=settings.CACHE_TTL_CURRENCY, source="Live" if is_live else "NBC")
             return result
         except Exception as e:
             print(f"CurrencyService note: {e}")

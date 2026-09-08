@@ -70,8 +70,9 @@ class EmbeddingService:
         words_to_use = content_words if content_words else words
 
         # 1. Word token hashes with higher weight for content words
+        import hashlib
         for w in words_to_use:
-            h = abs(hash(f"word_{w}")) % dim
+            h = int(hashlib.md5(f"word_{w}".encode("utf-8")).hexdigest()[:8], 16) % dim
             vec[h] += 3.0
 
         # 2. Character n-grams (3-grams) for robust morphological and fuzzy matching
@@ -79,7 +80,7 @@ class EmbeddingService:
             if len(w) >= 3:
                 for i in range(len(w) - 2):
                     gram = w[i:i+3]
-                    h = abs(hash(f"gram_{gram}")) % dim
+                    h = int(hashlib.md5(f"gram_{gram}".encode("utf-8")).hexdigest()[:8], 16) % dim
                     vec[h] += 1.0
             
         norm = np.linalg.norm(vec)

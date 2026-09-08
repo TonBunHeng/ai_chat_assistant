@@ -298,22 +298,23 @@ const handleDeleteSession = async (sessionId) => {
 };
 
 // Send Message Handler
-const handleSendMessage = async (text, attachments = []) => {
+const handleSendMessage = async (text, attachments = [], isRegenerate = false) => {
   if (!text || !text.trim() || isLoading.value) return;
 
   error.value = null;
   const userMessageText = text.trim();
 
-  // Optimistically append user message to UI
-  const tempUserMsg = {
-    id: Date.now(),
-    sender: 'user',
-    message: userMessageText,
-    attachments: attachments,
-    created_at: new Date().toISOString(),
-  };
-
-  messages.value = [...messages.value, tempUserMsg];
+  // Optimistically append user message to UI if not regenerating
+  if (!isRegenerate) {
+    const tempUserMsg = {
+      id: Date.now(),
+      sender: 'user',
+      message: userMessageText,
+      attachments: attachments,
+      created_at: new Date().toISOString(),
+    };
+    messages.value = [...messages.value, tempUserMsg];
+  }
   isLoading.value = true;
 
   try {
@@ -434,9 +435,13 @@ const handleSendMessage = async (text, attachments = []) => {
 // Regenerate last AI response
 const handleRegenerate = async () => {
   if (messages.value.length === 0 || isLoading.value) return;
+  // If last message was from AI, pop it so we can re-generate cleanly
+  if (messages.value[messages.value.length - 1]?.sender === 'ai') {
+    messages.value = messages.value.slice(0, -1);
+  }
   const lastUserMsg = [...messages.value].reverse().find((m) => m.sender === 'user' || m.role === 'user');
   if (lastUserMsg && lastUserMsg.message) {
-    handleSendMessage(lastUserMsg.message);
+    handleSendMessage(lastUserMsg.message, [], true);
   }
 };
 
