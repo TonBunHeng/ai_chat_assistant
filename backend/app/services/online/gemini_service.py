@@ -47,11 +47,10 @@ class GeminiOnlineService:
         models_to_try = [
             settings.effective_online_model,
             "gemini-2.0-flash",
-            "gemini-2.0-flash-lite",
+            "gemini-2.5-flash",
             "gemini-1.5-flash",
             "gemini-1.5-flash-8b",
             "gemini-1.5-pro",
-            "gemini-2.5-flash",
         ]
         # Deduplicate while preserving priority order
         seen = set()
@@ -84,7 +83,14 @@ class GeminiOnlineService:
                             if len(ans) > 5:
                                 self.last_used_model = model
                                 return {"text": ans, "model": model}
-                elif res.status_code in [429, 404, 400]:
+                elif res.status_code == 400:
+                    err_text = res.text
+                    if "API_KEY_INVALID" in err_text or "key not valid" in err_text.lower():
+                        print("GeminiOnlineService: API Key is invalid. Ensure your key starts with 'AIzaSy...' from Google AI Studio.")
+                        return None
+                    print(f"GeminiOnlineService: Model {model} status 400, trying next model...")
+                    continue
+                elif res.status_code in [429, 404]:
                     # Model quota exhausted or not found for this version: proceed to next candidate
                     print(f"GeminiOnlineService: Model {model} status {res.status_code}, trying next model...")
                     continue
