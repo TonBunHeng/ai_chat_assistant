@@ -1,16 +1,16 @@
 # Angkor Verse AI - Tourism Information Service (Cambodia)
 
-An intelligent AI Tourism Information Service specialized in Cambodia tourism built with **FastAPI**, **RAG (Retrieval-Augmented Generation)**, **Ollama (`Camtour-On-Mistral-Ai:latest`)**, **SQLite**, and **React + Vite**.
+An intelligent AI Tourism Information Service specialized in Cambodia tourism built with **FastAPI**, **RAG (Retrieval-Augmented Generation)**, **Google Gemini (`gemini-3.5-flash`)**, **Ollama (`Camtour-On-Mistral-Ai:latest`)**, **SQLite**, and **Vue 3 + Vite**.
 
 ---
 
 ## AI Model Details
 
-- **Primary AI Model**: `Camtour-On-Mistral-Ai:latest` (Fine-tuned model running locally via Ollama)
-- **Supported Alternative Models**: `tripmind-ft-gguf`, `llama3.2`, `mistral`
-- **Online Cloud Model**: `gemini-flash-latest` (Google Gemini API)
-- **Embedding Model**: `sentence-transformers` (`all-MiniLM-L6-v2`) for RAG vector search
-- **Offline Fallback**: Built-in RAG Knowledge Synthesizer engine (ensures 100% server availability even if Ollama is restarting)
+- **Online Cloud Model**: `gemini-3.5-flash` / `gemini-3.7-flash` (Google Gemini API with auto-failover)
+- **Primary Offline Model**: `Camtour-On-Mistral-Ai:latest` (Fine-tuned model running locally via Ollama)
+- **Supported Alternative Local Models**: `tripmind-ft-gguf`, `llama3.2`, `mistral`
+- **Embedding & Semantic Matching**: RapidFuzz fuzzy scoring and high-dimensional semantic vector search over Cambodia tourism datasets
+- **Offline Fallback**: Built-in RAG Knowledge Synthesizer engine (ensures 100% server availability even when offline)
 
 ---
 
@@ -21,8 +21,8 @@ The system automatically orchestrates between 3 execution tiers based on connect
 
 | Mode | Engine / Provider | Description |
 | :--- | :--- | :--- |
-| 🌐 **Online Mode** | **Google Gemini** (`gemini-flash-latest`) | Uses cloud AI along with real-time live tools (Weather, Currency, Live Events, OSM Places). |
-| 💻 **Offline Mode** | **Local Ollama** (`Camtour-On-Mistral-Ai:latest`) | Runs locally without internet using Ollama, `sentence-transformers` vector search, and local tourism datasets. |
+| 🌐 **Online Mode** | **Google Gemini** (`gemini-3.5-flash`) | Uses cloud AI along with real-time live tools (Weather, Currency, Live Events, OSM Places). |
+| 💻 **Offline Mode** | **Local Ollama** (`Camtour-On-Mistral-Ai:latest`) | Runs locally without internet using Ollama, vector search, and local tourism datasets. |
 | 🛡️ **Degraded / Fallback Mode** | **Local Knowledge Engine** | Activated if neither Gemini nor Ollama is reachable; synthesizes answers using cached datasets and rule-based search. |
 
 ### 2. Language Modes
@@ -30,12 +30,13 @@ The system automatically orchestrates between 3 execution tiers based on connect
 - 🇬🇧 **English Mode**: International mode tailored for foreign tourists and visitors.
 
 ### 3. Functional & Tool Modes (Intents)
-- 🗺️ **Itinerary Planning Mode**: Generates structured 1-to-5+ day travel schedules with cost/budget breakdown.
+- 🗺️ **Interactive Itinerary Planning**: Generates structured 1-to-5+ day travel schedules with cost/budget breakdown and interactive day tabs.
 - ☀️ **Weather Advisory Mode**: Provides real-time weather forecasts and seasonal packing recommendations.
-- 💱 **Currency Conversion Mode**: Real-time / cached USD $\leftrightarrow$ KHR (Cambodian Riel) conversion.
+- 💱 **Currency Conversion Mode**: Real-time / cached USD $\leftrightarrow$ KHR (Cambodian Riel) conversion with quick denomination chips.
 - ⭐ **Smart Recommendation Mode**: Ranks temples, beaches, food, and attractions based on user interest & budget.
 - 🎊 **Events & Cultural Festivals Mode**: Information on Cambodian holidays (Khmer New Year, Water Festival, Pchum Ben, etc.).
-- 🔍 **Vector RAG Search Mode**: Semantic similarity search over curated Cambodia tourism datasets.
+- 📍 **AI Grounded Sources**: Direct verification cards for matched places with Google Maps links.
+- 💡 **Suggested Topics**: Smart 2x2 topic recommendation cards with instant follow-up prompts.
 
 ### 4. UI Modes
 - ☀️ **Light Theme**
@@ -54,24 +55,42 @@ The system automatically orchestrates between 3 execution tiers based on connect
 - `fastapi` & `uvicorn[standard]` (REST API Web Framework)
 - `pydantic` & `pydantic-settings` (Data Validation & Environment Management)
 - `python-dotenv` (Environment Variables)
-- `sentence-transformers` & `numpy` (RAG Vector Embeddings & Similarity Search)
-- `requests` & `httpx` (Ollama HTTP Integration)
+- `google-genai` & `requests` (Gemini & Ollama HTTP Integration)
+- `rapidfuzz` & `numpy` (RAG Vector Search & Semantic Similarity)
 - `pytest` (Automated Test Suite)
 
 ### Key Frontend Packages (`frontend/package.json`)
-- `react` & `react-dom` (UI Library)
+- `vue` & `vue-router` (Frontend UI Framework & Routing)
 - `vite` (Frontend Build Tool & Dev Server)
 - `axios` (HTTP API Client)
-- `lucide-react` (UI Icons)
-- `tailwindcss` (Styling)
+- `lucide-vue-next` (Modern Lucide Icons for Vue 3)
+- `tailwindcss` (Utility-first CSS framework)
 
 ---
 
 ## How to Run the Project
 
-### Step 1: Start Ollama AI Model
+### Step 1: Configure Environment Variables
 
-Ensure Ollama is running and start the model:
+In `backend/.env`:
+
+```env
+AI_MODE=online
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-3.5-flash
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=Camtour-On-Mistral-Ai:latest
+SIMILARITY_THRESHOLD=0.80
+HOST=0.0.0.0
+PORT=8000
+DEBUG=True
+```
+
+---
+
+### Step 2: Start Ollama AI Model (Optional for Offline Mode)
+
+If running offline with Ollama:
 
 ```bash
 ollama run Camtour-On-Mistral-Ai:latest
@@ -79,7 +98,7 @@ ollama run Camtour-On-Mistral-Ai:latest
 
 ---
 
-### Step 2: Run Backend Server (FastAPI)
+### Step 3: Run Backend Server (FastAPI)
 
 Open **Terminal 1**:
 
@@ -104,7 +123,7 @@ python3 run.py
 
 ---
 
-### Step 3: Run Frontend Web Application (React)
+### Step 4: Run Frontend Web Application (Vue 3)
 
 Open **Terminal 2**:
 
@@ -118,6 +137,8 @@ npm install
 # Start Vite dev server
 npm run dev
 ```
+
+---
 
 ## Sample Test Questions
 
@@ -133,5 +154,4 @@ npm run dev
 2. `"What are the top things to do in Siem Reap?"`
 3. `"Can you create a 3-day travel itinerary for Siem Reap?"`
 4. `"What traditional Cambodian food should I try?"`
-5. `"What is the best time of year to visit Kampot and Bokor Mountain?"`# AI_ChatBot_Support_Tourism_Information
-# AIChatBot
+5. `"What is the best time of year to visit Kampot and Bokor Mountain?"`
