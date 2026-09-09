@@ -16,12 +16,12 @@ class Settings(BaseSettings):
     
     # Online AI Provider Configuration (Google Gemini)
     ONLINE_AI_PROVIDER: str = "gemini"
-    ONLINE_AI_MODEL: str = "gemini-3.5-flash-lite"
+    ONLINE_AI_MODEL: str = "gemini-3.5-flash"
     GEMINI_API_KEY: str = ""
-    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+    GEMINI_MODEL: str = "gemini-3.5-flash"
     ONLINE_API_KEY: str = ""
-    ONLINE_MODEL: str = "gemini-3.5-flash-lite"
-    GEMINI_TIMEOUT_SECONDS: int = 10
+    ONLINE_MODEL: str = "gemini-3.5-flash"
+    GEMINI_TIMEOUT_SECONDS: int = 15
     
     # Offline AI Provider Configuration (Ollama)
     OFFLINE_AI_PROVIDER: str = "ollama"

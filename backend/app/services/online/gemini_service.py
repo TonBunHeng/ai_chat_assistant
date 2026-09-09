@@ -46,17 +46,18 @@ class GeminiOnlineService:
         # Active high-availability Gemini models ordered for speed & quota resilience
         models_to_try = [
             settings.effective_online_model,
-            "gemini-3.5-flash-lite",
             "gemini-3.5-flash",
+            "gemini-3.7-flash",
+            "gemini-3.8-flash",
+            "gemini-3.5-flash-lite",
             "gemini-3.6-flash",
-            "gemini-flash-lite-latest",
             "gemini-flash-latest",
         ]
         # Deduplicate while preserving priority order
         seen = set()
         models_to_try = [m for m in models_to_try if m and not (m in seen or seen.add(m))]
 
-        per_model_timeout = min(max(settings.GEMINI_TIMEOUT_SECONDS, 4), 8)
+        per_model_timeout = min(max(settings.GEMINI_TIMEOUT_SECONDS, 8), 15)
 
         # 1. Direct REST API (Fastest with seamless model failover)
         for model in models_to_try:
@@ -103,7 +104,7 @@ class GeminiOnlineService:
 
         # 2. SDK Call fallback
         if HAS_GOOGLE_GENAI and self.client:
-            for sdk_model in [settings.effective_online_model, "gemini-3.5-flash-lite", "gemini-3.5-flash"]:
+            for sdk_model in [settings.effective_online_model, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.8-flash"]:
                 try:
                     response = self.client.models.generate_content(
                         model=sdk_model,
