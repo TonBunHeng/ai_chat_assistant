@@ -410,7 +410,9 @@ class RAGService:
                 f"រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅ {dest_km}",
                 "រៀបចំដំណើរកម្សាន្ត ៥ ថ្ងៃ ភ្នំពេញ និង សៀមរាប",
                 f"តើទៅ {dest_km} គួររៀបចំដំណើរកម្សាន្តប៉ុន្មានថ្ងៃ?",
-                "រៀបចំគម្រោងលំហែកាយ ២ ថ្ងៃនៅកោះរ៉ុង"
+                "រៀបចំគម្រោងលំហែកាយ ២ ថ្ងៃនៅកោះរ៉ុង",
+                f"តើមានគម្រោងដើរលេងចុងសប្តាហ៍នៅ {dest_km} យ៉ាងណាខ្លះ?",
+                "ណែនាំគម្រោងដំណើរកម្សាន្តតាមឆ្នេរសមុទ្រកម្ពុជា"
             ]
             attractions_pool = [
                 f"តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅ {dest_km}?",
@@ -418,13 +420,18 @@ class RAGService:
                 "តើពេលវេលាណាដែលល្អបំផុតសម្រាប់មើលថ្ងៃរះនៅប្រាសាទអង្គរវត្ត?",
                 "តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?",
                 "តើនៅឧទ្យានជាតិភ្នំបូកគោមានកន្លែងកម្សាន្តអ្វីខ្លះ?",
-                "តើព្រះបរមរាជវាំងនៅភ្នំពេញមានអ្វីពិសេសខ្លះ?"
+                "តើព្រះបរមរាជវាំងនៅភ្នំពេញមានអ្វីពិសេសខ្លះ?",
+                "តើប្រាសាទបេងមាលាមានភាពអស្ចារ្យយ៉ាងណា?",
+                "តើកន្លែងណាខ្លះដែលល្អសម្រាប់មើលថ្ងៃលិចនៅបឹងទន្លេសាប?",
+                "តើប្រាសាទព្រះវិហារ និងកោះកេរមានចម្ងាយប៉ុន្មានពីសៀមរាប?"
             ]
             food_pool = [
                 f"តើម្ហូបអាហារល្បីៗនៅ {dest_km} មានអ្វីខ្លះ?",
                 "តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?",
                 "តើអាចរកញ៉ាំអាម៉ុកត្រី និងឡុកឡាក់ឆ្ងាញ់នៅឯណា?",
-                "តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?"
+                "តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?",
+                "តើម្ហូបតាមផ្លូវ (Street Food) នៅភ្នំពេញកន្លែងណាឆ្ងាញ់ជាងគេ?",
+                "តើនំបញ្ចុកទឹកសម្លប្រពៃណីខ្មែរមានរសជាតិយ៉ាងណា?"
             ]
             practical_pool = [
                 f"តើអាកាសធាតុនៅ {dest_km} យ៉ាងណាដែរ?",
@@ -432,14 +439,19 @@ class RAGService:
                 "តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?",
                 "តើត្រូវស្លៀកពាក់បែបណាពេលចូលទស្សនាប្រាសាទបុរាណ?",
                 "តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?",
-                "តើពិធីបុណ្យប្រពៃណីខ្មែរល្បីៗមានអ្វីខ្លះ?"
+                "តើពិធីបុណ្យប្រពៃណីខ្មែរល្បីៗមានអ្វីខ្លះ?",
+                "តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?",
+                "តើការប្រើប្រាស់ PassApp និង Grab នៅកម្ពុជាយ៉ាងដូចម្តេច?",
+                "តើរដូវកាលណាដែលល្អបំផុតសម្រាប់មកលេងកម្ពុជា?"
             ]
         else:
             itinerary_pool = [
                 f"Create a 3-day {dest_en} cultural itinerary",
                 "Plan a 5-day Cambodia highlights trip (Phnom Penh & Siem Reap)",
                 f"How many days are ideal to visit {dest_en}?",
-                "Plan a relaxing 2-day beach getaway to Koh Rong island"
+                "Plan a relaxing 2-day beach getaway to Koh Rong island",
+                f"What is a great weekend itinerary in {dest_en}?",
+                "Suggest a scenic southern coastal route (Kep & Kampot)"
             ]
             attractions_pool = [
                 f"What are the top attractions to visit in {dest_en}?",
@@ -447,13 +459,18 @@ class RAGService:
                 "What is the best time and spot for Angkor Wat sunrise?",
                 "What are the most beautiful beaches on Koh Rong?",
                 "What can I explore at Bokor National Park in Kampot?",
-                "What are the highlights of the Royal Palace in Phnom Penh?"
+                "What are the highlights of the Royal Palace in Phnom Penh?",
+                "Tell me about the jungle temple of Beng Mealea",
+                "Where are the best sunset viewpoints around Siem Reap?",
+                "How far are Koh Ker and Preah Vihear temples from Siem Reap?"
             ]
             food_pool = [
                 f"What local dishes should I try in {dest_en}?",
                 "What authentic Khmer dishes are must-try in Cambodia?",
                 "Where can I find the best Fish Amok and Beef Lok Lak?",
-                "Tell me about fresh Kampot pepper crab in Kep"
+                "Tell me about fresh Kampot pepper crab in Kep",
+                "What is the best street food to try in Phnom Penh?",
+                "Tell me about traditional Khmer noodles (Nom Banh Chok)"
             ]
             practical_pool = [
                 f"What is the weather like in {dest_en} today?",
@@ -461,7 +478,10 @@ class RAGService:
                 "How much does an Angkor Wat temple pass cost?",
                 "What is the dress code for visiting ancient temples in Cambodia?",
                 "How do I travel comfortably between Phnom Penh and Siem Reap?",
-                "What traditional Cambodian festivals happen throughout the year?"
+                "What traditional Cambodian festivals happen throughout the year?",
+                "What should I know about Cambodian currency and tipping culture?",
+                "How do PassApp and Grab tuk-tuks work in Cambodia?",
+                "What is the best time of year to visit Cambodia for good weather?"
             ]
 
         # Assemble diverse mix from categories

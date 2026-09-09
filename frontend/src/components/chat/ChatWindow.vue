@@ -11,6 +11,7 @@
         :is-latest="index === messages.length - 1 && !isLoading"
         @regenerate="$emit('regenerate')"
         @select-suggestion="(s) => $emit('send-message', s)"
+        @edit-message="(payload) => $emit('edit-message', { ...payload, index })"
       />
 
       <!-- Loading / Typing Indicator -->
@@ -58,7 +59,7 @@ const props = defineProps({
   },
 });
 
-defineEmits(['send-message', 'regenerate']);
+defineEmits(['send-message', 'regenerate', 'edit-message']);
 
 const messagesEndRef = ref(null);
 const chatContainerRef = ref(null);

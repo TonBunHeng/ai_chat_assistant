@@ -1,29 +1,8 @@
 <template>
-  <div :class="['flex items-start space-x-3 mb-5', isUser ? 'flex-row-reverse space-x-reverse' : '']">
+  <div :class="['flex w-full mb-5', isUser ? 'justify-end' : 'justify-start']">
     
-    <!-- Avatar -->
-    <div
-      :class="[
-        'w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-xs overflow-hidden',
-        isUser
-          ? 'bg-[#003E83] text-white'
-          : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
-      ]"
-    >
-      <User v-if="isUser" :size="16" />
-      <img
-        v-else
-        src="/tourism_logo.png"
-        alt="Angkor Verse AI"
-        width="32"
-        height="32"
-        style="max-width: 32px; max-height: 32px;"
-        class="w-full h-full object-contain p-0.5 rounded-xl"
-      />
-    </div>
-
     <!-- Message Content Area -->
-    <div :class="['max-w-[85%] sm:max-w-[80%] group relative', isUser ? 'items-end' : 'items-start']">
+    <div :class="['max-w-[85%] sm:max-w-[80%] group relative', isUser ? 'flex flex-col items-end' : 'flex flex-col items-start']">
       
       <!-- Mode Tag Badge for AI -->
       <div v-if="!isUser" class="flex flex-wrap items-center gap-1.5 mb-1 px-1 text-[11px]">
@@ -49,8 +28,8 @@
           'px-4 py-3 rounded-2xl shadow-2xs text-[15px] sm:text-[15.5px]',
           hasKhmer ? 'leading-[1.75]' : 'leading-relaxed',
           isUser
-            ? 'bg-[#003E83] text-white rounded-tr-xs font-medium'
-            : 'bg-white dark:bg-[#18181b] text-[#111827] dark:text-[#f4f4f5] border border-[#f3f4f6] dark:border-[#27272a] rounded-tl-xs'
+            ? 'bg-[#003E83] dark:bg-[#003E83] text-white rounded-2xl font-normal sm:font-medium shadow-xs shadow-blue-900/15'
+            : 'bg-white dark:bg-[#18181b] text-[#111827] dark:text-[#f4f4f5] border border-[#f3f4f6] dark:border-[#27272a] rounded-2xl rounded-tl-xs'
         ]"
       >
         <!-- User Attached Files/Images Preview -->
@@ -65,15 +44,45 @@
           </div>
         </div>
 
+        <!-- User Inline Editing Container -->
+        <div v-if="isUser && isEditing" class="w-full min-w-[220px] sm:min-w-[300px]">
+          <textarea
+            ref="editTextareaRef"
+            v-model="editText"
+            @input="adjustEditHeight"
+            @keydown="handleEditKeyDown"
+            rows="2"
+            class="w-full bg-transparent text-white placeholder-white/60 focus:outline-none resize-none text-[15px] leading-relaxed py-1"
+            :placeholder="isKhmer ? 'បញ្ចូលសារកែប្រែ...' : 'Edit your message...'"
+          ></textarea>
+          <div class="flex items-center justify-end space-x-2 mt-2 pt-2 border-t border-white/20">
+            <button
+              type="button"
+              @click="cancelEdit"
+              class="px-3 py-1 text-xs rounded-full font-medium bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+            >
+              {{ isKhmer ? 'បោះបង់' : 'Cancel' }}
+            </button>
+            <button
+              type="button"
+              @click="saveEdit"
+              :disabled="!editText.trim()"
+              class="px-3 py-1 text-xs rounded-full font-medium bg-white text-slate-900 hover:bg-slate-100 disabled:opacity-50 transition-colors cursor-pointer shadow-xs"
+            >
+              {{ isKhmer ? 'ផ្ញើ' : 'Send' }}
+            </button>
+          </div>
+        </div>
+
         <!-- Formatted Text Content -->
-        <div class="message-text">
+        <div v-else class="message-text">
           <span
             v-for="(line, lineIdx) in parsedLines"
             :key="lineIdx"
             :class="['block mb-1', line.isKhmer || hasKhmer ? 'leading-[1.75]' : 'leading-relaxed']"
           >
             <template v-for="(part, pIdx) in line.parts" :key="pIdx">
-              <strong v-if="part.isBold" class="font-bold text-slate-900 dark:text-white">
+              <strong v-if="part.isBold" :class="isUser ? 'font-bold text-white' : 'font-bold text-slate-900 dark:text-white'">
                 {{ part.text }}
               </strong>
               <template v-else>{{ part.text }}</template>
@@ -144,16 +153,31 @@
 
         <!-- Contextual Suggestions Chips -->
         <div
-          v-if="!isUser && isLatest && displayedSuggestions && displayedSuggestions.length > 0"
+          v-if="!isUser && isLatest && currentSuggestions && currentSuggestions.length > 0"
           class="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80"
         >
-          <p class="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500 mb-1.5 uppercase tracking-wider">
-            <Sparkles :size="11" class="text-amber-500 shrink-0" />
-            <span>{{ isKhmer ? 'សំណើបន្ថែម៖' : 'Suggested Questions:' }}</span>
-          </p>
+          <div class="flex items-center justify-between mb-1.5 px-0.5">
+            <p class="inline-flex items-center gap-1.5 text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+              <Sparkles :size="11" class="text-amber-500 shrink-0" />
+              <span>{{ isKhmer ? 'សំណើបន្ថែម៖' : 'Suggested Questions:' }}</span>
+            </p>
+            <button
+              type="button"
+              @click.stop="refreshSuggestions"
+              class="inline-flex items-center gap-1 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 px-2 py-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer group active:scale-95"
+              :title="isKhmer ? 'ប្តូរសំណួរថ្មី' : 'Refresh questions'"
+            >
+              <RotateCcw
+                :size="11"
+                :class="['transition-transform duration-500', isRefreshingSuggestions ? '-rotate-180 text-blue-600 dark:text-blue-400' : 'group-hover:-rotate-90']"
+              />
+              <span>{{ isKhmer ? 'ប្តូរសំណួរ' : 'Refresh' }}</span>
+            </button>
+          </div>
+
           <div class="flex flex-wrap gap-1.5">
             <button
-              v-for="(suggestion, sIdx) in displayedSuggestions"
+              v-for="(suggestion, sIdx) in currentSuggestions"
               :key="sIdx"
               @click="$emit('select-suggestion', suggestion)"
               class="inline-flex items-center gap-1.5 text-left text-xs bg-slate-50 dark:bg-slate-800/80 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-slate-700 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-blue-400 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 rounded-full px-3 py-1.5 transition-all duration-150 shadow-2xs cursor-pointer active:scale-95 group"
@@ -165,7 +189,37 @@
         </div>
       </div>
 
-      <!-- Message Actions Toolbar -->
+      <!-- User Message Actions Toolbar (Copy & Edit, as seen in Picture 1) -->
+      <div
+        v-if="isUser && !isEditing"
+        class="flex items-center justify-end space-x-1.5 mt-1 px-1 text-slate-400 dark:text-zinc-400"
+      >
+        <!-- Copy Button -->
+        <button
+          @click="handleCopy"
+          class="flex items-center p-1 rounded-md hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer text-xs"
+          :title="copied ? (isKhmer ? 'បានចម្លង!' : 'Copied!') : (isKhmer ? 'ចម្លង' : 'Copy')"
+        >
+          <template v-if="copied">
+            <Check :size="13" class="text-blue-500 dark:text-blue-400" />
+            <span class="text-blue-600 dark:text-blue-400 text-[10px] font-semibold ml-1">
+              {{ isKhmer ? 'បានចម្លង' : 'Copied' }}
+            </span>
+          </template>
+          <Copy v-else :size="13" />
+        </button>
+
+        <!-- Edit Button -->
+        <button
+          @click="startEdit"
+          class="p-1 rounded-md hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer text-xs"
+          :title="isKhmer ? 'កែប្រែសារ' : 'Edit message'"
+        >
+          <Pencil :size="13" />
+        </button>
+      </div>
+
+      <!-- AI Message Actions Toolbar -->
       <div v-if="!isUser" class="flex items-center space-x-1 mt-1 text-slate-400 dark:text-slate-500">
         <button
           @click="handleCopy"
@@ -221,9 +275,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, nextTick, watch } from 'vue';
 import {
-  User, Copy, Check, MapPin, ThumbsUp, ThumbsDown, RotateCcw,
+  Copy, Check, Pencil, MapPin, ThumbsUp, ThumbsDown, RotateCcw,
   Wifi, WifiOff, Image as ImageIcon, ExternalLink, Sparkles, Compass
 } from 'lucide-vue-next';
 import ItineraryCard from './ItineraryCard.vue';
@@ -246,10 +300,13 @@ const props = defineProps({
   },
 });
 
-defineEmits(['regenerate', 'select-suggestion']);
+const emit = defineEmits(['regenerate', 'select-suggestion', 'edit-message']);
 
 const copied = ref(false);
 const feedback = ref(null);
+const isEditing = ref(false);
+const editText = ref('');
+const editTextareaRef = ref(null);
 
 const isUser = computed(() => props.message.sender === 'user' || props.message.role === 'user');
 const isKhmer = computed(() => props.language === 'km');
@@ -282,41 +339,93 @@ const parsedLines = computed(() => {
   });
 });
 
-const displayedSuggestions = computed(() => {
+const enSuggestionsPool = [
+  'What must-see temples in Siem Reap should I visit besides Angkor Wat?',
+  'Tell me about fresh Kampot pepper crab in Kep',
+  'How much does an Angkor Wat temple pass cost?',
+  'What authentic Khmer dishes are must-try in Cambodia?',
+  'Create a 3-day Siem Reap cultural itinerary',
+  'What is the dress code for visiting ancient temples in Cambodia?',
+  'What are the most beautiful beaches on Koh Rong island?',
+  'What is the best time and spot for Angkor Wat sunrise?',
+  'How do I travel comfortably between Phnom Penh and Siem Reap?',
+  'Where can I find the best Fish Amok and Beef Lok Lak?',
+  'What is the current USD to Cambodian Riel exchange rate?',
+  'What can I explore at Bokor National Park in Kampot?',
+  'What are the top highlights of the Royal Palace in Phnom Penh?',
+  'What should I know about Cambodian currency and tipping culture?',
+  'How do PassApp and Grab tuk-tuks work in Cambodia?',
+  'What traditional festivals and holidays happen in Cambodia?',
+  'Can you suggest a relaxing 2-day beach getaway itinerary?',
+  'Tell me about the hidden jungle temple of Beng Mealea',
+  'What is the best time of year to visit Cambodia for good weather?',
+  'What are the best sunset viewpoints around Siem Reap and Tonle Sap?',
+  'What are some respectful cultural etiquettes to follow in Cambodia?',
+  'Where can I experience an authentic Apsara dance performance?'
+];
+
+const kmSuggestionsPool = [
+  'តើប្រាសាទល្បីៗណាខ្លះដែលគួរទៅទស្សនាក្រៅពីអង្គរវត្ត?',
+  'តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?',
+  'តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?',
+  'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?',
+  'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប',
+  'តើត្រូវស្លៀកពាក់បែបណាពេលចូលទស្សនាប្រាសាទបុរាណ?',
+  'តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?',
+  'តើពេលវេលាណាដែលល្អបំផុតសម្រាប់មើលថ្ងៃរះនៅប្រាសាទអង្គរវត្ត?',
+  'តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?',
+  'តើអាចរកញ៉ាំអាម៉ុកត្រី និងឡុកឡាក់ឆ្ងាញ់នៅឯណា?',
+  'តើអត្រាប្តូរប្រាក់ ១ ដុល្លារស្មើនឹងប៉ុន្មានរៀលថ្ងៃនេះ?',
+  'តើនៅឧទ្យានជាតិភ្នំបូកគោមានកន្លែងកម្សាន្តអ្វីខ្លះ?',
+  'តើព្រះបរមរាជវាំងនៅភ្នំពេញមានអ្វីពិសេសខ្លះ?',
+  'តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?',
+  'តើការប្រើប្រាស់ PassApp និង Grab នៅកម្ពុជាយ៉ាងដូចម្តេច?',
+  'តើពិធីបុណ្យប្រពៃណីខ្មែរល្បីៗមានអ្វីខ្លះពេញមួយឆ្នាំ?',
+  'រៀបចំគម្រោងលំហែកាយ ២ ថ្ងៃនៅឆ្នេរសមុទ្រកោះរ៉ុង',
+  'តើប្រាសាទបេងមាលាមានប្រវត្តិ និងភាពទាក់ទាញយ៉ាងណា?',
+  'តើរដូវកាលណាដែលល្អបំផុតសម្រាប់មកកម្សាន្តនៅកម្ពុជា?',
+  'តើកន្លែងណាខ្លះដែលល្អបំផុតសម្រាប់មើលថ្ងៃលិចនៅបឹងទន្លេសាប?',
+  'តើមានទំនៀមទម្លាប់អ្វីខ្លះដែលភ្ញៀវទេសចរគួរយល់ដឹងនៅកម្ពុជា?',
+  'តើអាចទស្សនារបាំព្រះរាជទ្រព្យ (អប្សរា) នៅទីណាបាន?'
+];
+
+const currentSuggestions = ref([]);
+const isRefreshingSuggestions = ref(false);
+
+const getFreshSuggestions = (exclude = []) => {
   if (isUser.value) return [];
-  if (props.message.suggestions && props.message.suggestions.length >= 3) {
-    return props.message.suggestions.slice(0, 4);
-  }
+  const isKm = hasKhmer.value || isKhmer.value;
+  const pool = isKm ? kmSuggestionsPool : enSuggestionsPool;
 
-  const defaultEn = [
-    'What are the top attractions to visit in Siem Reap?',
-    'Create a 3-day Siem Reap cultural itinerary',
-    'What authentic Khmer dishes are must-try in Cambodia?',
-    'What is the weather like in Siem Reap today?',
-    'What is the current USD to Cambodian Riel exchange rate?',
-    'What are the most beautiful beaches on Koh Rong?',
-    'How much does an Angkor Wat temple pass cost?',
-    'How do I travel comfortably between Phnom Penh and Siem Reap?'
-  ];
+  const backendSuggestions = props.message.suggestions || [];
+  const combined = Array.from(new Set([...backendSuggestions, ...pool]));
 
-  const defaultKm = [
-    'តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅសៀមរាប?',
-    'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប',
-    'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?',
-    'តើអាកាសធាតុនៅសៀមរាបថ្ងៃនេះយ៉ាងណាដែរ?',
-    'តើអត្រាប្តូរប្រាក់ ១ ដុល្លារស្មើនឹងប៉ុន្មានរៀលថ្ងៃនេះ?',
-    'តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?',
-    'តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?',
-    'តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?'
-  ];
+  // Exclude current suggestions so refreshed questions are NOT the same
+  const available = combined.filter((q) => !exclude.includes(q));
+  const poolToUse = available.length >= 3 ? available : combined;
 
-  const existing = props.message.suggestions || [];
-  const pool = hasKhmer.value || isKhmer.value ? defaultKm : defaultEn;
-  const additional = pool.filter(p => !existing.includes(p)).sort(() => 0.5 - Math.random());
-  const combined = [...existing, ...additional];
-  const targetCount = 3;
-  return combined.slice(0, targetCount);
-});
+  // Shuffle randomly
+  const shuffled = [...poolToUse].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 3);
+};
+
+const refreshSuggestions = () => {
+  isRefreshingSuggestions.value = true;
+  currentSuggestions.value = getFreshSuggestions(currentSuggestions.value);
+  setTimeout(() => {
+    isRefreshingSuggestions.value = false;
+  }, 400);
+};
+
+watch(
+  () => [props.message.suggestions, props.language, hasKhmer.value],
+  () => {
+    if (!isUser.value) {
+      currentSuggestions.value = getFreshSuggestions();
+    }
+  },
+  { immediate: true }
+);
 
 const handleCopy = () => {
   navigator.clipboard.writeText(textContent.value);
@@ -328,5 +437,50 @@ const handleCopy = () => {
 
 const handleFeedback = (type) => {
   feedback.value = feedback.value === type ? null : type;
+};
+
+const startEdit = () => {
+  editText.value = textContent.value;
+  isEditing.value = true;
+  nextTick(() => {
+    if (editTextareaRef.value) {
+      editTextareaRef.value.focus();
+      adjustEditHeight();
+    }
+  });
+};
+
+const cancelEdit = () => {
+  isEditing.value = false;
+  editText.value = '';
+};
+
+const adjustEditHeight = () => {
+  nextTick(() => {
+    if (editTextareaRef.value) {
+      editTextareaRef.value.style.height = 'auto';
+      editTextareaRef.value.style.height = `${Math.min(editTextareaRef.value.scrollHeight, 220)}px`;
+    }
+  });
+};
+
+const handleEditKeyDown = (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    saveEdit();
+  } else if (e.key === 'Escape') {
+    cancelEdit();
+  }
+};
+
+const saveEdit = () => {
+  const trimmed = editText.value.trim();
+  if (!trimmed) return;
+  emit('edit-message', {
+    id: props.message.id,
+    newText: trimmed,
+    message: props.message,
+  });
+  isEditing.value = false;
 };
 </script>

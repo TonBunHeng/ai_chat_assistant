@@ -36,18 +36,21 @@
         <!-- New Chat Button -->
         <button
           @click="$emit('new-chat')"
-          class="flex items-center space-x-1.5 h-8 px-3.5 rounded-full bg-gradient-to-r from-[#003E83] via-[#004f9e] to-[#2563eb] hover:from-[#002e62] hover:to-[#1d4ed8] text-white text-xs sm:text-[13px] font-bold shadow-xs shadow-blue-900/15 border border-white/10 transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
+          class="relative group overflow-hidden flex items-center space-x-1.5 h-8 px-3.5 rounded-full bg-[#003E83] hover:bg-[#002e62] dark:bg-blue-600 dark:hover:bg-blue-500 text-white text-xs sm:text-[13px] font-semibold shadow-xs shadow-blue-900/20 border border-white/15 cursor-pointer shrink-0 transition-all duration-300 ease-out hover:shadow-md hover:shadow-blue-500/25 active:scale-95"
           :title="isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat'"
         >
-          <Plus :size="14" class="shrink-0 stroke-[2.5]" />
-          <span>{{ isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat' }}</span>
+          <!-- Smooth Overlay Glow for Buttery-Smooth Color Shifting -->
+          <span class="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-indigo-500/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out pointer-events-none"></span>
+
+          <Plus :size="14" class="relative z-10 shrink-0 stroke-[2.5] transition-transform duration-300 ease-out group-hover:rotate-90" />
+          <span class="relative z-10 tracking-tight">{{ isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat' }}</span>
         </button>
 
         <!-- Status Indicator Badge -->
         <div class="hidden sm:flex items-center">
           <div
             v-if="!isOnline || mode === 'offline' || mode === 'degraded' || mode === 'fallback'"
-            class="flex items-center space-x-1.5 h-8 px-3 rounded-full bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs"
+            class="flex items-center space-x-1.5 h-8 px-3 rounded-full bg-slate-100 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold shadow-2xs transition-colors duration-200"
             title="Running on local offline model & database"
           >
             <WifiOff :size="13" class="text-slate-500" />
@@ -56,7 +59,7 @@
 
           <div
             v-else
-            class="flex items-center space-x-1.5 h-8 px-3 rounded-full bg-gradient-to-r from-emerald-50/90 to-teal-50/90 dark:from-emerald-950/50 dark:to-teal-950/40 border border-emerald-200/90 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shadow-2xs"
+            class="flex items-center space-x-1.5 h-8 px-3 rounded-full bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs font-semibold shadow-2xs transition-colors duration-200"
             title="Connected to Online AI & Real-Time Services"
           >
             <span class="relative flex h-2 w-2">
@@ -70,10 +73,10 @@
         <!-- Settings Modal Launcher Button -->
         <button
           @click="$emit('open-settings')"
-          class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-blue-400 hover:bg-blue-50/70 dark:hover:bg-blue-950/40 hover:border-blue-200 dark:hover:border-blue-800/80 shadow-2xs transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
+          class="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#003E83] dark:hover:text-blue-400 hover:bg-blue-50/70 dark:hover:bg-blue-950/40 hover:border-blue-200 dark:hover:border-blue-800/80 shadow-2xs transition-all duration-300 ease-out active:scale-95 cursor-pointer shrink-0 group"
           title="Settings & Profile"
         >
-          <Settings :size="15" />
+          <Settings :size="15" class="transition-transform duration-300 ease-out group-hover:rotate-45" />
         </button>
 
       </div>

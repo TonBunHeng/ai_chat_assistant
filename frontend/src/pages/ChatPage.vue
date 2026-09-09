@@ -30,6 +30,43 @@
               :is-centered="true"
             />
           </div>
+
+          <!-- Quick Starter Prompts -->
+          <div class="mt-6 w-full max-w-2xl px-1 animate-fade-in">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <span class="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles :size="12" class="text-amber-500" />
+                <span>{{ isKhmer ? 'សំណើណែនាំ' : 'Suggested Topics' }}</span>
+              </span>
+              <button
+                type="button"
+                @click="refreshWelcomePrompts"
+                class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-zinc-400 hover:text-[#003E83] dark:hover:text-blue-400 px-2 py-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group active:scale-95"
+                :title="isKhmer ? 'ប្តូរសំណួរថ្មី' : 'Refresh questions'"
+              >
+                <RotateCcw
+                  :size="11"
+                  :class="['transition-transform duration-500', isRefreshingWelcome ? '-rotate-180 text-[#003E83] dark:text-blue-400' : 'group-hover:-rotate-90']"
+                />
+                <span>{{ isKhmer ? 'ប្តូរសំណួរ' : 'Refresh' }}</span>
+              </button>
+            </div>
+
+            <!-- Starter Prompt Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                v-for="(card, cIdx) in currentWelcomePrompts"
+                :key="cIdx"
+                @click="handleSendMessage(card.prompt)"
+                class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#212121] border border-slate-200/90 dark:border-zinc-800 text-xs sm:text-[13px] text-slate-700 dark:text-slate-300 hover:border-[#003E83] dark:hover:border-blue-500 hover:text-[#003E83] dark:hover:text-blue-400 shadow-2xs hover:shadow-xs transition-all duration-200 active:scale-95 cursor-pointer text-left group"
+              >
+                <div class="w-7 h-7 rounded-lg bg-slate-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-[#003E83] dark:text-blue-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 transition-colors">
+                  <component :is="card.icon" :size="14" class="group-hover:scale-110 transition-transform duration-200" />
+                </div>
+                <span class="line-clamp-1 font-medium">{{ card.title }}</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Active Conversation State -->
@@ -41,6 +78,7 @@
             :language="language"
             @send-message="handleSendMessage"
             @regenerate="handleRegenerate"
+            @edit-message="handleEditMessage"
           />
           <ChatInput
             @send-message="handleSendMessage"
@@ -65,7 +103,11 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, onMounted, markRaw } from 'vue';
+import {
+  Sparkles, RotateCcw, Landmark, Utensils, Calendar,
+  Palmtree, Coins, Sun, Compass, MapPin
+} from 'lucide-vue-next';
 import Header from '../components/layout/Header.vue';
 import ChatWindow from '../components/chat/ChatWindow.vue';
 import ChatInput from '../components/chat/ChatInput.vue';
@@ -91,6 +133,56 @@ const currentMode = ref('online');
 const isSettingsOpen = ref(false);
 
 const isKhmer = computed(() => language.value === 'km');
+
+const enWelcomePromptsPool = [
+  { id: 'temples', icon: markRaw(Landmark), title: 'Must-see temples beyond Angkor', prompt: 'What must-see temples in Siem Reap should I visit besides Angkor Wat?' },
+  { id: 'crab', icon: markRaw(Utensils), title: 'Fresh Kampot pepper crab in Kep', prompt: 'Tell me about fresh Kampot pepper crab in Kep' },
+  { id: 'itinerary', icon: markRaw(Calendar), title: '3-Day Siem Reap cultural itinerary', prompt: 'Create a 3-day Siem Reap cultural itinerary' },
+  { id: 'beach', icon: markRaw(Palmtree), title: 'Best white sand beaches on Koh Rong', prompt: 'What are the most beautiful beaches on Koh Rong island?' },
+  { id: 'currency', icon: markRaw(Coins), title: 'Currency & USD vs Riel tips', prompt: 'What should I know about Cambodian currency, exchange rates, and tipping culture?' },
+  { id: 'sunrise', icon: markRaw(Sun), title: 'Best time for Angkor Wat sunrise', prompt: 'What is the best time and spot for Angkor Wat sunrise?' },
+  { id: 'transport', icon: markRaw(Compass), title: 'Travel from Phnom Penh to Siem Reap', prompt: 'How do I travel comfortably between Phnom Penh and Siem Reap?' },
+  { id: 'nature', icon: markRaw(MapPin), title: 'Bokor National Park in Kampot', prompt: 'What can I explore at Bokor National Park in Kampot?' }
+];
+
+const kmWelcomePromptsPool = [
+  { id: 'temples', icon: markRaw(Landmark), title: 'ប្រាសាទល្បីៗក្រៅពីអង្គរវត្ត', prompt: 'តើប្រាសាទល្បីៗណាខ្លះដែលគួរទៅទស្សនាក្រៅពីអង្គរវត្ត?' },
+  { id: 'crab', icon: markRaw(Utensils), title: 'ក្តាមឆាម្រេចខ្ចីនៅកែប', prompt: 'តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?' },
+  { id: 'itinerary', icon: markRaw(Calendar), title: 'គម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប' },
+  { id: 'beach', icon: markRaw(Palmtree), title: 'ឆ្នេរខ្សាច់ស្អាតបំផុតនៅកោះរ៉ុង', prompt: 'តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?' },
+  { id: 'currency', icon: markRaw(Coins), title: 'ការចាយលុយដុល្លារ និងប្រាក់រៀល', prompt: 'តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?' },
+  { id: 'sunrise', icon: markRaw(Sun), title: 'ពេលល្អបំផុតមើលថ្ងៃរះនៅអង្គរ', prompt: 'តើពេលវេលាណាដែលល្អបំផុតសម្រាប់មើលថ្ងៃរះនៅប្រាសាទអង្គរវត្ត?' },
+  { id: 'transport', icon: markRaw(Compass), title: 'ធ្វើដំណើរពីភ្នំពេញទៅសៀមរាប', prompt: 'តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?' },
+  { id: 'nature', icon: markRaw(MapPin), title: 'កម្សាន្តនៅឧទ្យានជាតិភ្នំបូកគោ', prompt: 'តើនៅឧទ្យានជាតិភ្នំបូកគោមានកន្លែងកម្សាន្តអ្វីខ្លះ?' }
+];
+
+const currentWelcomePrompts = ref([]);
+const isRefreshingWelcome = ref(false);
+
+const getFreshWelcomePrompts = (excludeIds = []) => {
+  const pool = isKhmer.value ? kmWelcomePromptsPool : enWelcomePromptsPool;
+  const available = pool.filter(p => !excludeIds.includes(p.id));
+  const candidatePool = available.length >= 4 ? available : pool;
+  const shuffled = [...candidatePool].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, 4);
+};
+
+const refreshWelcomePrompts = () => {
+  isRefreshingWelcome.value = true;
+  const currentIds = currentWelcomePrompts.value.map(p => p.id);
+  currentWelcomePrompts.value = getFreshWelcomePrompts(currentIds);
+  setTimeout(() => {
+    isRefreshingWelcome.value = false;
+  }, 400);
+};
+
+watch(
+  () => language.value,
+  () => {
+    currentWelcomePrompts.value = getFreshWelcomePrompts();
+  },
+  { immediate: true }
+);
 
 // User Profile state with localStorage persistence
 const getInitialProfile = () => {
@@ -443,6 +535,25 @@ const handleRegenerate = async () => {
   if (lastUserMsg && lastUserMsg.message) {
     handleSendMessage(lastUserMsg.message, [], true);
   }
+};
+
+// Edit user message and re-generate AI response
+const handleEditMessage = async ({ id, newText, index, message: origMsg }) => {
+  if (!newText || !newText.trim() || isLoading.value) return;
+
+  let targetIndex = index;
+  if (targetIndex === undefined || targetIndex < 0) {
+    targetIndex = messages.value.findIndex((m) => m.id === id);
+  }
+  if (targetIndex === -1) return;
+
+  const attachments = origMsg?.attachments || messages.value[targetIndex]?.attachments || [];
+
+  // Truncate messages back to targetIndex (ChatGPT style)
+  messages.value = messages.value.slice(0, targetIndex);
+
+  // Send edited text to generate updated response
+  await handleSendMessage(newText.trim(), attachments, false);
 };
 
 // Initialize

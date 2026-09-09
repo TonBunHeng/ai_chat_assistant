@@ -1,17 +1,5 @@
 <template>
-  <div class="flex items-start space-x-3 mb-6 animate-fade-in">
-    <!-- Bot Avatar -->
-    <div class="w-9 h-9 rounded-2xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 overflow-hidden flex items-center justify-center shrink-0 shadow-xs">
-      <img
-        src="/tourism_logo.png"
-        alt="Angkor Verse AI"
-        width="36"
-        height="36"
-        style="max-width: 36px; max-height: 36px;"
-        class="w-full h-full object-contain p-0.5 rounded-2xl"
-      />
-    </div>
-
+  <div class="flex justify-start mb-6 animate-fade-in">
     <!-- Typing Bubble -->
     <div class="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-[#27272a] px-4 py-3 rounded-2xl rounded-tl-xs shadow-2xs flex items-center space-x-2.5">
       <span class="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">

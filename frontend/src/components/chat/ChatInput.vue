@@ -3,7 +3,7 @@
     <form @submit.prevent="handleSubmit" class="max-w-3xl mx-auto">
       
       <!-- Solid ChatGPT Pill-Shaped Input Box -->
-      <div class="relative bg-white dark:bg-[#212121] border border-slate-300 dark:border-zinc-700 focus-within:border-slate-500 dark:focus-within:border-zinc-500 rounded-full px-3.5 py-1.5 sm:py-2 transition-colors">
+      <div class="relative bg-white dark:bg-[#212121] border border-slate-300/90 dark:border-zinc-700/80 hover:border-slate-400 dark:hover:border-zinc-600 focus-within:border-[#003E83] dark:focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-[#003E83]/15 dark:focus-within:ring-blue-500/20 rounded-full px-3.5 py-1.5 sm:py-2 transition-all duration-200 shadow-xs">
         
         <!-- Attached Files/Images Preview Chips -->
         <div v-if="attachments.length > 0" class="flex flex-wrap gap-2 mb-2 px-1 pt-1">
@@ -42,10 +42,10 @@
             type="button"
             @click="fileInputRef?.click()"
             :disabled="isLoading"
-            class="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors shrink-0 cursor-pointer"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all duration-200 shrink-0 cursor-pointer active:scale-90 group"
             :title="isKhmer ? 'ភ្ជាប់ឯកសារ ឬរូបភាព' : 'Add attachment'"
           >
-            <Plus :size="18" />
+            <Plus :size="18" class="group-hover:scale-110 transition-transform duration-200" />
           </button>
 
           <!-- Main Textarea -->
@@ -68,8 +68,8 @@
             type="submit"
             :disabled="(!text.trim() && attachments.length === 0) || isLoading"
             :class="[
-              'w-8 h-8 rounded-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-150 active:scale-95',
-              hasContent && !isLoading ? 'opacity-100 cursor-pointer' : 'opacity-40 cursor-not-allowed'
+              'w-8 h-8 rounded-full bg-[#003E83] dark:bg-blue-600 hover:bg-[#002e62] dark:hover:bg-blue-500 text-white flex items-center justify-center shrink-0 shadow-xs transition-all duration-200 active:scale-90',
+              hasContent && !isLoading ? 'opacity-100 cursor-pointer hover:shadow-md hover:shadow-blue-500/20' : 'opacity-40 cursor-not-allowed'
             ]"
             aria-label="Send message"
           >
