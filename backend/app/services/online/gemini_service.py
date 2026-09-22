@@ -66,7 +66,7 @@ class GeminiOnlineService:
                     "systemInstruction": {"parts": [{"text": sys_inst}]},
                     "generationConfig": {
                         "temperature": 0.3,
-                        "maxOutputTokens": 800
+                        "maxOutputTokens": 3000
                     }
                 }
                 res = requests.post(url, json=payload, timeout=per_model_timeout)
@@ -89,9 +89,9 @@ class GeminiOnlineService:
                         return None
                     print(f"GeminiOnlineService: Model {model} status 400 ({err_text[:120]}), trying next model...")
                     continue
-                elif res.status_code in [429, 404]:
-                    # Model quota exhausted or not found for this version: proceed to next candidate
-                    print(f"GeminiOnlineService: Model {model} status {res.status_code}, trying next model...")
+                elif res.status_code in [429, 404, 500, 502, 503, 504]:
+                    # Model quota exhausted, not found, or temporary high-demand server spike (503): proceed to next candidate
+                    print(f"GeminiOnlineService: Model {model} status {res.status_code}, trying next candidate model...")
                     continue
                 elif res.status_code in [401, 403]:
                     err_text = res.text
@@ -114,7 +114,7 @@ class GeminiOnlineService:
                         config=types.GenerateContentConfig(
                             system_instruction=sys_inst,
                             temperature=0.3,
-                            max_output_tokens=800,
+                            max_output_tokens=3000,
                         )
                     )
                     if response and hasattr(response, 'text') and response.text:
