@@ -46,12 +46,10 @@ class GeminiOnlineService:
         # Active high-availability Gemini models ordered for speed & quota resilience
         models_to_try = [
             settings.effective_online_model,
-            "gemini-3.5-flash",
-            "gemini-3.7-flash",
-            "gemini-3.8-flash",
-            "gemini-3.5-flash-lite",
             "gemini-3.6-flash",
+            "gemini-3.5-flash",
             "gemini-flash-latest",
+            "gemini-flash-lite-latest",
         ]
         # Deduplicate while preserving priority order
         seen = set()
@@ -87,16 +85,20 @@ class GeminiOnlineService:
                 elif res.status_code == 400:
                     err_text = res.text
                     if "API_KEY_INVALID" in err_text or "key not valid" in err_text.lower():
-                        print("GeminiOnlineService: API Key is invalid. Ensure your key starts with 'AIzaSy...' from Google AI Studio.")
+                        print("GeminiOnlineService: API Key is invalid. Ensure your key starts with 'AQ.' or 'AIzaSy...' from Google AI Studio.")
                         return None
-                    print(f"GeminiOnlineService: Model {model} status 400, trying next model...")
+                    print(f"GeminiOnlineService: Model {model} status 400 ({err_text[:120]}), trying next model...")
                     continue
                 elif res.status_code in [429, 404]:
                     # Model quota exhausted or not found for this version: proceed to next candidate
                     print(f"GeminiOnlineService: Model {model} status {res.status_code}, trying next model...")
                     continue
                 elif res.status_code in [401, 403]:
-                    print(f"GeminiOnlineService: Auth error ({res.status_code}) on key.")
+                    err_text = res.text
+                    if "PERMISSION_DENIED" in err_text or "denied access" in err_text.lower():
+                        print(f"GeminiOnlineService: Google Project Denied Access (403): {err_text.strip()}. Check Google Cloud Console or AI Studio for policy review banners.")
+                    else:
+                        print(f"GeminiOnlineService: Auth error ({res.status_code}) on key: {err_text[:120]}")
                     return None
             except Exception as ex:
                 print(f"GeminiOnlineService REST note ({model}): {ex}")
@@ -104,7 +106,7 @@ class GeminiOnlineService:
 
         # 2. SDK Call fallback
         if HAS_GOOGLE_GENAI and self.client:
-            for sdk_model in [settings.effective_online_model, "gemini-3.7-flash", "gemini-3.5-flash", "gemini-3.8-flash"]:
+            for sdk_model in [settings.effective_online_model, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest"]:
                 try:
                     response = self.client.models.generate_content(
                         model=sdk_model,

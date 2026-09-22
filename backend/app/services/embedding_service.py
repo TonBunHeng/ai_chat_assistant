@@ -23,6 +23,7 @@ class EmbeddingService:
     def _init_model(self):
         """Try loading sentence-transformers all-MiniLM-L6-v2 model if installed."""
         try:
+            # pyrefly: ignore [missing-import]
             from sentence_transformers import SentenceTransformer
             print(f"Loading sentence-transformer model: {self.model_name}...")
             self.model = SentenceTransformer(self.model_name)
