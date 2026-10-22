@@ -5,8 +5,8 @@ from app.services.language_service import language_service
 class IntentService:
     def __init__(self):
         self.provinces = {
-            "Siem Reap": ["siem reap", "angkor", "សៀមរាប", "អង្គរ", "បាយ័ន", "តាព្រហ្ម", "បន្ទាយស្រី"],
             "Phnom Penh": ["phnom penh", "capital", "ភ្នំពេញ", "រាជធានី", "វាំង", "សារមន្ទីរជាតិ"],
+            "Siem Reap": ["siem reap", "angkor", "សៀមរាប", "អង្គរ", "បាយ័ន", "តាព្រហ្ម", "បន្ទាយស្រី"],
             "Preah Sihanouk": ["sihanoukville", "sihanouk", "koh rong", "preah sihanouk", "ព្រះសីហនុ", "កំពង់សោម", "កោះរ៉ុង", "កោះរ៉ុងសន្លឹម"],
             "Kampot": ["kampot", "bokor", "កំពត", "បូកគោ", "ម្រេចកំពត"],
             "Battambang": ["battambang", "បាត់ដំបង", "រថភ្លើងឫស្សី", "ភ្នំសំពៅ"],
@@ -16,12 +16,37 @@ class IntentService:
             "Koh Kong": ["koh kong", "cardamom", "កោះកុង", "ក្រវាញ"],
             "Preah Vihear": ["preah vihear", "ព្រះវិហារ"],
             "Kampong Thom": ["kampong thom", "sambor prei kuk", "កំពង់ធំ", "សំបូរព្រៃគុក"],
-            "Kandal": ["kandal", "oudong", "koh dach", "កណ្តាល", "ឧដុង្គ", "កោះដាច់"]
+            "Kandal": ["kandal", "oudong", "koh dach", "កណ្តាល", "ឧដុង្គ", "កោះដាច់"],
+            "Banteay Meanchey": ["banteay meanchey", "poipet", "banteay chhmar", "បន្ទាយមានជ័យ", "ប៉ោយប៉ែត", "បន្ទាយឆ្មារ"],
+            "Kampong Cham": ["kampong cham", "koh pen", "កំពង់ចាម", "កោះប៉ែន"],
+            "Kampong Chhnang": ["kampong chhnang", "pottery", "កំពង់ឆ្នាំង", "ក្អមឆ្នាំង"],
+            "Kampong Speu": ["kampong speu", "kirirom", "aural", "កំពង់ស្ពឺ", "គិរីរម្យ", "ឱរ៉ាល់"],
+            "Kratié": ["kratie", "dolphin", "kampi", "ក្រចេះ", "ផ្សោត", "កាំពី"],
+            "Oddar Meanchey": ["oddar meanchey", "anlong veng", "samraong", "ឧត្តរមានជ័យ", "អន្លង់វែង", "សំរោង"],
+            "Pailin": ["pailin", "phnom yat", "longan", "ប៉ៃលិន", "ភ្នំយ៉ាត", "មៀនប៉ៃលិន"],
+            "Pursat": ["pursat", "kampong luong", "orange", "ពោធិ៍សាត់", "កំពង់ហ្លួង", "ក្រូចពោធិ៍សាត់"],
+            "Prey Veng": ["prey veng", "neak loeung", "ba phnom", "ព្រៃវែង", "អ្នកលឿង", "បាភ្នំ"],
+            "Stung Treng": ["stung treng", "sekong", "ស្ទឹងត្រែង", "សេកុង"],
+            "Svay Rieng": ["svay rieng", "bavet", "ស្វាយរៀង", "បាវិត"],
+            "Takéo": ["takeo", "angkor borei", "phnom da", "chisor", "តាកែវ", "អង្គរបុរី", "ភ្នំដា", "ភ្នំជីសូរ"],
+            "Tboung Khmum": ["tboung khmum", "suong", "memot", "ត្បូងឃ្មុំ", "សួង", "មេមត់"]
         }
         
         self.intent_patterns = {
             "greeting": [
                 r"^\s*(hi|hello|hey|greetings|good\s+morning|good\s+afternoon|good\s+evening|សួស្តី|ជំរាបសួរ)\b"
+            ],
+            "coding": [
+                r"\b(code|coding|python|javascript|typescript|vue|react|html|css|sql|function|debug|algorithm|bug|program|syntax|regex|git|docker|api|class|endpoint|compil|script|សរសេរកូដ|កូដ|កម្មវិធី)\b"
+            ],
+            "translation": [
+                r"\b(translate|translation|how\s+to\s+say|in\s+khmer|in\s+english|mean\s+in\s+khmer|បកប្រែ|ប្រែសម្រួល|ប្រែជាភាសា|ជាភាសាអង់គ្លេស|ជាភាសាខ្មែរ)\b"
+            ],
+            "math_science": [
+                r"\b(calculate|equation|formula|math|mathematics|physics|chemistry|biology|derivative|integral|algebra|គណនា|រូបវិទ្យា|គីមី|គណិតវិទ្យា)\b"
+            ],
+            "business_finance": [
+                r"\b(business|startup|marketing|investment|strategy|economics|revenue|profit|gdp|finance|stock|bakong|aba|ធុរកិច្ច|អាជីវកម្ម|សេដ្ឋកិច្ច|ទីផ្សារ|វិនិយោគ)\b"
             ],
             "weather": [
                 r"\b(weather|rain|temperature|forecast|climate|temp|degrees|humidity|sunny|storm|អាកាសធាតុ|ភ្លៀង|ក្តៅ|រងា|ព្យុះ|ពពក)\b"

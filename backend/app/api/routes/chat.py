@@ -1,6 +1,8 @@
 import time
 import uuid
+import json
 from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import StreamingResponse
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel
 from app.models.chat import ChatRequest
@@ -24,6 +26,9 @@ class TourismCreateChatRequest(BaseModel):
     message: Optional[str] = ""
     message_text: Optional[str] = ""
 
+class RenameSessionRequest(BaseModel):
+    title: str
+
 @router.post("/chat", response_model=StandardResponse[ChatResponseData])
 def handle_chat_message(request: ChatRequest, req: Request):
     client_ip = req.client.host if req.client else "127.0.0.1"
@@ -38,7 +43,8 @@ def handle_chat_message(request: ChatRequest, req: Request):
             message=clean_message,
             session_id=request.session_id,
             preferred_language=request.language,
-            client_history=request.history
+            client_history=request.history,
+            attachments=request.attachments
         )
         return StandardResponse(
             success=True,
@@ -59,6 +65,45 @@ def handle_chat_message(request: ChatRequest, req: Request):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/chat/stream")
+def stream_chat_message(request: ChatRequest, req: Request):
+    """
+    Streaming SSE endpoint for real-time token delivery to the chat interface.
+    """
+    client_ip = req.client.host if req.client else "127.0.0.1"
+    if not security_service.check_rate_limit(client_ip):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded.")
+
+    clean_message = security_service.sanitize_input(request.message)
+    validate_chat_message(clean_message)
+
+    def event_stream():
+        try:
+            for chunk in rag_service.process_chat_stream(
+                message=clean_message,
+                session_id=request.session_id,
+                preferred_language=request.language,
+                client_history=request.history,
+                attachments=request.attachments
+            ):
+                payload = json.dumps({"token": chunk})
+                yield f"data: {payload}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            err_payload = json.dumps({"error": str(e)})
+            yield f"data: {err_payload}\n\n"
+            yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
 @router.get("/chat/sessions")
 @router.get("/chats")
 @router.get("/travel/chats")
@@ -69,6 +114,19 @@ def get_chat_sessions():
         "success": True,
         "message": "Chat sessions retrieved successfully.",
         "data": sessions
+    }
+
+@router.get("/chat/sessions/search")
+def search_chat_sessions(q: str = ""):
+    """Search conversations by keyword."""
+    if not q or not q.strip():
+        results = memory_service.get_all_sessions()
+    else:
+        results = memory_service.search_sessions(q.strip())
+    return {
+        "success": True,
+        "message": "Search results retrieved.",
+        "data": results
     }
 
 @router.post("/chats")
@@ -115,6 +173,24 @@ def get_chat_session(session_id: str):
             "messages": history,
             "metadata": meta
         }
+    }
+
+@router.patch("/chat/sessions/{session_id}")
+@router.patch("/chats/{session_id}")
+@router.put("/chat/sessions/{session_id}/title")
+def rename_chat_session(session_id: str, payload: RenameSessionRequest):
+    """Rename a specific chat conversation."""
+    clean_id = session_id.strip()
+    if clean_id.startswith("sessions/"):
+        clean_id = clean_id.replace("sessions/", "", 1).strip()
+    success = memory_service.rename_session(clean_id, payload.title)
+    if not success:
+        raise HTTPException(status_code=400, detail="Unable to rename session with provided title.")
+    return {
+        "success": True,
+        "message": "Conversation renamed successfully.",
+        "session_id": clean_id,
+        "title": payload.title.strip()
     }
 
 @router.post("/chats/{session_id}/messages")

@@ -12,7 +12,11 @@ class WebSearchService:
         if not query or not query.strip():
             return []
 
-        search_query = f"{query.strip()} Cambodia tourism travel"
+        q = query.strip()
+        # Keep query natural; only augment if specific to Cambodia but ambiguous
+        lowered = q.lower()
+        is_cambodia_topic = any(w in lowered for w in ["cambodia", "khmer", "phnom penh", "angkor", "siem reap", "កម្ពុជា", "ខ្មែរ"])
+        search_query = q
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
         }

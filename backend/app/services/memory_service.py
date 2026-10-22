@@ -58,7 +58,8 @@ class MemoryService:
                 ("budget", "REAL"),
                 ("travel_style", "TEXT"),
                 ("language", "TEXT"),
-                ("preferences", "TEXT")
+                ("preferences", "TEXT"),
+                ("title", "TEXT")
             ]:
                 if col_name not in existing_cols:
                     try:
@@ -312,6 +313,47 @@ class MemoryService:
             "summary_text": summary_text
         }
 
+    def rename_session(self, session_id: str, title: str) -> bool:
+        """Rename a specific chat session with a custom user-defined title."""
+        sid = session_id.strip()
+        clean_title = title.strip()[:100]
+        if not clean_title:
+            return False
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                INSERT INTO sessions (session_id, title, updated_at)
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+                ON CONFLICT(session_id) DO UPDATE SET title = ?, updated_at = CURRENT_TIMESTAMP
+            """, (sid, clean_title, clean_title))
+            conn.commit()
+        self._sync_to_json_file()
+        return True
+
+    def search_sessions(self, query: str) -> List[Dict[str, Any]]:
+        """Search sessions by matching title or message content."""
+        clean_q = f"%{query.strip()}%"
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT DISTINCT s.session_id, s.title, MAX(m.created_at) as last_updated, COUNT(m.id) as msg_count
+                FROM sessions s
+                LEFT JOIN messages m ON s.session_id = m.session_id
+                WHERE s.title LIKE ? OR m.content LIKE ?
+                GROUP BY s.session_id
+                ORDER BY last_updated DESC
+            """, (clean_q, clean_q))
+            rows = cursor.fetchall()
+            return [
+                {
+                    "session_id": r[0],
+                    "title": r[1] or "New Chat",
+                    "updated_at": r[2],
+                    "message_count": r[3]
+                }
+                for r in rows
+            ]
+
     def get_all_sessions(self) -> List[Dict[str, Any]]:
         self.purge_expired_sessions(max_age_hours=72.0)
         with self._get_connection() as conn:
@@ -321,8 +363,10 @@ class MemoryService:
                     m.session_id, 
                     MAX(m.created_at) as last_updated, 
                     COUNT(m.id) as message_count,
-                    (SELECT content FROM messages WHERE session_id = m.session_id AND role = 'user' ORDER BY id ASC LIMIT 1) as first_user_msg
+                    (SELECT content FROM messages WHERE session_id = m.session_id AND role = 'user' ORDER BY id ASC LIMIT 1) as first_user_msg,
+                    s.title as custom_title
                 FROM messages m
+                LEFT JOIN sessions s ON m.session_id = s.session_id
                 GROUP BY m.session_id
                 ORDER BY last_updated DESC
             """)
@@ -330,11 +374,14 @@ class MemoryService:
             
             sessions = []
             for r in rows:
-                sid, last_updated, msg_count, raw_title = r[0], r[1], r[2], r[3]
-                title = "New Chat"
-                if raw_title and raw_title.strip():
+                sid, last_updated, msg_count, raw_title, custom_title = r[0], r[1], r[2], r[3], r[4]
+                if custom_title and custom_title.strip():
+                    title = custom_title.strip()
+                elif raw_title and raw_title.strip():
                     clean_t = " ".join(raw_title.strip().split())
                     title = clean_t[:45] + ("..." if len(clean_t) > 45 else "")
+                else:
+                    title = "New Chat"
                 
                 sessions.append({
                     "session_id": sid,

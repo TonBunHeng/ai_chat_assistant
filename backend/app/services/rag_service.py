@@ -1,6 +1,6 @@
 import uuid
 import time
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Iterator
 from app.core.config import settings
 from app.core.logging import structured_logger
 from app.services.language_service import language_service
@@ -8,6 +8,7 @@ from app.services.intent_service import intent_service
 from app.services.memory_service import memory_service
 from app.services.matching_service import matching_service
 from app.services.ai_service import ai_service
+from app.services.web_search_service import web_search_service
 from app.services.weather_service import weather_service
 from app.services.currency_service import currency_service
 from app.services.events_service import events_service
@@ -21,7 +22,8 @@ class RAGService:
         message: str,
         session_id: Optional[str] = None,
         preferred_language: Optional[str] = None,
-        client_history: Optional[List[Dict[str, Any]]] = None
+        client_history: Optional[List[Dict[str, Any]]] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """
         Master AI Orchestration Pipeline:
@@ -234,6 +236,17 @@ class RAGService:
         is_matched = bool(retrieved_sources)
         top_sim_score = retrieved_sources[0]["relevance_score"] if retrieved_sources else 0.0
 
+        # Tool 8: Live Web Search (For real-time inquiries, recent facts, current affairs)
+        if any(w in message.lower() for w in ["search", "google", "news", "latest", "recent", "who won", "ស្វែងរក", "ព័ត៌មាន"]) or (intent == "general_qa" and not is_matched and len(message.split()) > 3):
+            try:
+                web_results = web_search_service.search_google_web(message, max_results=3)
+                if web_results:
+                    data_sources_used.append("web_search")
+                    search_lines = [f"- {r['title']}: {r['snippet']}" for r in web_results]
+                    real_time_blocks.append("[LIVE WEB SEARCH CONTEXT]:\n" + "\n".join(search_lines))
+            except Exception as e:
+                print(f"RAGService web search note: {e}")
+
         if retrieved_sources and not itinerary_payload and not recommendations_payload and data_type == "general":
             sources = retrieved_sources
             data_type = "place"
@@ -260,11 +273,13 @@ class RAGService:
             }
         elif intent == "greeting":
             answer = (
-                "សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ "
-                "តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ម្ហូបអាហារ សណ្ឋាគារ ពិនិត្យអាកាសធាតុ ឬរៀបចំគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?"
+                "សួស្តី! 🖐️ ខ្ញុំជា **Cambodia Super AI Assistant** 🇰🇭។ "
+                "ខ្ញុំអាចជួយឆ្លើយសំណួរស្ទើរតែគ្រប់ប្រធានបទ ចាប់ពីការសរសេរកូដ គណិតវិទ្យា វិទ្យាសាស្ត្រ និងធុរកិច្ច រហូតដល់ចំណេះដឹងស៊ីជម្រៅលើប្រទេសកម្ពុជា (រាជធានី-ខេត្តទាំង២៥ ប្រវត្តិសាស្ត្រ វប្បធម៌ និងដំណើរកម្សាន្ត)។ "
+                "តើមានអ្វីដែលខ្ញុំអាចជួយអ្នកថ្ងៃនេះ?"
                 if is_km
-                else "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your intelligent Tourism Assistant. "
-                     "How can I help you explore temple attractions, authentic cuisine, check live weather, or plan an itinerary today?"
+                else "Hello! 👋 I am **Cambodia Super AI Assistant** 🇰🇭. "
+                     "I can assist you across almost any domain—from programming, mathematics, science, and business to deep expertise in Cambodia (its 25 administrative divisions, cultural heritage, history, and travel). "
+                     "How can I help you today?"
             )
             ai_meta = {
                 "mode": "online" if settings.effective_gemini_api_key else "offline",
@@ -301,13 +316,13 @@ class RAGService:
         elif intent == "identity":
             if is_km:
                 answer = (
-                    "ខ្ញុំជា **Angkor Verse AI** 🇰🇭 ជំនួយការទេសចរណ៍ឆ្លាតវៃសម្រាប់ប្រទេសកម្ពុជា។ "
-                    "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានលម្អិតអំពីប្រាសាទបុរាណ ឆ្នេរកោះ ម្ហូបអាហារខ្មែរ ប្តូរប្រាក់រៀល-ដុល្លារ ពិនិត្យអាកាសធាតុផ្ទាល់ និងរៀបចំគម្រោងដើរលេង ១ ដល់ ៥ ថ្ងៃឡើងទៅ។"
+                    "ខ្ញុំជា **Cambodia Super AI Assistant** 🇰🇭 ដែលជាជំនួយការឆ្លាតវៃកម្រិតខ្ពស់។ "
+                    "ខ្ញុំមានចំណេះដឹងទូលំទូលាយលើផ្នែកវិទ្យាសាស្ត្រ បច្ចេកវិទ្យា ការសរសេរកម្មវិធី ការបកប្រែភាសា និងធុរកិច្ច ព្រមទាំងមានជំនាញឯកទេសស៊ីជម្រៅលើព្រះរាជាណាចក្រកម្ពុជា រួមទាំងរាជធានី-ខេត្តទាំង ២៥ ប្រវត្តិសាស្ត្រខ្មែរ ប្រាសាទបុរាណ ម្ហូបអាហារ និងព័ត៌មានទេសចរណ៍។"
                 )
             else:
                 answer = (
-                    "I am **Angkor Verse AI** 🇰🇭, your intelligent travel assistant dedicated to the Kingdom of Cambodia. "
-                    "I can provide verified insights on ancient temples, tropical islands, Khmer cuisine, live weather forecasts, USD/KHR exchange rates, and customized 1-5+ day travel itineraries."
+                    "I am **Cambodia Super AI Assistant** 🇰🇭, an intelligent AI platform powered by state-of-the-art models and grounded knowledge. "
+                    "I provide comprehensive assistance across software engineering, mathematics, sciences, translation, and business, while holding authoritative specialization in Cambodia's 25 administrative divisions, cultural heritage, history, and travel."
                 )
             ai_meta = {
                 "mode": "online" if settings.effective_gemini_api_key else "offline",
@@ -327,7 +342,8 @@ class RAGService:
                 is_matched=is_matched,
                 real_time_data_text=combined_real_time,
                 intent=intent,
-                language=effective_lang
+                language=effective_lang,
+                attachments=attachments
             )
             answer = ai_resp["answer"]
             ai_meta = ai_resp
@@ -497,5 +513,92 @@ class RAGService:
         random.shuffle(unique_selected)
         target_count = random.choice([3, 4])
         return unique_selected[:target_count]
+
+    def process_chat_stream(
+        self,
+        message: str,
+        session_id: Optional[str] = None,
+        preferred_language: Optional[str] = None,
+        client_history: Optional[List[Dict[str, Any]]] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
+    ) -> Iterator[str]:
+        """
+        Orchestrate streaming chat response:
+        Yields text chunks as they arrive from the AI model, and saves the full message on completion.
+        """
+        sid = memory_service.get_or_create_session_id(session_id)
+        raw_lang = preferred_language or language_service.detect_language(message)
+        detected_lang = language_service.normalize_language_code(raw_lang)
+        is_km = detected_lang == "km" or language_service.is_khmer(message)
+        effective_lang = "km" if is_km else "en"
+
+        history = memory_service.get_history(sid)
+        if (not history or len(history) < (len(client_history) if client_history else 0)) and client_history:
+            formatted_history = []
+            for item in client_history[-10:]:
+                role = item.get("role") or item.get("sender") or "user"
+                role = "assistant" if role in ["ai", "assistant", "bot"] else "user"
+                content = item.get("content") or item.get("message") or ""
+                if content:
+                    formatted_history.append({"role": role, "content": str(content)})
+            if formatted_history:
+                history = formatted_history
+
+        intent_info = intent_service.detect_intent(message, history)
+        intent = intent_info["intent"]
+
+        # Fast paths for simple deterministic intents
+        if intent in ["greeting", "time", "identity", "conversation_summary", "weather", "currency"]:
+            res = self.process_chat_message(
+                message=message,
+                session_id=sid,
+                preferred_language=effective_lang,
+                client_history=client_history,
+                attachments=attachments
+            )
+            yield res.get("answer", "")
+            return
+
+        # RAG context
+        rag_context_text, retrieved_sources = matching_service.build_rag_context(
+            query=message,
+            top_k=settings.TOP_K,
+            threshold=settings.SIMILARITY_THRESHOLD,
+            max_length=settings.MAX_CONTEXT_LENGTH
+        )
+        is_matched = bool(retrieved_sources)
+
+        real_time_blocks = []
+        if any(w in message.lower() for w in ["search", "google", "news", "latest", "recent", "who won", "ស្វែងរក", "ព័ត៌មាន"]):
+            try:
+                web_results = web_search_service.search_google_web(message, max_results=3)
+                if web_results:
+                    search_lines = [f"- {r['title']}: {r['snippet']}" for r in web_results]
+                    real_time_blocks.append("[LIVE WEB SEARCH CONTEXT]:\n" + "\n".join(search_lines))
+            except Exception:
+                pass
+
+        combined_real_time = "\n\n".join(real_time_blocks) if real_time_blocks else None
+
+        full_chunks = []
+        stream_gen = ai_service.generate_stream(
+            message=message,
+            conversation_history=history,
+            context=rag_context_text if is_matched else None,
+            is_matched=is_matched,
+            real_time_data_text=combined_real_time,
+            intent=intent,
+            language=effective_lang,
+            attachments=attachments
+        )
+
+        for chunk in stream_gen:
+            full_chunks.append(chunk)
+            yield chunk
+
+        full_text = "".join(full_chunks).strip()
+        if full_text:
+            memory_service.add_message(sid, "user", message, metadata={"intent": intent, "language": effective_lang})
+            memory_service.add_message(sid, "assistant", full_text, metadata={"mode": "online", "model": settings.effective_online_model})
 
 rag_service = RAGService()

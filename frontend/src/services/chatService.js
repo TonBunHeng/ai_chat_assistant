@@ -1,10 +1,10 @@
-import api from './api';
+import api, { API_BASE_URL } from './api';
 
 export const chatService = {
   /**
-   * Send chat message to Angkor Verse AI assistant
-   * Supports both object payload ({ message, language, session_id, history })
-   * and (chatId, messageText) pattern from tourism-frontend.
+   * Send chat message to Cambodia Super AI assistant
+   * Supports both object payload ({ message, language, session_id, history, attachments })
+   * and (chatId, messageText) pattern.
    */
   async sendMessage(payloadOrChatId, maybeMessageText) {
     if (typeof payloadOrChatId === 'object') {
@@ -13,6 +13,66 @@ export const chatService = {
     return await api.post(`/chats/${payloadOrChatId}/messages`, {
       message_text: maybeMessageText || '',
     });
+  },
+
+  /**
+   * Stream message via SSE for real-time ChatGPT-like typing response
+   */
+  async streamMessage(payload, { onChunk, onDone, onError, signal }) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/chat/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream',
+        },
+        body: JSON.stringify(payload),
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+          const dataStr = trimmed.slice(5).trim();
+          if (dataStr === '[DONE]') {
+            if (onDone) onDone();
+            return;
+          }
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.token && onChunk) {
+              onChunk(parsed.token);
+            }
+          } catch (e) {
+            // Ignore non-json or malformed chunks
+          }
+        }
+      }
+      if (onDone) onDone();
+    } catch (err) {
+      if (signal && signal.aborted) {
+        if (onDone) onDone();
+        return;
+      }
+      if (onError) onError(err);
+      else throw err;
+    }
   },
 
   /**
@@ -32,6 +92,14 @@ export const chatService = {
   },
 
   /**
+   * Search chat sessions by keyword
+   */
+  async searchChatSessions(query) {
+    const res = await api.get('/chat/sessions/search', { params: { q: query } });
+    return res?.data ?? res;
+  },
+
+  /**
    * Get chat by ID or session ID
    */
   async getChatById(id) {
@@ -44,6 +112,14 @@ export const chatService = {
    */
   async createChat(data) {
     return await api.post('/chats', data);
+  },
+
+  /**
+   * Rename specific chat session
+   */
+  async renameChatSession(sessionId, title) {
+    const res = await api.patch(`/chat/sessions/${sessionId}`, { title });
+    return res?.data ?? res;
   },
 
   /**
@@ -68,7 +144,7 @@ export const chatService = {
   },
 
   /**
-   * Tourism data endpoints
+   * Data endpoints
    */
   async getTouristPlaces(params = {}) {
     const res = await api.get('/tourist-places', { params });
@@ -134,8 +210,11 @@ export const chatService = {
 
 // Standalone function exports for direct imports
 export const sendMessage = (payload) => chatService.sendMessage(payload);
+export const streamMessage = (payload, callbacks) => chatService.streamMessage(payload, callbacks);
 export const fetchChatSessions = () => chatService.getChatSessions();
+export const searchChatSessions = (query) => chatService.searchChatSessions(query);
 export const fetchChatSession = (id) => chatService.getChatById(id);
+export const renameChatSession = (id, title) => chatService.renameChatSession(id, title);
 export const deleteChatSession = (id) => chatService.deleteChatSession(id);
 export const clearAllChatSessions = () => chatService.clearAllChatSessions();
 export const fetchTouristPlaces = (params) => chatService.getTouristPlaces(params);

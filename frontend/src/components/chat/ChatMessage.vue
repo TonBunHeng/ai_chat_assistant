@@ -6,17 +6,17 @@
       
       <!-- Mode Tag Badge for AI -->
       <div v-if="!isUser" class="flex flex-wrap items-center gap-1.5 mb-1 px-1 text-[11px]">
-        <span class="font-bold text-slate-900 dark:text-white">Angkor Verse AI</span>
-        <span>•</span>
+        <span class="font-bold text-zinc-900 dark:text-zinc-100">Cambodia Super AI</span>
+        <span class="text-zinc-400">•</span>
         <span
           v-if="mode === 'offline' || mode === 'degraded' || mode === 'fallback'"
-          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 text-[10px]"
+          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 text-[10px]"
         >
           <WifiOff :size="9" /> Offline
         </span>
         <span
           v-else
-          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 text-[10px]"
+          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 text-[10px]"
         >
           <Wifi :size="9" /> Online
         </span>
@@ -25,11 +25,11 @@
       <!-- Message Bubble Container -->
       <div
         :class="[
-          'px-4 py-3 rounded-2xl shadow-2xs text-[15px] sm:text-[15.5px]',
+          'px-4 py-3 rounded-2xl text-[14.5px] sm:text-[15px]',
           hasKhmer ? 'leading-[1.75]' : 'leading-relaxed',
           isUser
-            ? 'bg-[#003E83] dark:bg-[#003E83] text-white rounded-2xl font-normal sm:font-medium shadow-xs shadow-blue-900/15'
-            : 'bg-white dark:bg-[#18181b] text-[#111827] dark:text-[#f4f4f5] border border-[#f3f4f6] dark:border-[#27272a] rounded-2xl rounded-tl-xs w-full'
+            ? 'bg-zinc-800 dark:bg-zinc-700 text-white rounded-2xl font-normal sm:font-medium shadow-xs'
+            : 'bg-white dark:bg-[#18181b] text-zinc-900 dark:text-zinc-100 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl rounded-tl-xs w-full shadow-2xs'
         ]"
       >
         <!-- User Attached Files/Images Preview -->
@@ -37,7 +37,7 @@
           <div
             v-for="(att, i) in message.attachments"
             :key="i"
-            class="flex items-center space-x-1 bg-white/20 px-2 py-0.5 rounded-md text-xs"
+            class="flex items-center space-x-1 bg-white/15 px-2 py-0.5 rounded-md text-xs text-white"
           >
             <ImageIcon :size="12" />
             <span class="truncate max-w-[120px]">{{ att.name }}</span>
@@ -67,27 +67,21 @@
               type="button"
               @click="saveEdit"
               :disabled="!editText.trim()"
-              class="px-3 py-1 text-xs rounded-full font-medium bg-white text-slate-900 hover:bg-slate-100 disabled:opacity-50 transition-colors cursor-pointer shadow-xs"
+              class="px-3 py-1 text-xs rounded-full font-medium bg-white text-zinc-900 hover:bg-zinc-100 disabled:opacity-50 transition-colors cursor-pointer shadow-xs"
             >
               {{ isKhmer ? 'ផ្ញើ' : 'Send' }}
             </button>
           </div>
         </div>
 
-        <!-- Formatted Text Content -->
+        <!-- User Plain Text View -->
+        <div v-else-if="isUser" class="whitespace-pre-wrap break-words leading-relaxed">
+          {{ textContent }}
+        </div>
+
+        <!-- AI Rich Markdown Response View -->
         <div v-else class="message-text">
-          <span
-            v-for="(line, lineIdx) in parsedLines"
-            :key="lineIdx"
-            :class="['block mb-1', line.isKhmer || hasKhmer ? 'leading-[1.75]' : 'leading-relaxed']"
-          >
-            <template v-for="(part, pIdx) in line.parts" :key="pIdx">
-              <strong v-if="part.isBold" :class="isUser ? 'font-bold text-white' : 'font-bold text-slate-900 dark:text-white'">
-                {{ part.text }}
-              </strong>
-              <template v-else>{{ part.text }}</template>
-            </template>
-          </span>
+          <MarkdownRenderer :content="textContent" :is-khmer="hasKhmer" />
         </div>
 
         <!-- Real-time Weather Widget -->
@@ -288,12 +282,14 @@ import { ref, computed, nextTick, watch, markRaw } from 'vue';
 import {
   Copy, Check, Pencil, MapPin, ThumbsUp, ThumbsDown, RotateCcw,
   Wifi, WifiOff, Image as ImageIcon, ExternalLink, Sparkles, Compass,
-  Landmark, Utensils, Calendar, Palmtree, Coins, Sun
+  Landmark, Utensils, Calendar, Palmtree, Coins, Sun,
+  Code, Calculator, Languages, Briefcase
 } from 'lucide-vue-next';
 import ItineraryCard from './ItineraryCard.vue';
 import WeatherCard from './WeatherCard.vue';
 import RecommendationCard from './RecommendationCard.vue';
 import CurrencyCard from '../cards/CurrencyCard.vue';
+import MarkdownRenderer from './MarkdownRenderer.vue';
 
 const props = defineProps({
   message: {
@@ -332,59 +328,32 @@ const hasSpecializedCard = computed(() => {
   );
 });
 
-const parsedLines = computed(() => {
-  const text = textContent.value;
-  if (!text) return [];
-
-  return text.split('\n').map((line) => {
-    const isLineKhmer = /[\u1780-\u17FF]/.test(line);
-    const partsRaw = line.split(/(\*\*.*?\*\*)/g);
-    const parts = partsRaw.map((part) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return { isBold: true, text: part.slice(2, -2) };
-      }
-      return { isBold: false, text: part };
-    });
-    return { isKhmer: isLineKhmer, parts };
-  });
-});
-
 const enTopicsPool = [
+  { id: 'code', icon: markRaw(Code), title: 'Write a Python FastAPI web service', prompt: 'Write a clean, production-ready Python FastAPI web service with authentication and database models.' },
+  { id: 'math', icon: markRaw(Calculator), title: 'Solve complex math & statistics', prompt: 'Explain the mathematical foundation of Gradient Descent and show how to compute the derivative step by step.' },
+  { id: 'cambodia_history', icon: markRaw(Landmark), title: 'Angkor Empire & King Jayavarman VII', prompt: 'Tell me about the history of the Khmer Empire and the accomplishments of King Jayavarman VII.' },
+  { id: 'translation', icon: markRaw(Languages), title: 'Translate Khmer to English accurately', prompt: 'Translate this text into natural English: "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
+  { id: 'business', icon: markRaw(Briefcase), title: 'Starting a tech startup in Cambodia', prompt: 'What are the legal steps, opportunities, and digital payment ecosystems for launching a tech startup in Cambodia?' },
+  { id: 'provinces', icon: markRaw(MapPin), title: '25 Provinces of Cambodia overview', prompt: 'Give an overview of the 25 administrative divisions of Cambodia (24 provinces and Phnom Penh) with their unique specialties.' },
   { id: 'currency', icon: markRaw(Coins), title: 'Currency & USD vs Riel tips', prompt: 'What should I know about Cambodian currency, exchange rates, and tipping culture?' },
   { id: 'itinerary', icon: markRaw(Calendar), title: '3-Day Siem Reap cultural itinerary', prompt: 'Create a 3-day Siem Reap cultural itinerary' },
   { id: 'crab', icon: markRaw(Utensils), title: 'Fresh Kampot pepper crab in Kep', prompt: 'Tell me about fresh Kampot pepper crab in Kep' },
   { id: 'nature', icon: markRaw(MapPin), title: 'Bokor National Park in Kampot', prompt: 'What can I explore at Bokor National Park in Kampot?' },
-  { id: 'temples', icon: markRaw(Landmark), title: 'Must-see temples beyond Angkor', prompt: 'What must-see temples in Siem Reap should I visit besides Angkor Wat?' },
-  { id: 'beach', icon: markRaw(Palmtree), title: 'Best white sand beaches on Koh Rong', prompt: 'What are the most beautiful beaches on Koh Rong island?' },
-  { id: 'sunrise', icon: markRaw(Sun), title: 'Best time for Angkor Wat sunrise', prompt: 'What is the best time and spot for Angkor Wat sunrise?' },
-  { id: 'transport', icon: markRaw(Compass), title: 'Travel from Phnom Penh to Siem Reap', prompt: 'How do I travel comfortably between Phnom Penh and Siem Reap?' },
   { id: 'food', icon: markRaw(Utensils), title: 'Must-try authentic Khmer dishes', prompt: 'What authentic Khmer dishes are must-try in Cambodia?' },
-  { id: 'amok', icon: markRaw(Utensils), title: 'Best Fish Amok and Beef Lok Lak', prompt: 'Where can I find the best Fish Amok and Beef Lok Lak?' },
-  { id: 'pass', icon: markRaw(Coins), title: 'Angkor Wat temple pass prices', prompt: 'How much does an Angkor Wat temple pass cost?' },
-  { id: 'palace', icon: markRaw(Landmark), title: 'Royal Palace in Phnom Penh', prompt: 'What are the top highlights of the Royal Palace in Phnom Penh?' },
-  { id: 'weather', icon: markRaw(Sun), title: 'Best season & weather in Cambodia', prompt: 'What is the best time of year to visit Cambodia for good weather?' },
-  { id: 'sunset', icon: markRaw(Sun), title: 'Tonle Sap sunset viewpoints', prompt: 'What are the best sunset viewpoints around Siem Reap and Tonle Sap?' },
-  { id: 'etiquette', icon: markRaw(Compass), title: 'Cambodian cultural etiquette', prompt: 'What are some respectful cultural etiquettes to follow in Cambodia?' },
-  { id: 'tuktuk', icon: markRaw(Compass), title: 'PassApp & Grab tuk-tuks guide', prompt: 'How do PassApp and Grab tuk-tuks work in Cambodia?' }
+  { id: 'sunrise', icon: markRaw(Sun), title: 'Best time for Angkor Wat sunrise', prompt: 'What is the best time and spot for Angkor Wat sunrise?' }
 ];
 
 const kmTopicsPool = [
+  { id: 'code', icon: markRaw(Code), title: 'សរសេរកូដ Python និង Web API', prompt: 'ជួយពន្យល់ និងសរសេរកូដ Python FastAPI សម្រាប់បង្កើត REST API ដោយមាន database និង authentication។' },
+  { id: 'math', icon: markRaw(Calculator), title: 'គណិតវិទ្យា និងវិទ្យាសាស្ត្រកុំព្យូទ័រ', prompt: 'ជួយពន្យល់ពីគោលការណ៍ក្បួនដោះស្រាយ (Algorithm) និងភាពស្មុគស្មាញ Big-O notation។' },
+  { id: 'cambodia_history', icon: markRaw(Landmark), title: 'ប្រវត្តិសាស្ត្រអាណាចក្រខ្មែរ និងព្រះបាទជ័យវរ្ម័នទី ៧', prompt: 'សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រសម័យអង្គរដ៏រុងរឿង និងស្នាព្រះហស្តព្រះបាទជ័យវរ្ម័នទី ៧។' },
+  { id: 'translation', icon: markRaw(Languages), title: 'បកប្រែភាសាអង់គ្លេស-ខ្មែរ ត្រឹមត្រូវតាមក្បួន', prompt: 'ជួយបកប្រែអត្ថបទនេះទៅជាភាសាខ្មែរផ្លូវការ៖ "Artificial intelligence empowers modern digital economies and innovation."' },
+  { id: 'business', icon: markRaw(Briefcase), title: 'ការបង្កើតអាជីវកម្ម និងប្រព័ន្ធទូទាត់បាគង', prompt: 'តើការចុះបញ្ជីអាជីវកម្ម និងការរួមបញ្ចូលប្រព័ន្ធទូទាត់បាគង (Bakong KHQR) នៅកម្ពុជាមានជំហានអ្វីខ្លះ?' },
+  { id: 'provinces', icon: markRaw(MapPin), title: 'រាជធានី-ខេត្តទាំង ២៥ នៃកម្ពុជា', prompt: 'សូមរៀបរាប់សង្ខេបអំពីរាជធានី-ខេត្តទាំង ២៥ នៅកម្ពុជា រួមទាំងសក្តានុពលសេដ្ឋកិច្ច និងទេសចរណ៍។' },
   { id: 'currency', icon: markRaw(Coins), title: 'ការចាយលុយដុល្លារ និងប្រាក់រៀល', prompt: 'តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?' },
   { id: 'itinerary', icon: markRaw(Calendar), title: 'គម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប' },
   { id: 'crab', icon: markRaw(Utensils), title: 'ក្តាមឆាម្រេចខ្ចីនៅកែប', prompt: 'តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?' },
-  { id: 'nature', icon: markRaw(MapPin), title: 'កម្សាន្តនៅឧទ្យានជាតិភ្នំបូកគោ', prompt: 'តើនៅឧទ្យានជាតិភ្នំបូកគោមានកន្លែងកម្សាន្តអ្វីខ្លះ?' },
-  { id: 'temples', icon: markRaw(Landmark), title: 'ប្រាសាទល្បីៗក្រៅពីអង្គរវត្ត', prompt: 'តើប្រាសាទល្បីៗណាខ្លះដែលគួរទៅទស្សនាក្រៅពីអង្គរវត្ត?' },
-  { id: 'beach', icon: markRaw(Palmtree), title: 'ឆ្នេរខ្សាច់ស្អាតបំផុតនៅកោះរ៉ុង', prompt: 'តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?' },
-  { id: 'sunrise', icon: markRaw(Sun), title: 'ពេលល្អបំផុតមើលថ្ងៃរះនៅអង្គរ', prompt: 'តើពេលវេលាណាដែលល្អបំផុតសម្រាប់មើលថ្ងៃរះនៅប្រាសាទអង្គរវត្ត?' },
-  { id: 'transport', icon: markRaw(Compass), title: 'ធ្វើដំណើរពីភ្នំពេញទៅសៀមរាប', prompt: 'តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?' },
-  { id: 'food', icon: markRaw(Utensils), title: 'ម្ហូបខ្មែរប្រពៃណីមិនគួររំលង', prompt: 'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?' },
-  { id: 'amok', icon: markRaw(Utensils), title: 'អាម៉ុកត្រី និងឡុកឡាក់ឆ្ងាញ់', prompt: 'តើអាចរកញ៉ាំអាម៉ុកត្រី និងឡុកឡាក់ឆ្ងាញ់នៅឯណា?' },
-  { id: 'pass', icon: markRaw(Coins), title: 'តម្លៃសំបុត្រចូលអង្គរវត្ត', prompt: 'តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?' },
-  { id: 'palace', icon: markRaw(Landmark), title: 'ព្រះបរមរាជវាំងនៅភ្នំពេញ', prompt: 'តើព្រះបរមរាជវាំងនៅភ្នំពេញមានអ្វីពិសេសខ្លះ?' },
-  { id: 'weather', icon: markRaw(Sun), title: 'រដូវកាលល្អសម្រាប់ដំណើរកម្សាន្ត', prompt: 'តើរដូវកាលណាដែលល្អបំផុតសម្រាប់មកកម្សាន្តនៅកម្ពុជា?' },
-  { id: 'sunset', icon: markRaw(Sun), title: 'កន្លែងមើលថ្ងៃលិចនៅទន្លេសាប', prompt: 'តើកន្លែងណាខ្លះដែលល្អបំផុតសម្រាប់មើលថ្ងៃលិចនៅបឹងទន្លេសាប?' },
-  { id: 'etiquette', icon: markRaw(Compass), title: 'ទំនៀមទម្លាប់គួរដឹងនៅកម្ពុជា', prompt: 'តើមានទំនៀមទម្លាប់អ្វីខ្លះដែលភ្ញៀវទេសចរគួរយល់ដឹងនៅកម្ពុជា?' },
-  { id: 'tuktuk', icon: markRaw(Compass), title: 'ការប្រើប្រាស់ PassApp និង Grab', prompt: 'តើការប្រើប្រាស់ PassApp និង Grab នៅកម្ពុជាយ៉ាងដូចម្តេច?' }
+  { id: 'food', icon: markRaw(Utensils), title: 'ម្ហូបខ្មែរប្រពៃណីមិនគួររំលង', prompt: 'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?' }
 ];
 
 const formatTopic = (item) => {

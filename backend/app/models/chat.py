@@ -10,6 +10,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=4000, description="User question or prompt")
     language: Optional[str] = Field(None, description="Preferred language code ('km', 'en')")
     history: Optional[List[Dict[str, Any]]] = Field(None, description="Optional list of prior conversation messages")
+    attachments: Optional[List[Dict[str, Any]]] = Field(None, description="Optional list of file or image attachments")
 
 class SearchQuery(BaseModel):
     query: str = Field(..., description="Search keyword or question")

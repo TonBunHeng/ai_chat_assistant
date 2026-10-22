@@ -1,6 +1,7 @@
 import os
+import json
 import requests
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Iterator
 from app.core.config import settings
 from app.core.prompts import GEMINI_SYSTEM_INSTRUCTION
 
@@ -32,7 +33,45 @@ class GeminiOnlineService:
         """Check if Gemini API is configured with an API key."""
         return bool(settings.effective_gemini_api_key)
 
-    def generate_with_model(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[Dict[str, str]]:
+    def _get_models_priority(self) -> List[str]:
+        models = [
+            settings.effective_online_model,
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-flash-latest",
+            "gemini-flash-lite-latest",
+        ]
+        seen = set()
+        return [m for m in models if m and not (m in seen or seen.add(m))]
+
+    def _build_content_parts(self, prompt: str, attachments: Optional[List[Dict[str, Any]]] = None) -> List[Dict[str, Any]]:
+        parts = []
+        if attachments:
+            for att in attachments:
+                b64_data = att.get("data") or att.get("base64")
+                mime = att.get("type") or att.get("mime_type") or "image/jpeg"
+                if b64_data:
+                    # Strip data URL prefix if present
+                    if "," in b64_data:
+                        b64_data = b64_data.split(",", 1)[1]
+                    parts.append({
+                        "inlineData": {
+                            "mimeType": mime,
+                            "data": b64_data
+                        }
+                    })
+        parts.append({"text": prompt})
+        return parts
+
+    def generate_with_model(
+        self,
+        prompt: str,
+        system_instruction: Optional[str] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
+    ) -> Optional[Dict[str, str]]:
         """
         Generate response from Google Gemini API and return {'text': str, 'model': str}.
         Tries high-speed active models with fast failover across all candidate models.
@@ -42,31 +81,20 @@ class GeminiOnlineService:
             return None
 
         sys_inst = system_instruction or GEMINI_SYSTEM_INSTRUCTION
-
-        # Active high-availability Gemini models ordered for speed & quota resilience
-        models_to_try = [
-            settings.effective_online_model,
-            "gemini-3.6-flash",
-            "gemini-3.5-flash",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest",
-        ]
-        # Deduplicate while preserving priority order
-        seen = set()
-        models_to_try = [m for m in models_to_try if m and not (m in seen or seen.add(m))]
-
-        per_model_timeout = min(max(settings.GEMINI_TIMEOUT_SECONDS, 8), 15)
+        models_to_try = self._get_models_priority()
+        per_model_timeout = min(max(settings.GEMINI_TIMEOUT_SECONDS, 8), 25)
+        content_parts = self._build_content_parts(prompt, attachments)
 
         # 1. Direct REST API (Fastest with seamless model failover)
         for model in models_to_try:
             try:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 payload = {
-                    "contents": [{"parts": [{"text": prompt}]}],
+                    "contents": [{"parts": content_parts}],
                     "systemInstruction": {"parts": [{"text": sys_inst}]},
                     "generationConfig": {
-                        "temperature": 0.3,
-                        "maxOutputTokens": 3000
+                        "temperature": 0.4,
+                        "maxOutputTokens": 4096
                     }
                 }
                 res = requests.post(url, json=payload, timeout=per_model_timeout)
@@ -79,26 +107,22 @@ class GeminiOnlineService:
                         texts = non_thought if non_thought else [p.get("text", "") for p in parts if p.get("text")]
                         if texts:
                             ans = "".join(texts).strip()
-                            if len(ans) > 5:
+                            if len(ans) > 3:
                                 self.last_used_model = model
                                 return {"text": ans, "model": model}
                 elif res.status_code == 400:
                     err_text = res.text
                     if "API_KEY_INVALID" in err_text or "key not valid" in err_text.lower():
-                        print("GeminiOnlineService: API Key is invalid. Ensure your key starts with 'AQ.' or 'AIzaSy...' from Google AI Studio.")
+                        print("GeminiOnlineService: API Key is invalid.")
                         return None
-                    print(f"GeminiOnlineService: Model {model} status 400 ({err_text[:120]}), trying next model...")
+                    print(f"GeminiOnlineService: Model {model} status 400 ({err_text[:120]}), trying next...")
                     continue
-                elif res.status_code in [429, 404, 500, 502, 503, 504]:
-                    # Model quota exhausted, not found, or temporary high-demand server spike (503): proceed to next candidate
-                    print(f"GeminiOnlineService: Model {model} status {res.status_code}, trying next candidate model...")
+                elif res.status_code in [404, 429, 500, 502, 503, 504]:
+                    print(f"GeminiOnlineService: Model {model} status {res.status_code}, trying next model...")
                     continue
                 elif res.status_code in [401, 403]:
                     err_text = res.text
-                    if "PERMISSION_DENIED" in err_text or "denied access" in err_text.lower():
-                        print(f"GeminiOnlineService: Google Project Denied Access (403): {err_text.strip()}. Check Google Cloud Console or AI Studio for policy review banners.")
-                    else:
-                        print(f"GeminiOnlineService: Auth error ({res.status_code}) on key: {err_text[:120]}")
+                    print(f"GeminiOnlineService: Auth error ({res.status_code}): {err_text[:120]}")
                     return None
             except Exception as ex:
                 print(f"GeminiOnlineService REST note ({model}): {ex}")
@@ -106,15 +130,15 @@ class GeminiOnlineService:
 
         # 2. SDK Call fallback
         if HAS_GOOGLE_GENAI and self.client:
-            for sdk_model in [settings.effective_online_model, "gemini-3.6-flash", "gemini-3.5-flash", "gemini-flash-latest"]:
+            for sdk_model in models_to_try[:3]:
                 try:
                     response = self.client.models.generate_content(
                         model=sdk_model,
                         contents=prompt,
                         config=types.GenerateContentConfig(
                             system_instruction=sys_inst,
-                            temperature=0.3,
-                            max_output_tokens=3000,
+                            temperature=0.4,
+                            max_output_tokens=4096,
                         )
                     )
                     if response and hasattr(response, 'text') and response.text:
@@ -125,6 +149,71 @@ class GeminiOnlineService:
                     continue
 
         return None
+
+    def generate_stream(
+        self,
+        prompt: str,
+        system_instruction: Optional[str] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None
+    ) -> Iterator[str]:
+        """
+        Generate streaming tokens from Gemini using REST SSE stream.
+        Yields chunks of text as they arrive.
+        """
+        api_key = settings.effective_gemini_api_key.strip()
+        if not api_key:
+            return
+
+        sys_inst = system_instruction or GEMINI_SYSTEM_INSTRUCTION
+        models_to_try = self._get_models_priority()
+        content_parts = self._build_content_parts(prompt, attachments)
+
+        for model in models_to_try:
+            try:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:streamGenerateContent?alt=sse&key={api_key}"
+                payload = {
+                    "contents": [{"parts": content_parts}],
+                    "systemInstruction": {"parts": [{"text": sys_inst}]},
+                    "generationConfig": {
+                        "temperature": 0.4,
+                        "maxOutputTokens": 4096
+                    }
+                }
+                with requests.post(url, json=payload, stream=True, timeout=30) as res:
+                    if res.status_code == 200:
+                        streamed_any = False
+                        for line in res.iter_lines(decode_unicode=True):
+                            if not line:
+                                continue
+                            if line.startswith("data: "):
+                                json_str = line[6:].strip()
+                                if json_str == "[DONE]":
+                                    break
+                                try:
+                                    chunk_data = json.loads(json_str)
+                                    cands = chunk_data.get("candidates", [])
+                                    if cands:
+                                        parts = cands[0].get("content", {}).get("parts", [])
+                                        for p in parts:
+                                            txt = p.get("text", "")
+                                            if txt and not p.get("thought"):
+                                                streamed_any = True
+                                                yield txt
+                                except Exception:
+                                    pass
+                        if streamed_any:
+                            self.last_used_model = model
+                            return
+                    elif res.status_code in [404, 429, 500, 503]:
+                        continue
+            except Exception as e:
+                print(f"GeminiOnlineService stream error ({model}): {e}")
+                continue
+
+        # If streaming didn't succeed, fallback to standard generation and yield as single block
+        fallback = self.generate_with_model(prompt, system_instruction, attachments)
+        if fallback and fallback.get("text"):
+            yield fallback["text"]
 
     def generate(self, prompt: str, system_instruction: Optional[str] = None) -> Optional[str]:
         """Backwards-compatible generate method returning plain text."""

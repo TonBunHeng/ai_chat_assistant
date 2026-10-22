@@ -1,0 +1,275 @@
+<template>
+  <div>
+    <!-- Mobile Backdrop Overlay -->
+    <div
+      v-if="isOpen && isMobile"
+      @click="$emit('close')"
+      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
+    ></div>
+
+    <!-- Sidebar Aside -->
+    <aside
+      :class="[
+        'fixed sm:static top-0 bottom-0 left-0 z-50 flex flex-col h-full bg-[#fbfbfb] dark:bg-[#18181b] border-r border-zinc-200 dark:border-zinc-800/80 transition-all duration-300 ease-in-out select-none',
+        isOpen ? 'w-64 sm:w-68 translate-x-0' : '-translate-x-full sm:translate-x-0 sm:w-0 sm:overflow-hidden sm:border-r-0'
+      ]"
+    >
+      <!-- Top Action Bar -->
+      <div class="p-3 border-b border-zinc-200/70 dark:border-zinc-800/60 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          @click="$emit('new-chat')"
+          class="flex-1 flex items-center justify-between px-3 h-9 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs sm:text-[13px] font-semibold transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-98 cursor-pointer group"
+          :title="isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat'"
+        >
+          <div class="flex items-center space-x-2">
+            <Plus :size="15" class="text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-white" />
+            <span>{{ isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat' }}</span>
+          </div>
+          <span class="text-[10px] text-zinc-400 font-mono hidden sm:inline">⌘N</span>
+        </button>
+
+        <!-- Collapse Sidebar Button -->
+        <button
+          type="button"
+          @click="$emit('toggle')"
+          class="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer shrink-0"
+          :title="isKhmer ? 'បិទរបារចំហៀង' : 'Close Sidebar'"
+        >
+          <PanelLeftClose :size="16" />
+        </button>
+      </div>
+
+      <!-- Search Conversations Input -->
+      <div class="px-3 pt-3 pb-1">
+        <div class="relative flex items-center">
+          <Search :size="13" class="absolute left-2.5 text-zinc-400 pointer-events-none" />
+          <input
+            type="text"
+            v-model="searchQuery"
+            :placeholder="isKhmer ? 'ស្វែងរកកិច្ចសន្ទនា...' : 'Search chats...'"
+            class="w-full h-8 pl-8 pr-7 rounded-lg bg-zinc-100/90 dark:bg-zinc-900 border border-transparent focus:border-zinc-300 dark:focus:border-zinc-700 focus:bg-white dark:focus:bg-black text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:outline-none transition-all"
+          />
+          <button
+            v-if="searchQuery"
+            @click="searchQuery = ''"
+            type="button"
+            class="absolute right-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+          >
+            <X :size="12" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Conversation History List -->
+      <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1 scrollbar-thin">
+        <div v-if="filteredSessions.length === 0" class="py-8 text-center text-zinc-400 text-xs">
+          <MessageSquare :size="20" class="mx-auto mb-2 opacity-40" />
+          <span>{{ isKhmer ? 'មិនមានប្រវត្តិសន្ទនាទេ' : 'No chats found' }}</span>
+        </div>
+
+        <template v-else>
+          <div
+            v-for="sess in filteredSessions"
+            :key="sess.session_id"
+            :class="[
+              'group relative flex items-center justify-between w-full h-9 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer',
+              currentSessionId === sess.session_id
+                ? 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold'
+                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-850 hover:text-zinc-900 dark:hover:text-zinc-200'
+            ]"
+            @click="handleSelect(sess.session_id)"
+          >
+            <!-- Left: Icon & Title -->
+            <div class="flex items-center space-x-2 min-w-0 flex-1 pr-1">
+              <MessageSquare :size="13" class="shrink-0 opacity-70 group-hover:opacity-100" />
+
+              <!-- Inline Renaming Mode -->
+              <form
+                v-if="editingSessionId === sess.session_id"
+                @submit.prevent="saveRename(sess.session_id)"
+                class="flex-1 flex items-center"
+                @click.stop
+              >
+                <input
+                  ref="renameInputRef"
+                  type="text"
+                  v-model="editTitle"
+                  @keydown.esc="cancelRename"
+                  class="w-full h-6 px-1.5 rounded bg-white dark:bg-zinc-900 border border-zinc-400 dark:border-zinc-600 text-xs text-zinc-900 dark:text-white focus:outline-none"
+                  autofocus
+                />
+                <button
+                  type="submit"
+                  class="ml-1 text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 p-0.5"
+                  title="Save"
+                >
+                  <Check :size="12" />
+                </button>
+                <button
+                  type="button"
+                  @click="cancelRename"
+                  class="text-zinc-400 hover:text-zinc-600 p-0.5"
+                  title="Cancel"
+                >
+                  <X :size="12" />
+                </button>
+              </form>
+
+              <!-- Normal Title Display -->
+              <span v-else class="truncate">
+                {{ sess.title || (isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat') }}
+              </span>
+            </div>
+
+            <!-- Right Action Buttons (on hover or active) -->
+            <div
+              v-if="editingSessionId !== sess.session_id"
+              class="items-center space-x-0.5 hidden group-hover:flex"
+              @click.stop
+            >
+              <!-- Rename Button -->
+              <button
+                type="button"
+                @click="startRename(sess)"
+                class="p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                :title="isKhmer ? 'ប្តូរឈ្មោះ' : 'Rename'"
+              >
+                <Pencil :size="11" />
+              </button>
+
+              <!-- Delete Button -->
+              <button
+                type="button"
+                @click="$emit('delete-session', sess.session_id)"
+                class="p-1 rounded text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                :title="isKhmer ? 'លុបកិច្ចសន្ទនា' : 'Delete'"
+              >
+                <Trash2 :size="11" />
+              </button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Bottom User Profile & Settings Area -->
+      <div class="p-3 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-2 bg-white/50 dark:bg-zinc-900/40">
+        <!-- User Profile Chip -->
+        <div class="flex items-center justify-between p-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors">
+          <div class="flex items-center space-x-2.5 min-w-0">
+            <div class="w-7 h-7 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+              {{ (userProfile?.name || 'U').charAt(0).toUpperCase() }}
+            </div>
+            <div class="min-w-0">
+              <span class="text-xs font-semibold text-zinc-900 dark:text-white block truncate">
+                {{ userProfile?.name || 'Bunheng' }}
+              </span>
+              <span class="text-[10px] text-zinc-400 dark:text-zinc-500 block -mt-0.5 truncate">
+                Super AI Assistant
+              </span>
+            </div>
+          </div>
+
+          <!-- Settings Button -->
+          <button
+            type="button"
+            @click="$emit('open-settings')"
+            class="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-200/70 dark:hover:bg-zinc-700/60 transition-colors cursor-pointer"
+            :title="isKhmer ? 'ការកំណត់' : 'Settings'"
+          >
+            <Settings :size="14" />
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, nextTick } from 'vue';
+import {
+  Plus, Search, MessageSquare, Pencil, Trash2, Check, X,
+  Settings, PanelLeftClose
+} from 'lucide-vue-next';
+
+const props = defineProps({
+  isOpen: {
+    type: Boolean,
+    default: true,
+  },
+  sessions: {
+    type: Array,
+    default: () => [],
+  },
+  currentSessionId: {
+    type: String,
+    default: null,
+  },
+  language: {
+    type: String,
+    default: 'en',
+  },
+  userProfile: {
+    type: Object,
+    default: () => ({ name: 'Bunheng' }),
+  },
+  isMobile: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const emit = defineEmits([
+  'toggle',
+  'close',
+  'select-session',
+  'new-chat',
+  'delete-session',
+  'rename-session',
+  'open-settings',
+]);
+
+const searchQuery = ref('');
+const editingSessionId = ref(null);
+const editTitle = ref('');
+const renameInputRef = ref(null);
+
+const isKhmer = computed(() => props.language === 'km');
+
+const filteredSessions = computed(() => {
+  if (!props.sessions) return [];
+  if (!searchQuery.value.trim()) return props.sessions;
+  const q = searchQuery.value.toLowerCase().trim();
+  return props.sessions.filter(
+    (s) => s.title && s.title.toLowerCase().includes(q)
+  );
+});
+
+const handleSelect = (sessionId) => {
+  emit('select-session', sessionId);
+  if (props.isMobile) {
+    emit('close');
+  }
+};
+
+const startRename = (sess) => {
+  editingSessionId.value = sess.session_id;
+  editTitle.value = sess.title || '';
+  nextTick(() => {
+    renameInputRef.value?.focus();
+  });
+};
+
+const saveRename = (sessionId) => {
+  if (editTitle.value.trim()) {
+    emit('rename-session', { sessionId, newTitle: editTitle.value.trim() });
+  }
+  editingSessionId.value = null;
+  editTitle.value = '';
+};
+
+const cancelRename = () => {
+  editingSessionId.value = null;
+  editTitle.value = '';
+};
+</script>

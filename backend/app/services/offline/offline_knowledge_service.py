@@ -6,12 +6,26 @@ class OfflineKnowledgeService:
     def synthesize_response(self, message: str, context: Optional[str] = None, is_matched: bool = False) -> str:
         """
         Synthesize fluent, conversational responses purely from local database records
-        and cached Cambodian tourism knowledge when internet and local LLMs are unreachable.
+        and cached Cambodian knowledge when internet and local LLMs are unreachable.
         """
         is_km = is_khmer_text(message)
-        clean_msg = re.sub(r'[^\w\s\u1780-\u17FF]', '', message.lower()).strip()
+        clean_msg = message.strip()
 
-        # 1. Transform matched database context into structured natural prose
+        # 1. Quick safe arithmetic calculation if user entered a mathematical expression
+        math_match = re.match(r'^\s*([0-9\.\s\+\-\*\/\(\)\^]+)\s*=?\s*$', clean_msg)
+        if math_match:
+            expr = math_match.group(1).replace('^', '**')
+            try:
+                # Safe evaluation restricted to numbers and basic operators
+                if re.match(r'^[0-9\.\s\+\-\*\/\(\)]+$', expr):
+                    result = eval(expr, {"__builtins__": None}, {})
+                    if is_km:
+                        return f"🔢 **លទ្ធផលគណនា:** `{clean_msg}` = **{result}**"
+                    return f"🔢 **Calculation Result:** `{clean_msg}` = **{result}**"
+            except Exception:
+                pass
+
+        # 2. Transform matched database context into structured natural prose
         if context and context.strip():
             ctx_data = {}
             for line in context.splitlines():
@@ -19,10 +33,10 @@ class OfflineKnowledgeService:
                     k, v = line.split(":", 1)
                     ctx_data[k.strip().upper()] = v.strip()
 
-            name = ctx_data.get("NAME") or "Cambodia Tourism Destination"
+            name = ctx_data.get("NAME") or "Cambodia Destination / Topic"
             desc = ctx_data.get("DESCRIPTION (KM)" if is_km else "DESCRIPTION (EN)") or ctx_data.get("DESCRIPTION (EN)") or ctx_data.get("DESCRIPTION (KM)") or ""
             location = ctx_data.get("PROVINCE/LOCATION") or ctx_data.get("PROVINCE")
-            attractions = ctx_data.get("POPULAR ATTRACTIONS")
+            attractions = ctx_data.get("POPULAR ATTRACTIONS") or ctx_data.get("TOP ATTRACTIONS")
             opening = ctx_data.get("OPENING HOURS")
             fee = ctx_data.get("ENTRANCE FEE") or ctx_data.get("PRICE")
             best_time = ctx_data.get("BEST TIME TO VISIT") or ctx_data.get("BEST TIME")
@@ -42,7 +56,7 @@ class OfflineKnowledgeService:
                     details.append(f"✨ **កន្លែងល្បីៗ:** {attractions}")
                 if details:
                     paragraphs.append("\n".join(details))
-                paragraphs.append("តើលោកអ្នកចង់ឱ្យខ្ញុំរៀបចំគម្រោងដើរលេង ឬផ្ដល់ព័ត៌មានបន្ថែមអំពីកន្លែងនេះទេ?")
+                paragraphs.append("តើលោកអ្នកចង់ឱ្យខ្ញុំជួយផ្ដល់ព័ត៌មានបន្ថែម ឬរៀបចំគម្រោងលម្អិតទេ?")
                 return "\n\n".join(paragraphs)
             else:
                 paragraphs = [f"**{name}**\n\n{desc}"]
@@ -59,31 +73,29 @@ class OfflineKnowledgeService:
                     details.append(f"✨ **Top Highlights:** {attractions}")
                 if details:
                     paragraphs.append("\n".join(details))
-                paragraphs.append("Would you like a recommended day itinerary, transportation tips, or dining suggestions around this area?")
+                paragraphs.append("Would you like more details or guidance related to this topic?")
                 return "\n\n".join(paragraphs)
 
-        # 2. General overview response
+        # 3. General overview response
         if is_km:
             return (
-                "**សូមស្វាគមន៍មកកាន់ Angkor Verse AI** 🇰🇭 *(ទម្រង់ក្រៅបណ្តាញ - Offline Knowledge)*\n\n"
-                "ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានទេសចរណ៍ និងរៀបចំគម្រោងដើរលេងយ៉ាងលម្អិត៖\n"
-                "- 🏛️ **ប្រាសាទបុរាណ:** អង្គរវត្ត, បាយ័ន, តាព្រហ្ម, បន្ទាយស្រី (ខេត្តសៀមរាប)\n"
-                "- 👑 **រាជធានីភ្នំពេញ:** ព្រះបរមរាជវាំង, សារមន្ទីរជាតិ, ទួលស្លែង, ផ្សារធំថ្មី\n"
-                "- 🏖️ **ឆ្នេរ និងកោះ:** កោះរ៉ុង, កោះរ៉ុងសន្លឹម (ខេត្តព្រះសីហនុ) និងក្រុងកែប\n"
-                "- 🌿 **ធម្មជាតិ & ភ្នំ:** ឧទ្យានជាតិភ្នំបូកគោ (ខេត្តកំពត) និងទឹកធ្លាក់ប៊ូស្រា (មណ្ឌលគិរី)\n"
-                "- 🍲 **ម្ហូបអាហារខ្មែរ:** អាម៉ុកត្រី, នំបញ្ចុក, ឡុកឡាក់សាច់គោ, ក្តាមឆាម្រេចកំពត\n\n"
-                "តើអ្នកចង់ឱ្យខ្ញុំណែនាំអំពីគោលដៅទេសចរណ៍ណា ឬរៀបចំគម្រោងដំណើរកម្សាន្តប៉ុន្មានថ្ងៃដែរ?"
+                "**សូមស្វាគមន៍មកកាន់ Cambodia Super AI** 🇰🇭 *(ទម្រង់ក្រៅបណ្តាញ - Offline Mode)*\n\n"
+                "បច្ចុប្បន្នប្រព័ន្ធកំពុងដំណើរការក្នុងទម្រង់មូលដ្ឋានទិន្នន័យក្រៅបណ្តាញ។ ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពី៖\n"
+                "- 🏛️ **រាជធានី និងខេត្តទាំង ២៥:** ភ្នំពេញ, សៀមរាប, ព្រះសីហនុ, កំពត, បាត់ដំបង និងខេត្តដទៃទៀត\n"
+                "- 👑 **ប្រវត្តិសាស្ត្រ និងបេតិកភណ្ឌ:** ប្រាសាទអង្គរវត្ត, ប្រាសាទព្រះវិហារ, សំបូរព្រៃគុក, កោះកេរ\n"
+                "- 🍲 **ម្ហូបអាហារ និងប្រពៃណីខ្មែរ:** អាម៉ុក, ឡុកឡាក់, នំបញ្ចុក, ពិធីបុណ្យជាតិ\n"
+                "- 💱 **ការចាយប្រាក់:** អត្រាប្តូរប្រាក់រៀល (KHR) និងដុល្លារ (USD)\n\n"
+                "ដើម្បីទទួលបានការឆ្លើយតបស៊ីជម្រៅលើការសរសេរកូដ គណិតវិទ្យា និងចំណេះដឹងទូទៅ សូមភ្ជាប់ការតភ្ជាប់អ៊ីនធឺណិតដើម្បីដំណើរការជាមួយ Online AI (Gemini)។"
             )
         else:
             return (
-                "**Welcome to Angkor Verse AI** 🇰🇭 *(Offline Local Knowledge Mode)*\n\n"
-                "I'm here to help you explore Cambodia with verified offline destination data:\n"
-                "- 🏛️ **World Heritage Temples:** Angkor Wat, Bayon, Ta Prohm, and Banteay Srei in Siem Reap\n"
-                "- 👑 **Capital & Culture:** Royal Palace, National Museum, and Sisowath Riverside in Phnom Penh\n"
-                "- 🏖️ **Tropical Islands:** Pristine beaches and night plankton in Koh Rong & Koh Rong Sanloem\n"
-                "- 🌿 **Nature & Highlands:** Bokor National Park in Kampot, Kep Crab Market, and Bousra Waterfall in Mondulkiri\n"
-                "- 🍲 **Authentic Khmer Cuisine:** Fish Amok, Nom Banh Chok, Beef Lok Lak, and Kampot pepper seafood\n\n"
-                "Which destination or travel topic would you like to explore?"
+                "**Welcome to Cambodia Super AI** 🇰🇭 *(Offline Local Knowledge Mode)*\n\n"
+                "The system is currently operating in offline mode. I can answer inquiries with verified local records on:\n"
+                "- 🏛️ **Cambodia's 25 Administrative Units:** Phnom Penh, Siem Reap, Sihanoukville, Kampot, Battambang, and all 24 provinces\n"
+                "- 👑 **World Heritage & History:** Angkor Wat, Preah Vihear, Sambor Prei Kuk, Koh Ker, and the Khmer Empire\n"
+                "- 🍲 **Khmer Cuisine & Culture:** Fish Amok, Lok Lak, Nom Banh Chok, national festivals, and traditions\n"
+                "- 💱 **Practical Travel Information:** Currency exchange (USD/KHR), transportation, and weather\n\n"
+                "For advanced general inquiries, coding solutions, and deep research, please connect to online mode to utilize Gemini cloud intelligence."
             )
 
 offline_knowledge_service = OfflineKnowledgeService()
