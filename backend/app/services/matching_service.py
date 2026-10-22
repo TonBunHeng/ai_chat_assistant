@@ -30,6 +30,22 @@ class SimilarityMatchingService:
             self._item_embeddings = new_embeddings
             self._is_indexed = True
 
+    def add_item_to_index(self, item: Dict[str, Any]) -> None:
+        """Dynamically encode and append a single item into the active similarity embeddings."""
+        with self._lock:
+            if not self._is_indexed:
+                self.index_datasets()
+                return
+
+            item_id = str(item.get("id") or "")
+            self._item_embeddings = [
+                e for e in self._item_embeddings if str(e[0].get("id") or "") != item_id
+            ]
+
+            text_profile = self._build_item_profile_text(item)
+            vec = embedding_service.encode(text_profile)
+            self._item_embeddings.append((item, vec, text_profile))
+
     def _build_item_profile_text(self, item: Dict[str, Any]) -> str:
         """Create rich searchable text for semantic embedding."""
         parts = []
@@ -249,6 +265,8 @@ class SimilarityMatchingService:
                 "price": item.get("price") or item.get("entrance_fee"),
                 "relevance_score": score,
                 "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={item.get('latitude')},{item.get('longitude')}" if item.get("latitude") else None,
+                "website_links": item.get("website_links", []),
+                "picture_links": item.get("picture_links", []),
                 "verified_source": item.get("source") or item.get("verified_source", "Ministry of Tourism Cambodia")
             })
 
@@ -283,6 +301,18 @@ class SimilarityMatchingService:
         if item.get("travel_tips"):
             tips = item["travel_tips"]
             lines.append(f"TRAVEL TIPS: {', '.join(tips) if isinstance(tips, list) else tips}")
+
+        # Website links (links only)
+        if item.get("website_links") and isinstance(item["website_links"], list):
+            valid_w = [f"{w.get('title', 'Website')}: {w.get('url')}" for w in item["website_links"] if w.get("url")]
+            if valid_w:
+                lines.append(f"WEBSITES / REFERENCES: {', '.join(valid_w)}")
+
+        # Picture links (image URL links only)
+        if item.get("picture_links") and isinstance(item["picture_links"], list):
+            valid_p = [f"{p.get('caption', 'Photo')}: {p.get('image_url')}" for p in item["picture_links"] if p.get("image_url")]
+            if valid_p:
+                lines.append(f"PICTURE / PHOTO LINKS: {', '.join(valid_p)}")
 
         return "\n".join(lines)
 

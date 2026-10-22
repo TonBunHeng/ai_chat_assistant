@@ -136,3 +136,103 @@ def test_api_chat_stream_and_sessions():
     # Cleanup session
     memory_service.delete_session("test_stream_sid_888")
 
+def test_storage_first_and_dynamic_outside_persistence():
+    """Verify that storage/tourism is primary and dynamic knowledge persists with links only."""
+    from app.core.config import settings
+    from app.services.dynamic_storage_service import dynamic_storage_service
+    from app.services.matching_service import matching_service
+
+    assert "storage/tourism" in settings.DATA_DIR
+
+    # Test saving an item with link-only pictures and websites
+    sample_item = {
+        "name": "Kbal Chhay Waterfall Test",
+        "name_km": "ទឹកធ្លាក់ក្បាលឆាយ",
+        "category": "Discovered Waterfall",
+        "province": "Preah Sihanouk",
+        "description": "Kbal Chhay Waterfall is a picturesque tiered cascade located north of Sihanoukville.",
+        "website_links": [
+            {"title": "Tourism Cambodia Guide", "url": "https://www.tourismcambodia.com/kbal-chhay"},
+            {"title": "Invalid Base64", "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="}
+        ],
+        "picture_links": [
+            {"caption": "Waterfall cascade", "image_url": "https://images.example.com/kbal_chhay.jpg"}
+        ],
+        "tags": ["kbal chhay", "waterfall", "sihanoukville"]
+    }
+
+    saved = dynamic_storage_service.save_dynamic_item(sample_item)
+    assert saved["name"] == "Kbal Chhay Waterfall Test"
+    # Ensure invalid data URL was filtered out and only valid HTTP link remained
+    assert len(saved["website_links"]) == 1
+    assert saved["website_links"][0]["url"] == "https://www.tourismcambodia.com/kbal-chhay"
+    assert len(saved["picture_links"]) == 1
+    assert saved["picture_links"][0]["image_url"] == "https://images.example.com/kbal_chhay.jpg"
+
+    # Search in storage should immediately find it
+    context, sources = matching_service.build_rag_context("Tell me about Kbal Chhay Waterfall Test")
+    assert len(sources) > 0
+    assert any("Kbal Chhay Waterfall Test" in s["name"] for s in sources)
+
+def test_rag_outside_search_and_auto_storage_workflow(monkeypatch):
+    """Verify missing storage query triggers outside search, auto-saves to storage, and subsequent query finds it in storage."""
+    import uuid
+    from app.services.web_search_service import web_search_service
+    from app.services.rag_service import rag_service
+    from app.services.matching_service import matching_service
+
+    test_uid = uuid.uuid4().hex[:6]
+    test_place = f"Preah Nimith Cascade {test_uid}"
+
+    mock_outside_called = {"count": 0}
+
+    def mock_outside_search(query, max_results=4):
+        mock_outside_called["count"] += 1
+        return {
+            "name": test_place,
+            "title": test_place,
+            "description": f"{test_place} is a powerful natural waterfall on the Mekong River on the Cambodia-Laos border.",
+            "website_links": [{"title": "Cambodia Ecotourism", "url": "https://www.tourismcambodia.com/cascade"}],
+            "picture_links": [{"caption": "Cascade Falls", "image_url": "https://upload.wikimedia.org/cascade.jpg"}],
+            "tags": [test_uid, "waterfall", "mekong", "cambodia"]
+        }
+
+    monkeypatch.setattr(web_search_service, "search_outside_knowledge", mock_outside_search)
+
+    # First query: not in baseline storage -> triggers outside search and auto-stores in storage
+    res1 = rag_service.process_chat_message(
+        message=f"Tell me about {test_place}",
+        session_id=f"test_dynamic_storage_session_{test_uid}"
+    )
+    assert res1["success"] is True
+    assert mock_outside_called["count"] == 1
+    assert len(res1["sources"]) > 0
+    assert test_place in res1["sources"][0]["name"]
+    assert len(res1["sources"][0]["website_links"]) > 0
+    assert res1["sources"][0]["website_links"][0]["url"].startswith("http")
+    assert len(res1["sources"][0]["picture_links"]) > 0
+    assert res1["sources"][0]["picture_links"][0]["image_url"].startswith("http")
+
+    # Second query: NOW IN STORAGE -> finds directly in storage without calling outside search!
+    res2 = rag_service.process_chat_message(
+        message=f"Tell me about {test_place}",
+        session_id=f"test_dynamic_storage_session_2_{test_uid}"
+    )
+    assert res2["success"] is True
+    # Count should STILL be 1 because second query found it directly in storage!
+    assert mock_outside_called["count"] == 1
+    assert res2["is_matched"] is True
+    assert any(test_place in s["name"] for s in res2["sources"])
+
+    # Teardown: clean up dynamic knowledge storage file
+    try:
+        from app.services.dynamic_storage_service import dynamic_storage_service
+        fpath = dynamic_storage_service.storage_filepath
+        import os
+        if os.path.exists(fpath):
+            with open(fpath, "w", encoding="utf-8") as f:
+                f.write("[]")
+    except Exception:
+        pass
+
+

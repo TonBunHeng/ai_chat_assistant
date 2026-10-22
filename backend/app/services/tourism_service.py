@@ -105,6 +105,27 @@ class TourismService:
                 return item
         return None
 
+    def add_item(self, item: Dict[str, Any]) -> None:
+        """Dynamically register or update a tourism item in memory."""
+        item_id = str(item.get("id") or f"item_{len(self.all_items) + 1}")
+        item["id"] = item_id
+
+        if item_id in self._items_by_id:
+            self._items_by_id[item_id].update(item)
+            return
+
+        cat_key = item.get("category", "dynamic_knowledge")
+        if cat_key not in self.datasets:
+            self.datasets[cat_key] = []
+        self.datasets[cat_key].append(item)
+
+        if "dynamic_knowledge" not in self.datasets:
+            self.datasets["dynamic_knowledge"] = []
+        self.datasets["dynamic_knowledge"].append(item)
+
+        self._items_by_id[item_id] = item
+        self.all_items.append(item)
+
     def get_all_provinces(self) -> List[str]:
         """Return unique list of provinces in Cambodia dataset."""
         provinces = set()

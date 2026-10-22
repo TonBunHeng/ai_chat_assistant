@@ -15,6 +15,7 @@ from app.services.events_service import events_service
 from app.services.places_service import places_service
 from app.services.recommendation_engine import recommendation_engine
 from app.services.itinerary_engine import itinerary_engine
+from app.services.dynamic_storage_service import dynamic_storage_service
 
 class RAGService:
     def process_chat_message(
@@ -225,7 +226,7 @@ class RAGService:
                 f"- Summary Content: {summary_info['summary_text']}"
             )
 
-        # 6. RAG Retrieval from Tourism Knowledge Base
+        # 6. Step 1: Search in Storage First (RAG Retrieval from Tourism Knowledge Base)
         rag_context_text, retrieved_sources = matching_service.build_rag_context(
             query=message,
             top_k=settings.TOP_K,
@@ -236,7 +237,49 @@ class RAGService:
         is_matched = bool(retrieved_sources)
         top_sim_score = retrieved_sources[0]["relevance_score"] if retrieved_sources else 0.0
 
-        # Tool 8: Live Web Search (For real-time inquiries, recent facts, current affairs)
+        # Step 2: If asking about tourism/places in Cambodia and not found in storage -> Search Outside & Auto-Store in Storage
+        is_cambodia_tourism = (
+            intent in ["place_search", "recommendation", "itinerary", "culture", "events", "food", "safety", "transportation"] or
+            any(w in message.lower() for w in [
+                "cambodia", "phnom penh", "siem reap", "angkor", "temple", "beach", "waterfall", 
+                "resort", "hotel", "island", "place", "places", "visit", "trip", "tour", "travel",
+                "attraction", "attractions", "sightseeing", "province",
+                "កម្ពុជា", "ទេសចរណ៍", "ដើរលេង", "ទស្សនា", "ប្រាសាទ", "ឆ្នេរ", "កោះ", "ទឹកធ្លាក់", "ភ្នំ", "កន្លែង"
+            ]) or
+            bool(entities.get("destination"))
+        )
+
+        if is_cambodia_tourism and not is_matched:
+            try:
+                outside_info = web_search_service.search_outside_knowledge(message)
+                if outside_info and outside_info.get("description"):
+                    new_item = dynamic_storage_service.auto_learn_from_outside(
+                        query=message,
+                        search_info=outside_info,
+                        province=active_destination
+                    )
+                    if new_item:
+                        retrieved_sources = [{
+                            "id": new_item.get("id"),
+                            "name": new_item.get("name"),
+                            "name_km": new_item.get("name_km"),
+                            "category": new_item.get("category", "Discovered Place"),
+                            "province": new_item.get("province", active_destination),
+                            "description": new_item.get("description", ""),
+                            "relevance_score": 0.90,
+                            "google_maps_url": None,
+                            "website_links": new_item.get("website_links", []),
+                            "picture_links": new_item.get("picture_links", []),
+                            "verified_source": "Outside Search (Auto-Saved to Storage)"
+                        }]
+                        rag_context_text = f"--- [DYNAMICALLY RETRIEVED FROM OUTSIDE & STORED IN STORAGE] ---\n{matching_service._format_snippet(new_item)}"
+                        is_matched = True
+                        top_sim_score = 0.90
+                        data_sources_used.append("dynamic_storage")
+            except Exception as e:
+                print(f"RAGService outside search & storage note: {e}")
+
+        # Live Web Search (For real-time inquiries, recent facts, current affairs)
         if any(w in message.lower() for w in ["search", "google", "news", "latest", "recent", "who won", "ស្វែងរក", "ព័ត៌មាន"]) or (intent == "general_qa" and not is_matched and len(message.split()) > 3):
             try:
                 web_results = web_search_service.search_google_web(message, max_results=3)
@@ -559,7 +602,7 @@ class RAGService:
             yield res.get("answer", "")
             return
 
-        # RAG context
+        # RAG context - Step 1: Search in Storage First
         rag_context_text, retrieved_sources = matching_service.build_rag_context(
             query=message,
             top_k=settings.TOP_K,
@@ -567,6 +610,31 @@ class RAGService:
             max_length=settings.MAX_CONTEXT_LENGTH
         )
         is_matched = bool(retrieved_sources)
+
+        # Step 2: If tourism query and not in storage -> Search outside and auto-store in storage
+        is_cambodia_tourism = (
+            intent in ["place_search", "recommendation", "itinerary", "culture", "events", "food", "safety", "transportation"] or
+            any(w in message.lower() for w in [
+                "cambodia", "phnom penh", "siem reap", "angkor", "temple", "beach", "waterfall", 
+                "resort", "hotel", "island", "place", "places", "visit", "trip", "tour", "travel",
+                "attraction", "attractions", "sightseeing", "province",
+                "កម្ពុជា", "ទេសចរណ៍", "ដើរលេង", "ទស្សនា", "ប្រាសាទ", "ឆ្នេរ", "កោះ", "ទឹកធ្លាក់", "ភ្នំ", "កន្លែង"
+            ])
+        )
+
+        if is_cambodia_tourism and not is_matched:
+            try:
+                outside_info = web_search_service.search_outside_knowledge(message)
+                if outside_info and outside_info.get("description"):
+                    new_item = dynamic_storage_service.auto_learn_from_outside(
+                        query=message,
+                        search_info=outside_info
+                    )
+                    if new_item:
+                        rag_context_text = f"--- [DYNAMICALLY RETRIEVED FROM OUTSIDE & STORED IN STORAGE] ---\n{matching_service._format_snippet(new_item)}"
+                        is_matched = True
+            except Exception:
+                pass
 
         real_time_blocks = []
         if any(w in message.lower() for w in ["search", "google", "news", "latest", "recent", "who won", "ស្វែងរក", "ព័ត៌មាន"]):

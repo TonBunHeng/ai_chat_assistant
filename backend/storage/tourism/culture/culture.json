@@ -1,0 +1,58 @@
+[
+  {
+    "id": "cult_apsara",
+    "name": "Royal Ballet & Khmer Apsara Classical Dance",
+    "name_km": "របាំព្រះរាជទ្រព្យ និង របាំអប្សរា",
+    "province": "Nationwide",
+    "province_km": "ទូទាំងប្រទេស",
+    "category": "culture",
+    "description": "UNESCO Intangible Cultural Heritage of Humanity since 2003, featuring sacred, highly stylized hand gestures (kbach) and ornate gold headpieces reflecting Khmer spiritual cosmology.",
+    "description_km": "បេតិកភណ្ឌវប្បធម៌អរូបីនៃមនុស្សជាតិរបស់យូណេស្កូ តាំងពីឆ្នាំ២០០៣ ជាសិល្បៈរបាំបុរាណខ្មែរដ៏ពិសិដ្ឋ មានកាយវិការដៃទន់ភ្លន់ និងម្កុដមាសតំណាងទេវតា។",
+    "tags": ["culture", "dance", "apsara", "unesco", "heritage", "tradition"],
+    "verified": true,
+    "source": "UNESCO / Ministry of Culture and Fine Arts Cambodia",
+    "last_updated": "2026-08-31"
+  },
+  {
+    "id": "cult_sbekthom",
+    "name": "Sbek Thom (Khmer Shadow Theatre)",
+    "name_km": "ល្ខោនស្រមោលស្បែកធំ",
+    "province": "Nationwide",
+    "province_km": "ទូទាំងប្រទេស",
+    "category": "culture",
+    "description": "Ancient sacred performance art using large, intricately carved cowhide leather puppets projected against a fire-lit white screen, depicting scenes from the Reamker (Khmer Ramayana).",
+    "description_km": "សិល្បៈល្ខោនស្រមោលស្បែកធំខ្មែរបុរាណ ដែលឆ្លាក់ផ្ទាំងស្បែកគោជាក្បាច់រឿងរាមកេរ្តិ៍ និងសម្តែងជាមួយភ្លើងភ្លឺចាំងពីក្រោយផ្ទាំងសំពត់ស។",
+    "tags": ["culture", "theatre", "puppet", "unesco", "reamker"],
+    "verified": true,
+    "source": "UNESCO / Ministry of Culture and Fine Arts Cambodia",
+    "last_updated": "2026-08-31"
+  },
+  {
+    "id": "cult_chapei",
+    "name": "Chapei Dang Veng (Traditional Two-Stringed Long-Necked Lute)",
+    "name_km": "ចាប៉ីដងវែង",
+    "province": "Nationwide",
+    "province_km": "ទូទាំងប្រទេស",
+    "category": "culture",
+    "description": "Cambodian musical tradition featuring a two-stringed lute accompanied by sung poetry touching upon moral teachings, folklore, and spontaneous comedic storytelling.",
+    "description_km": "ឧបករណ៍តន្ត្រីបុរាណខ្មែរខ្សែពីរដងវែង ដែលអ្នកចម្រៀងប្រគំអមដោយកំណាព្យអប់រំទូន្មាន និងរឿងកំប្លែងប្រជាប្រិយ។",
+    "tags": ["culture", "music", "chapei", "unesco", "tradition"],
+    "verified": true,
+    "source": "UNESCO / Ministry of Culture and Fine Arts Cambodia",
+    "last_updated": "2026-08-31"
+  },
+  {
+    "id": "cult_sompeah",
+    "name": "The Sampeah (Traditional Khmer Greeting & Respect)",
+    "name_km": "ការសំពះ (ទំនៀមទម្លាប់ស្វាគមន៍ខ្មែរ)",
+    "province": "Nationwide",
+    "province_km": "ទូទាំងប្រទេស",
+    "category": "culture",
+    "description": "The traditional Cambodian gesture of respect and greeting performed by pressing palms together in a lotus prayer pose with a slight bow, with 5 levels corresponding to social status and age.",
+    "description_km": "កាយវិការគួរសម និងការគោរពតាមបែបប្រពៃណីខ្មែរ ដោយការផ្គុំបាតដៃទាំងពីរបែបផ្កាឈូក និងអោនក្បាលបន្តិច (មាន ៥ កម្រិតតាមឋានៈ និងវ័យ)។",
+    "tags": ["culture", "etiquette", "greeting", "tradition", "respect"],
+    "verified": true,
+    "source": "Ministry of Cults and Religions Cambodia",
+    "last_updated": "2026-08-31"
+  }
+]

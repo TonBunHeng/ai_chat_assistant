@@ -137,8 +137,43 @@
                 <MapPin :size="10" class="text-[#003E83] dark:text-[#2563eb] mr-1 shrink-0" />
                 <span class="truncate">{{ src.location || src.province }}</span>
               </div>
-              <div v-if="src.google_maps_url" class="mt-1 pt-1 border-t border-slate-200/60 dark:border-zinc-800 flex justify-end">
+              <div v-if="src.google_maps_url || (src.website_links && src.website_links.length) || (src.picture_links && src.picture_links.length)" class="mt-1 pt-1 border-t border-slate-200/60 dark:border-zinc-800 flex flex-wrap items-center justify-end gap-2">
+                <!-- Website Links (Link Only) -->
+                <template v-if="src.website_links && src.website_links.length">
+                  <a
+                    v-for="(wlink, widx) in src.website_links.slice(0, 1)"
+                    :key="'web-'+widx"
+                    :href="wlink.url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-0.5 text-[9px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
+                    :title="wlink.title"
+                  >
+                    <span>{{ isKhmer ? 'គេហទំព័រ' : 'Website' }}</span>
+                    <ExternalLink :size="8" />
+                  </a>
+                </template>
+
+                <!-- Picture Links (Link Only) -->
+                <template v-if="src.picture_links && src.picture_links.length">
+                  <a
+                    v-for="(plink, pidx) in src.picture_links.slice(0, 1)"
+                    :key="'pic-'+pidx"
+                    :href="plink.image_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400 hover:underline"
+                    :title="plink.caption"
+                  >
+                    <ImageIcon :size="9" />
+                    <span>{{ isKhmer ? 'រូបភាព' : 'Photo' }}</span>
+                    <ExternalLink :size="8" />
+                  </a>
+                </template>
+
+                <!-- Google Maps Link -->
                 <a
+                  v-if="src.google_maps_url"
                   :href="src.google_maps_url"
                   target="_blank"
                   rel="noopener noreferrer"

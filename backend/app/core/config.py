@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     
     # Directories & Database Paths
     BACKEND_DIR: str = DEFAULT_BACKEND_DIR
-    DATA_DIR: str = os.path.join(DEFAULT_BACKEND_DIR, "data/tourism")
+    DATA_DIR: str = os.path.join(DEFAULT_BACKEND_DIR, "storage/tourism")
     STORAGE_DIR: str = os.path.join(DEFAULT_BACKEND_DIR, "storage")
     SQLITE_DB_PATH: str = "/tmp/conversations.db" if os.environ.get("VERCEL") else os.path.join(DEFAULT_BACKEND_DIR, "storage/conversations/conversations.db")
     VECTOR_DB_DIR: str = "/tmp/vector_db" if os.environ.get("VERCEL") else os.path.join(DEFAULT_BACKEND_DIR, "storage/vector_db")
@@ -92,17 +92,22 @@ class Settings(BaseSettings):
     @field_validator("DATA_DIR", mode="after")
     @classmethod
     def resolve_data_dir(cls, v: str) -> str:
+        # Priority 1: Primary storage directory in storage/tourism
+        primary_storage = os.path.abspath(os.path.join(DEFAULT_BACKEND_DIR, "storage/tourism"))
+        if os.path.exists(primary_storage):
+            return primary_storage
+
         if not os.path.isabs(v):
             candidate = os.path.abspath(os.path.join(DEFAULT_BACKEND_DIR, v))
             if os.path.exists(candidate):
                 return candidate
-            alt = os.path.abspath(os.path.join(DEFAULT_BACKEND_DIR, "data/tourism"))
-            if os.path.exists(alt):
-                return alt
-        elif not os.path.exists(v):
-            alt = os.path.abspath(os.path.join(DEFAULT_BACKEND_DIR, "data/tourism"))
-            if os.path.exists(alt):
-                return alt
+        elif os.path.exists(v):
+            return v
+
+        # Fallback to data/tourism if storage/tourism is absent
+        alt = os.path.abspath(os.path.join(DEFAULT_BACKEND_DIR, "data/tourism"))
+        if os.path.exists(alt):
+            return alt
         return v
 
     @field_validator("SQLITE_DB_PATH", mode="after")
