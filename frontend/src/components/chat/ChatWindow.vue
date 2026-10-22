@@ -14,8 +14,8 @@
         @edit-message="(payload) => $emit('edit-message', { ...payload, index })"
       />
 
-      <!-- Loading / Typing Indicator -->
-      <TypingIndicator v-if="isLoading" :language="language" />
+      <!-- Loading / Typing Indicator: visible while waiting for tokens -->
+      <TypingIndicator v-if="showTypingIndicator" :language="language" />
 
       <!-- Error Alert Box -->
       <div
@@ -64,6 +64,18 @@ defineEmits(['send-message', 'regenerate', 'edit-message']);
 const messagesEndRef = ref(null);
 const chatContainerRef = ref(null);
 const isKhmer = computed(() => props.language === 'km');
+
+const showTypingIndicator = computed(() => {
+  if (!props.isLoading) return false;
+  if (!props.messages || props.messages.length === 0) return true;
+  const lastMsg = props.messages[props.messages.length - 1];
+  return (
+    lastMsg.sender === 'user' ||
+    lastMsg.role === 'user' ||
+    !lastMsg.message ||
+    !String(lastMsg.message).trim()
+  );
+});
 
 const scrollToBottom = () => {
   nextTick(() => {

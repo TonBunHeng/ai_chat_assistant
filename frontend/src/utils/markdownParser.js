@@ -3,6 +3,20 @@
  * Zero external dependencies. Safe against XSS by escaping HTML entities first.
  */
 
+export function cleanTextEncoding(str) {
+  if (!str) return '';
+  if (/[\u00e0-\u00ef][\u0080-\u00bf]/.test(str)) {
+    try {
+      const bytes = new Uint8Array([...str].map((c) => c.charCodeAt(0) & 0xff));
+      const recovered = new TextDecoder('utf-8').decode(bytes);
+      if (recovered && !recovered.includes('\ufffd')) {
+        return recovered;
+      }
+    } catch (e) {}
+  }
+  return str;
+}
+
 // Escape HTML characters to prevent XSS
 export function escapeHtml(str) {
   if (!str) return '';
@@ -54,8 +68,9 @@ export function highlightCode(code, lang = '') {
 export function parseMarkdown(rawMarkdown) {
   if (!rawMarkdown) return '';
 
+  const cleaned = cleanTextEncoding(rawMarkdown);
   const blocks = [];
-  const lines = rawMarkdown.split('\n');
+  const lines = cleaned.split('\n');
   let inCodeBlock = false;
   let codeLang = '';
   let codeBuffer = [];

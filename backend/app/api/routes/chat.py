@@ -86,17 +86,17 @@ def stream_chat_message(request: ChatRequest, req: Request):
                 client_history=request.history,
                 attachments=request.attachments
             ):
-                payload = json.dumps({"token": chunk})
+                payload = json.dumps({"token": chunk}, ensure_ascii=False)
                 yield f"data: {payload}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
-            err_payload = json.dumps({"error": str(e)})
+            err_payload = json.dumps({"error": str(e)}, ensure_ascii=False)
             yield f"data: {err_payload}\n\n"
             yield "data: [DONE]\n\n"
 
     return StreamingResponse(
         event_stream(),
-        media_type="text/event-stream",
+        media_type="text/event-stream; charset=utf-8",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",

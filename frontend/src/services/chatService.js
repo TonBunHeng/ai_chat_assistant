@@ -1,5 +1,19 @@
 import api, { API_BASE_URL } from './api';
 
+export function cleanTextEncoding(str) {
+  if (!str) return '';
+  if (/[\u00e0-\u00ef][\u0080-\u00bf]/.test(str)) {
+    try {
+      const bytes = new Uint8Array([...str].map((c) => c.charCodeAt(0) & 0xff));
+      const recovered = new TextDecoder('utf-8').decode(bytes);
+      if (recovered && !recovered.includes('\ufffd')) {
+        return recovered;
+      }
+    } catch (e) {}
+  }
+  return str;
+}
+
 export const chatService = {
   /**
    * Send chat message to Cambodia Super AI assistant
@@ -54,10 +68,11 @@ export const chatService = {
             if (onDone) onDone();
             return;
           }
+
           try {
             const parsed = JSON.parse(dataStr);
             if (parsed.token && onChunk) {
-              onChunk(parsed.token);
+              onChunk(cleanTextEncoding(parsed.token));
             }
           } catch (e) {
             // Ignore non-json or malformed chunks

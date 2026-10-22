@@ -159,6 +159,7 @@ import {
   renameChatSession,
   deleteChatSession,
   clearAllChatSessions,
+  cleanTextEncoding,
 } from '../services/chatService';
 
 const { isOnline } = useOnlineStatus();
@@ -550,7 +551,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
             accumulated += token;
             const target = messages.value.find((m) => m.id === aiMsgId);
             if (target) {
-              target.message = accumulated;
+              target.message = cleanTextEncoding(accumulated);
             }
           },
           onDone: () => {
@@ -609,7 +610,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
 
         if (answerText) {
           if (currentAiMsg) {
-            currentAiMsg.message = answerText;
+            currentAiMsg.message = cleanTextEncoding(answerText);
             currentAiMsg.mode = apiPayload?.mode || 'online';
             currentAiMsg.model = apiPayload?.model;
             currentAiMsg.sources = apiPayload?.sources || [];
@@ -640,7 +641,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
     // 4. Client-side Offline Search Fallback
     const offlineRes = await performOfflineSearch(userMessageText, language.value);
     if (currentAiMsg) {
-      currentAiMsg.message = offlineRes.message || 'Cambodia Super AI is ready to help answer questions and explore Cambodia.';
+      currentAiMsg.message = cleanTextEncoding(offlineRes.message || 'Cambodia Super AI is ready to help answer questions and explore Cambodia.');
       currentAiMsg.mode = 'offline';
       currentAiMsg.sources = offlineRes.sources || [];
       currentAiMsg.suggestions = offlineRes.suggestions || [];

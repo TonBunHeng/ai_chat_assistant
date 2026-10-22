@@ -181,10 +181,16 @@ class GeminiOnlineService:
                 }
                 with requests.post(url, json=payload, stream=True, timeout=30) as res:
                     if res.status_code == 200:
+                        res.encoding = "utf-8"
                         streamed_any = False
-                        for line in res.iter_lines(decode_unicode=True):
-                            if not line:
+                        for raw_line in res.iter_lines():
+                            if not raw_line:
                                 continue
+                            if isinstance(raw_line, bytes):
+                                line = raw_line.decode("utf-8", errors="replace")
+                            else:
+                                line = raw_line
+
                             if line.startswith("data: "):
                                 json_str = line[6:].strip()
                                 if json_str == "[DONE]":
@@ -197,6 +203,12 @@ class GeminiOnlineService:
                                         for p in parts:
                                             txt = p.get("text", "")
                                             if txt and not p.get("thought"):
+                                                # Recover if upstream sent Latin-1 mojibake
+                                                if any(0xE0 <= ord(c) <= 0xEF for c in txt):
+                                                    try:
+                                                        txt = txt.encode("latin-1").decode("utf-8")
+                                                    except Exception:
+                                                        pass
                                                 streamed_any = True
                                                 yield txt
                                 except Exception:

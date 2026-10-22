@@ -5,7 +5,7 @@
     <div :class="['max-w-[85%] sm:max-w-[80%] group relative', isUser ? 'flex flex-col items-end' : 'flex flex-col items-start']">
       
       <!-- Mode Tag Badge for AI -->
-      <div v-if="!isUser" class="flex flex-wrap items-center gap-1.5 mb-1 px-1 text-[11px]">
+      <div v-if="!isUser && (Boolean(textContent && textContent.trim()) || hasSpecializedCard)" class="flex flex-wrap items-center gap-1.5 mb-1 px-1 text-[11px]">
         <span class="font-bold text-zinc-900 dark:text-zinc-100">Cambodia Super AI</span>
         <span class="text-zinc-400">•</span>
         <span
@@ -24,6 +24,7 @@
 
       <!-- Message Bubble Container -->
       <div
+        v-if="isUser || (Boolean(textContent && textContent.trim()) || hasSpecializedCard)"
         :class="[
           'px-4 py-3 rounded-2xl text-[14.5px] sm:text-[15px]',
           hasKhmer ? 'leading-[1.75]' : 'leading-relaxed',
@@ -223,7 +224,7 @@
       </div>
 
       <!-- AI Message Actions Toolbar -->
-      <div v-if="!isUser" class="flex items-center space-x-1 mt-1 text-slate-400 dark:text-slate-500">
+      <div v-if="!isUser && Boolean(textContent && textContent.trim())" class="flex items-center space-x-1 mt-1 text-slate-400 dark:text-slate-500">
         <button
           @click="handleCopy"
           class="flex items-center space-x-1 p-1 rounded-md hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-xs"
