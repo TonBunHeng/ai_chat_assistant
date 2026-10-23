@@ -159,6 +159,7 @@ import { performOfflineSearch } from '../utils/offlineSearch';
 import {
   sendMessage,
   streamMessage,
+  fetchChatSuggestions,
   fetchChatSessions,
   fetchChatSession,
   renameChatSession,
@@ -538,9 +539,11 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
     id: aiMsgId,
     sender: 'ai',
     message: '',
+    userQuery: userMessageText,
     mode: isOnline.value ? 'online' : 'offline',
     sources: [],
     suggestions: [],
+    topic: '',
     created_at: new Date().toISOString(),
   };
   messages.value = [...messages.value, aiMsg];
@@ -570,6 +573,13 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
               target.message = cleanTextEncoding(accumulated);
             }
           },
+          onSuggestions: (suggestions, topic) => {
+            const target = messages.value.find((m) => m.id === aiMsgId);
+            if (target && suggestions) {
+              target.suggestions = suggestions;
+              if (topic) target.topic = topic;
+            }
+          },
           onDone: () => {
             streamSucceeded = true;
           },
@@ -590,6 +600,22 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
   if (streamSucceeded && currentAiMsg && currentAiMsg.message.trim().length > 0) {
     isLoading.value = false;
     currentMode.value = 'online';
+
+    // Auto-fetch context-aware follow-up suggestions if stream didn't yield them
+    if (!currentAiMsg.suggestions || currentAiMsg.suggestions.length === 0) {
+      fetchChatSuggestions({
+        message: userMessageText,
+        answer: currentAiMsg.message,
+        session_id: activeSid,
+        language: language.value,
+        history: historyPayload,
+      }).then((suggRes) => {
+        if (suggRes && suggRes.suggestions && suggRes.suggestions.length > 0) {
+          currentAiMsg.suggestions = suggRes.suggestions;
+          if (suggRes.topic) currentAiMsg.topic = suggRes.topic;
+        }
+      }).catch(() => {});
+    }
 
     const firstUser = messages.value.find((m) => m.sender === 'user' || m.role === 'user');
     const title = firstUser ? firstUser.message : userMessageText;
@@ -631,6 +657,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
             currentAiMsg.model = apiPayload?.model;
             currentAiMsg.sources = apiPayload?.sources || [];
             currentAiMsg.suggestions = apiPayload?.suggestions || [];
+            if (apiPayload?.topic) currentAiMsg.topic = apiPayload.topic;
             currentAiMsg.weather = apiPayload?.weather;
             currentAiMsg.currency = apiPayload?.currency;
             currentAiMsg.itinerary = apiPayload?.itinerary;

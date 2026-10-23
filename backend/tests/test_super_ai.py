@@ -300,4 +300,148 @@ def test_cambodia_intents_detection():
     assert r_tech["intent"] in ["cambodia_tech", "coding"]
 
 
+def test_smart_context_aware_suggestions_tourism_progression():
+    """Verify context-aware suggestion progression for Cambodia tourism (Siem Reap -> Angkor Wat)."""
+    from app.services.suggestion_service import suggestion_service
 
+    # Step 1: User asks to plan a trip to Siem Reap
+    res1 = suggestion_service.generate_context_suggestions(
+        message="Plan a trip to Siem Reap",
+        answer="Siem Reap is home to the majestic Angkor Archaeological Park...",
+        language="en"
+    )
+    assert len(res1["suggestions"]) == 4
+    assert "Angkor" in res1["topic"] or "Siem Reap" in res1["topic"]
+    # Should recommend itineraries, transportation, costs, temples
+    joined1 = " ".join(res1["suggestions"]).lower()
+    assert any(w in joined1 for w in ["itinerary", "day", "transportation", "cost", "budget", "angkor", "temple"])
+
+    # Step 2: Next user question specifically about Angkor Wat
+    res2 = suggestion_service.generate_context_suggestions(
+        message="Tell me about Angkor Wat temple and tickets",
+        answer="Angkor Wat was built in the 12th century by King Suryavarman II. Passes are $37 for 1 day...",
+        language="en",
+        history=[
+            {"role": "user", "content": "Plan a trip to Siem Reap"},
+            {"role": "assistant", "content": "Siem Reap is home to the majestic Angkor Archaeological Park..."}
+        ]
+    )
+    assert len(res2["suggestions"]) == 4
+    joined2 = " ".join(res2["suggestions"]).lower()
+    assert any(w in joined2 for w in ["history", "ticket", "pass", "sunrise", "nearby", "temple"])
+
+def test_smart_context_aware_suggestions_business_progression():
+    """Verify context-aware suggestion progression for Cambodian business (Startup -> CamDX Registration)."""
+    from app.services.suggestion_service import suggestion_service
+
+    # Step 1: User asks about starting a business in Cambodia
+    res1 = suggestion_service.generate_context_suggestions(
+        message="I want to start a business in Cambodia",
+        answer="Cambodia has a vibrant economy with CamDX Single Portal for business registration...",
+        language="en"
+    )
+    assert len(res1["suggestions"]) == 4
+    assert "Business" in res1["topic"]
+    joined1 = " ".join(res1["suggestions"]).lower()
+    assert any(w in joined1 for w in ["registration", "cost", "tax", "plan", "camdx"])
+
+    # Step 2: Follow-up on registration procedures
+    res2 = suggestion_service.generate_context_suggestions(
+        message="Understand business registration procedures",
+        answer="Registration is conducted through the CamDX Single Portal involving MoC, GDT, and MoLVT...",
+        language="en",
+        history=[
+            {"role": "user", "content": "I want to start a business in Cambodia"},
+            {"role": "assistant", "content": "Cambodia has a vibrant economy with CamDX Single Portal..."}
+        ]
+    )
+    assert len(res2["suggestions"]) == 4
+    joined2 = " ".join(res2["suggestions"]).lower()
+    assert any(w in joined2 for w in ["camdx", "authority", "documents", "fee", "tax", "gdt", "steps"])
+
+def test_smart_context_aware_suggestions_tech_and_rag():
+    """Verify context-aware suggestions for programming & AI (Laravel AI -> RAG & Vector DB)."""
+    from app.services.suggestion_service import suggestion_service
+
+    # Step 1: Building AI app with Laravel
+    res1 = suggestion_service.generate_context_suggestions(
+        message="Building an AI application with Laravel and Vue",
+        answer="You can structure a Laravel backend using service classes and integrate LLM APIs...",
+        language="en"
+    )
+    assert len(res1["suggestions"]) == 4
+    joined1 = " ".join(res1["suggestions"]).lower()
+    assert any(w in joined1 for w in ["architecture", "api", "history", "rag", "database"])
+
+    # Step 2: Add RAG
+    res2 = suggestion_service.generate_context_suggestions(
+        message="Add RAG Retrieval-Augmented Generation",
+        answer="RAG involves chunking documents, embedding them into a vector database, and querying top-k...",
+        language="en",
+        history=[
+            {"role": "user", "content": "Building an AI application with Laravel and Vue"}
+        ]
+    )
+    assert len(res2["suggestions"]) == 4
+    joined2 = " ".join(res2["suggestions"]).lower()
+    assert any(w in joined2 for w in ["vector", "chunk", "embedding", "retrieve", "context"])
+
+def test_smart_context_aware_suggestions_khmer_language():
+    """Verify natural Khmer suggestions when user is communicating in Khmer."""
+    from app.services.suggestion_service import suggestion_service
+
+    res_km = suggestion_service.generate_context_suggestions(
+        message="តើការចុះបញ្ជីអាជីវកម្មតាម CamDX ត្រូវធ្វើដូចម្តេច?",
+        answer="ការចុះបញ្ជីអាជីវកម្មតាមថ្នាល CamDX ត្រូវឆ្លងកាត់ក្រសួងពាណិជ្ជកម្ម អគ្គនាយកដ្ឋានពន្ធដារ និងក្រសួងការងារ...",
+        language="km"
+    )
+    assert len(res_km["suggestions"]) == 4
+    # Check that all suggestions are in Khmer
+    for sugg in res_km["suggestions"]:
+        assert any('\u1780' <= char <= '\u17FF' for char in sugg), f"Suggestion '{sugg}' should contain Khmer text"
+
+def test_suggestion_refresh_and_alternative_variation():
+    """Verify that requesting refresh with excluded suggestions returns alternative items."""
+    from app.services.suggestion_service import suggestion_service
+
+    # First round
+    res1 = suggestion_service.generate_context_suggestions(
+        message="Siem Reap tourism attractions",
+        language="en"
+    )
+    first_suggestions = res1["suggestions"]
+
+    # Second round with refresh=True and excluding first suggestions
+    res2 = suggestion_service.generate_context_suggestions(
+        message="Siem Reap tourism attractions",
+        language="en",
+        refresh=True,
+        exclude=first_suggestions
+    )
+    second_suggestions = res2["suggestions"]
+    assert len(second_suggestions) == 4
+    # Should have different suggestions
+    overlap = set(first_suggestions).intersection(set(second_suggestions))
+    assert len(overlap) < len(first_suggestions), "Refresh should introduce alternative suggestions"
+
+def test_chat_suggestions_api_endpoint():
+    """Verify POST /api/chat/suggestions endpoint returns validated 4-item structured JSON."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+    payload = {
+        "message": "What is the capital of Cambodia and top places to see?",
+        "answer": "Phnom Penh is the capital of Cambodia. Top places include the Royal Palace, National Museum...",
+        "language": "en"
+    }
+
+    resp = client.post("/api/chat/suggestions", json=payload)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert "topic" in data and len(data["topic"]) > 0
+    assert "suggestions" in data
+    assert len(data["suggestions"]) == 4
+    for item in data["suggestions"]:
+        assert isinstance(item, str) and len(item.strip()) > 0

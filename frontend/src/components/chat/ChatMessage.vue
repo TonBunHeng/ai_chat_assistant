@@ -187,7 +187,7 @@
           </div>
         </div>
 
-        <!-- Contextual Suggested Topics Grid (Matching Picture 2) -->
+        <!-- Contextual Suggested Topics Grid (Dynamic & Context-Aware) -->
         <div
           v-if="!isUser && isLatest && currentSuggestions && currentSuggestions.length > 0"
           class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 w-full"
@@ -195,24 +195,25 @@
           <div class="flex items-center justify-between mb-2 px-1">
             <span class="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
               <Sparkles :size="12" class="text-amber-500" />
-              <span>{{ isKhmer ? 'សំណើណែនាំ' : 'Suggested Topics' }}</span>
+              <span>{{ displayTopicTitle }}</span>
             </span>
             <button
               type="button"
               @click.stop="refreshSuggestions"
-              class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-zinc-400 hover:text-[#003E83] dark:hover:text-blue-400 px-2 py-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group active:scale-95"
+              :disabled="isRefreshingSuggestions"
+              class="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-zinc-400 hover:text-[#003E83] dark:hover:text-blue-400 px-2 py-0.5 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group active:scale-95 disabled:opacity-50"
               :title="isKhmer ? 'ប្តូរសំណួរថ្មី' : 'Refresh questions'"
             >
               <RotateCcw
                 :size="11"
-                :class="['transition-transform duration-500', isRefreshingSuggestions ? '-rotate-180 text-[#003E83] dark:text-blue-400' : 'group-hover:-rotate-90']"
+                :class="['transition-transform duration-500', isRefreshingSuggestions ? 'animate-spin text-[#003E83] dark:text-blue-400' : 'group-hover:-rotate-90']"
               />
-              <span>{{ isKhmer ? 'ប្តូរសំណួរ' : 'Refresh' }}</span>
+              <span>{{ isKhmer ? (isRefreshingSuggestions ? 'កំពុងផ្ទុក...' : 'ប្តូរសំណួរ') : (isRefreshingSuggestions ? 'Refreshing...' : 'Refresh') }}</span>
             </button>
           </div>
 
-          <!-- Suggested Topic Cards Grid (2x2 matching Picture 2) -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <!-- Suggested Topic Cards Grid (2x2) -->
+          <div :class="['grid grid-cols-1 sm:grid-cols-2 gap-2 transition-opacity duration-200', isRefreshingSuggestions ? 'opacity-50 pointer-events-none' : 'opacity-100']">
             <button
               v-for="(card, cIdx) in currentSuggestions"
               :key="cIdx"
@@ -319,13 +320,14 @@ import {
   Copy, Check, Pencil, MapPin, ThumbsUp, ThumbsDown, RotateCcw,
   Wifi, WifiOff, Image as ImageIcon, ExternalLink, Sparkles, Compass,
   Landmark, Utensils, Calendar, Palmtree, Coins, Sun,
-  Code, Calculator, Languages, Briefcase
+  Code, Calculator, Languages, Briefcase, Building2, GraduationCap
 } from 'lucide-vue-next';
 import ItineraryCard from './ItineraryCard.vue';
 import WeatherCard from './WeatherCard.vue';
 import RecommendationCard from './RecommendationCard.vue';
 import CurrencyCard from '../cards/CurrencyCard.vue';
 import MarkdownRenderer from './MarkdownRenderer.vue';
+import { fetchChatSuggestions } from '../../services/chatService';
 
 const props = defineProps({
   message: {
@@ -392,6 +394,13 @@ const kmTopicsPool = [
   { id: 'food', icon: markRaw(Utensils), title: 'ម្ហូបខ្មែរប្រពៃណីមិនគួររំលង', prompt: 'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?' }
 ];
 
+const displayTopicTitle = computed(() => {
+  if (props.message.topic && props.message.topic.trim()) {
+    return props.message.topic.trim();
+  }
+  return isKhmer.value ? 'ប្រធានបទណែនាំបន្ត' : 'Suggested Topics';
+});
+
 const formatTopic = (item) => {
   if (!item) return null;
   if (typeof item === 'object' && item.title && item.icon) return item;
@@ -409,15 +418,27 @@ const formatTopic = (item) => {
     icon = markRaw(Landmark);
   } else if (s.includes('crab') || s.includes('food') || s.includes('amok') || s.includes('dish') || s.includes('lok lak') || s.includes('eat') || s.includes('restaurant') || s.includes('ម្ហូប') || s.includes('ញ៉ាំ') || s.includes('ក្តាម')) {
     icon = markRaw(Utensils);
-  } else if (s.includes('itinerary') || s.includes('day') || s.includes('festival') || s.includes('គម្រោង') || s.includes('ថ្ងៃ') || s.includes('បុណ្យ')) {
+  } else if (s.includes('code') || s.includes('python') || s.includes('laravel') || s.includes('api') || s.includes('rag') || s.includes('vector') || s.includes('database') || s.includes('model') || s.includes('frontend') || s.includes('backend') || s.includes('កូដ') || s.includes('កម្មវិធី')) {
+    icon = markRaw(Code);
+  } else if (s.includes('math') || s.includes('gradient') || s.includes('calculus') || s.includes('algorithm') || s.includes('derivative') || s.includes('គណិត') || s.includes('ក្បួនដោះស្រាយ')) {
+    icon = markRaw(Calculator);
+  } else if (s.includes('business') || s.includes('startup') || s.includes('tax') || s.includes('gdt') || s.includes('camdx') || s.includes('register') || s.includes('moc') || s.includes('company') || s.includes('bakong') || s.includes('អាជីវកម្ម') || s.includes('ពន្ធ') || s.includes('ចុះបញ្ជី')) {
+    icon = markRaw(Briefcase);
+  } else if (s.includes('passport') || s.includes('visa') || s.includes('license') || s.includes('public service') || s.includes('ministry') || s.includes('gdi') || s.includes('mwt') || s.includes('លិខិតឆ្លងដែន') || s.includes('បើកបរ') || s.includes('សេវាសាធារណៈ') || s.includes('ក្រសួង')) {
+    icon = markRaw(Building2);
+  } else if (s.includes('school') || s.includes('university') || s.includes('bacii') || s.includes('education') || s.includes('scholarship') || s.includes('grade 12') || s.includes('សាលា') || s.includes('សាកលវិទ្យាល័យ') || s.includes('បាក់ឌុប') || s.includes('អាហារូបករណ៍') || s.includes('អប់រំ')) {
+    icon = markRaw(GraduationCap);
+  } else if (s.includes('translation') || s.includes('khmer language') || s.includes('orthography') || s.includes('chuon nath') || s.includes('dictionary') || s.includes('grammar') || s.includes('បកប្រែ') || s.includes('ភាសាខ្មែរ') || s.includes('អក្ខរាវិរុទ្ធ') || s.includes('វចនានុក្រម')) {
+    icon = markRaw(Languages);
+  } else if (s.includes('itinerary') || s.includes('day') || s.includes('festival') || s.includes('schedule') || s.includes('plan') || s.includes('គម្រោង') || s.includes('ថ្ងៃ') || s.includes('បុណ្យ') || s.includes('កាលវិភាគ')) {
     icon = markRaw(Calendar);
-  } else if (s.includes('beach') || s.includes('island') || s.includes('koh rong') || s.includes('sea') || s.includes('កោះ') || s.includes('ឆ្នេរ') || s.includes('សមុទ្រ')) {
+  } else if (s.includes('beach') || s.includes('island') || s.includes('koh rong') || s.includes('sea') || s.includes('resort') || s.includes('កោះ') || s.includes('ឆ្នេរ') || s.includes('សមុទ្រ')) {
     icon = markRaw(Palmtree);
-  } else if (s.includes('currency') || s.includes('usd') || s.includes('riel') || s.includes('rate') || s.includes('cost') || s.includes('price') || s.includes('tip') || s.includes('budget') || s.includes('ដុល្លារ') || s.includes('រៀល') || s.includes('តម្លៃ') || s.includes('ថ្លៃ')) {
+  } else if (s.includes('currency') || s.includes('usd') || s.includes('riel') || s.includes('rate') || s.includes('cost') || s.includes('price') || s.includes('tip') || s.includes('budget') || s.includes('fee') || s.includes('ដុល្លារ') || s.includes('រៀល') || s.includes('តម្លៃ') || s.includes('ថ្លៃ') || s.includes('កម្រៃ')) {
     icon = markRaw(Coins);
   } else if (s.includes('sunrise') || s.includes('sunset') || s.includes('weather') || s.includes('season') || s.includes('sun') || s.includes('ថ្ងៃរះ') || s.includes('ថ្ងៃលិច') || s.includes('អាកាសធាតុ')) {
     icon = markRaw(Sun);
-  } else if (s.includes('park') || s.includes('bokor') || s.includes('mountain') || s.includes('nature') || s.includes('place') || s.includes('spot') || s.includes('destination') || s.includes('ឧទ្យាន') || s.includes('បូកគោ') || s.includes('ភ្នំ')) {
+  } else if (s.includes('park') || s.includes('bokor') || s.includes('mountain') || s.includes('nature') || s.includes('place') || s.includes('spot') || s.includes('destination') || s.includes('province') || s.includes('tour') || s.includes('ឧទ្យាន') || s.includes('បូកគោ') || s.includes('ភ្នំ') || s.includes('ខេត្ត')) {
     icon = markRaw(MapPin);
   }
 
@@ -440,10 +461,13 @@ const isRefreshingSuggestions = ref(false);
 
 const getFreshSuggestions = (excludeIds = []) => {
   if (isUser.value) return [];
+  const rawBackend = (props.message.suggestions || []).map(formatTopic).filter(Boolean);
+  if (rawBackend.length >= 4 && excludeIds.length === 0) {
+    return rawBackend.slice(0, 4);
+  }
+
   const isKm = hasKhmer.value || isKhmer.value;
   const pool = isKm ? kmTopicsPool : enTopicsPool;
-
-  const rawBackend = (props.message.suggestions || []).map(formatTopic).filter(Boolean);
 
   const allCandidates = [];
   const seenIds = new Set();
@@ -463,13 +487,39 @@ const getFreshSuggestions = (excludeIds = []) => {
   return shuffled.slice(0, 4);
 };
 
-const refreshSuggestions = () => {
+const refreshSuggestions = async () => {
+  if (isRefreshingSuggestions.value) return;
   isRefreshingSuggestions.value = true;
-  const currentIds = currentSuggestions.value.map(c => c.id || c.title);
-  currentSuggestions.value = getFreshSuggestions(currentIds);
-  setTimeout(() => {
-    isRefreshingSuggestions.value = false;
-  }, 400);
+  try {
+    const currentList = currentSuggestions.value.map(c => c.prompt || c.title);
+    const res = await fetchChatSuggestions({
+      message: props.message.userQuery || textContent.value.slice(0, 120),
+      answer: textContent.value,
+      session_id: props.message.session_id,
+      language: props.language,
+      refresh: true,
+      exclude: currentList,
+      history: []
+    });
+
+    if (res && res.suggestions && res.suggestions.length > 0) {
+      if (res.topic) {
+        props.message.topic = res.topic;
+      }
+      currentSuggestions.value = res.suggestions.map(formatTopic).filter(Boolean);
+      return;
+    }
+  } catch (err) {
+    console.warn('Could not refresh suggestions via server API:', err);
+  } finally {
+    if (!currentSuggestions.value || currentSuggestions.value.length < 4) {
+      const currentIds = currentSuggestions.value.map(c => c.id || c.title);
+      currentSuggestions.value = getFreshSuggestions(currentIds);
+    }
+    setTimeout(() => {
+      isRefreshingSuggestions.value = false;
+    }, 300);
+  }
 };
 
 watch(

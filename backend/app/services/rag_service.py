@@ -16,6 +16,7 @@ from app.services.places_service import places_service
 from app.services.recommendation_engine import recommendation_engine
 from app.services.itinerary_engine import itinerary_engine
 from app.services.dynamic_storage_service import dynamic_storage_service
+from app.services.suggestion_service import suggestion_service
 
 class RAGService:
     def process_chat_message(
@@ -402,7 +403,16 @@ class RAGService:
         memory_service.add_message(sid, "assistant", answer, metadata={"mode": ai_meta.get("mode"), "model": ai_meta.get("model")})
 
         # 10. Generate Contextual Suggestions
-        suggestions = self._generate_suggestions(intent, active_destination, effective_lang)
+        suggestion_res = suggestion_service.generate_context_suggestions(
+            message=message,
+            answer=answer,
+            conversation_history=history,
+            language=effective_lang,
+            intent=intent,
+            rag_sources=sources
+        )
+        suggestions = suggestion_res.get("suggestions", [])
+        topic = suggestion_res.get("topic", "Suggested Topics")
 
         # Merge data sources
         final_sources = list(dict.fromkeys(data_sources_used + ai_meta.get("data_sources", [])))
@@ -433,6 +443,7 @@ class RAGService:
             "message": answer,
             "answer": answer,  # React compatibility field
             "model": ai_meta.get("model", settings.effective_online_model),
+            "topic": topic,
             "data": {
                 "type": data_type,
                 "location": active_destination,
@@ -455,113 +466,14 @@ class RAGService:
         }
 
     def _generate_suggestions(self, intent: str, destination: Optional[str], lang: str) -> List[str]:
-        """Generate 3 to 4 smart randomized follow-up suggestions for the UI."""
-        import random
-        is_km = "km" in lang
-        dest_en = destination or "Siem Reap"
-        dest_km = "សៀមរាប" if (not destination or destination == "Siem Reap") else (
-            "ភ្នំពេញ" if destination == "Phnom Penh" else (
-                "កំពត" if destination == "Kampot" else (
-                    "កោះរ៉ុង" if destination == "Koh Rong" else (
-                        "ព្រះសីហនុ" if destination == "Sihanoukville" else destination
-                    )
-                )
-            )
+        """Generate 4 smart follow-up suggestions for the UI via suggestion_service."""
+        query = f"Plan trip to {destination}" if destination else "Cambodia Tourism"
+        res = suggestion_service.generate_context_suggestions(
+            message=query,
+            language=lang,
+            intent=intent
         )
-        
-        # Candidate question pools categorized by domain
-        if is_km:
-            itinerary_pool = [
-                f"រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅ {dest_km}",
-                "រៀបចំដំណើរកម្សាន្ត ៥ ថ្ងៃ ភ្នំពេញ និង សៀមរាប",
-                f"តើទៅ {dest_km} គួររៀបចំដំណើរកម្សាន្តប៉ុន្មានថ្ងៃ?",
-                "រៀបចំគម្រោងលំហែកាយ ២ ថ្ងៃនៅកោះរ៉ុង",
-                f"តើមានគម្រោងដើរលេងចុងសប្តាហ៍នៅ {dest_km} យ៉ាងណាខ្លះ?",
-                "ណែនាំគម្រោងដំណើរកម្សាន្តតាមឆ្នេរសមុទ្រកម្ពុជា"
-            ]
-            attractions_pool = [
-                f"តើកន្លែងណាខ្លះគួរទៅកម្សាន្តនៅ {dest_km}?",
-                "តើប្រាសាទល្បីៗណាខ្លះដែលគួរទៅទស្សនាក្រៅពីអង្គរវត្ត?",
-                "តើពេលវេលាណាដែលល្អបំផុតសម្រាប់មើលថ្ងៃរះនៅប្រាសាទអង្គរវត្ត?",
-                "តើឆ្នេរខ្សាច់ណាខ្លះដែលស្អាតបំផុតនៅកោះរ៉ុង?",
-                "តើនៅឧទ្យានជាតិភ្នំបូកគោមានកន្លែងកម្សាន្តអ្វីខ្លះ?",
-                "តើព្រះបរមរាជវាំងនៅភ្នំពេញមានអ្វីពិសេសខ្លះ?",
-                "តើប្រាសាទបេងមាលាមានភាពអស្ចារ្យយ៉ាងណា?",
-                "តើកន្លែងណាខ្លះដែលល្អសម្រាប់មើលថ្ងៃលិចនៅបឹងទន្លេសាប?",
-                "តើប្រាសាទព្រះវិហារ និងកោះកេរមានចម្ងាយប៉ុន្មានពីសៀមរាប?"
-            ]
-            food_pool = [
-                f"តើម្ហូបអាហារល្បីៗនៅ {dest_km} មានអ្វីខ្លះ?",
-                "តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?",
-                "តើអាចរកញ៉ាំអាម៉ុកត្រី និងឡុកឡាក់ឆ្ងាញ់នៅឯណា?",
-                "តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?",
-                "តើម្ហូបតាមផ្លូវ (Street Food) នៅភ្នំពេញកន្លែងណាឆ្ងាញ់ជាងគេ?",
-                "តើនំបញ្ចុកទឹកសម្លប្រពៃណីខ្មែរមានរសជាតិយ៉ាងណា?"
-            ]
-            practical_pool = [
-                f"តើអាកាសធាតុនៅ {dest_km} យ៉ាងណាដែរ?",
-                "តើអត្រាប្តូរប្រាក់ ១ ដុល្លារស្មើនឹងប៉ុន្មានរៀលថ្ងៃនេះ?",
-                "តើតម្លៃសំបុត្រចូលទស្សនាអង្គរវត្តប៉ុន្មានដែរ?",
-                "តើត្រូវស្លៀកពាក់បែបណាពេលចូលទស្សនាប្រាសាទបុរាណ?",
-                "តើធ្វើដំណើរពីភ្នំពេញទៅសៀមរាបតាមមធ្យោបាយណាស្រួលជាងគេ?",
-                "តើពិធីបុណ្យប្រពៃណីខ្មែរល្បីៗមានអ្វីខ្លះ?",
-                "តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?",
-                "តើការប្រើប្រាស់ PassApp និង Grab នៅកម្ពុជាយ៉ាងដូចម្តេច?",
-                "តើរដូវកាលណាដែលល្អបំផុតសម្រាប់មកលេងកម្ពុជា?"
-            ]
-        else:
-            itinerary_pool = [
-                f"Create a 3-day {dest_en} cultural itinerary",
-                "Plan a 5-day Cambodia highlights trip (Phnom Penh & Siem Reap)",
-                f"How many days are ideal to visit {dest_en}?",
-                "Plan a relaxing 2-day beach getaway to Koh Rong island",
-                f"What is a great weekend itinerary in {dest_en}?",
-                "Suggest a scenic southern coastal route (Kep & Kampot)"
-            ]
-            attractions_pool = [
-                f"What are the top attractions to visit in {dest_en}?",
-                "What must-see temples in Siem Reap should I visit besides Angkor Wat?",
-                "What is the best time and spot for Angkor Wat sunrise?",
-                "What are the most beautiful beaches on Koh Rong?",
-                "What can I explore at Bokor National Park in Kampot?",
-                "What are the highlights of the Royal Palace in Phnom Penh?",
-                "Tell me about the jungle temple of Beng Mealea",
-                "Where are the best sunset viewpoints around Siem Reap?",
-                "How far are Koh Ker and Preah Vihear temples from Siem Reap?"
-            ]
-            food_pool = [
-                f"What local dishes should I try in {dest_en}?",
-                "What authentic Khmer dishes are must-try in Cambodia?",
-                "Where can I find the best Fish Amok and Beef Lok Lak?",
-                "Tell me about fresh Kampot pepper crab in Kep",
-                "What is the best street food to try in Phnom Penh?",
-                "Tell me about traditional Khmer noodles (Nom Banh Chok)"
-            ]
-            practical_pool = [
-                f"What is the weather like in {dest_en} today?",
-                "What is the current USD to Cambodian Riel exchange rate?",
-                "How much does an Angkor Wat temple pass cost?",
-                "What is the dress code for visiting ancient temples in Cambodia?",
-                "How do I travel comfortably between Phnom Penh and Siem Reap?",
-                "What traditional Cambodian festivals happen throughout the year?",
-                "What should I know about Cambodian currency and tipping culture?",
-                "How do PassApp and Grab tuk-tuks work in Cambodia?",
-                "What is the best time of year to visit Cambodia for good weather?"
-            ]
-
-        # Assemble diverse mix from categories
-        candidates = [
-            random.choice(attractions_pool),
-            random.choice(itinerary_pool),
-            random.choice(food_pool),
-            random.choice(practical_pool)
-        ]
-
-        # De-duplicate while preserving order
-        unique_selected = list(dict.fromkeys(candidates))
-        random.shuffle(unique_selected)
-        target_count = random.choice([3, 4])
-        return unique_selected[:target_count]
+        return res.get("suggestions", [])
 
     def process_chat_stream(
         self,
@@ -680,5 +592,21 @@ class RAGService:
         if full_text:
             memory_service.add_message(sid, "user", message, metadata={"intent": intent, "language": effective_lang})
             memory_service.add_message(sid, "assistant", full_text, metadata={"mode": "online", "model": settings.effective_online_model})
+
+            try:
+                sugg_res = suggestion_service.generate_context_suggestions(
+                    message=message,
+                    answer=full_text,
+                    conversation_history=history,
+                    language=effective_lang,
+                    intent=intent,
+                    rag_sources=retrieved_sources
+                )
+                yield {
+                    "suggestions": sugg_res.get("suggestions", []),
+                    "topic": sugg_res.get("topic", "Suggested Topics")
+                }
+            except Exception:
+                pass
 
 rag_service = RAGService()

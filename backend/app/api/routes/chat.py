@@ -9,6 +9,7 @@ from app.models.chat import ChatRequest
 from app.models.response import StandardResponse, ChatResponseData
 from app.services.rag_service import rag_service
 from app.services.memory_service import memory_service
+from app.services.suggestion_service import suggestion_service
 from app.core.security import security_service
 from app.utils.validators import validate_chat_message
 
@@ -28,6 +29,15 @@ class TourismCreateChatRequest(BaseModel):
 
 class RenameSessionRequest(BaseModel):
     title: str
+
+class SuggestionRequest(BaseModel):
+    message: Optional[str] = ""
+    answer: Optional[str] = ""
+    session_id: Optional[str] = None
+    history: Optional[List[Dict[str, Any]]] = None
+    language: Optional[str] = "en"
+    refresh: Optional[bool] = False
+    current_suggestions: Optional[List[str]] = []
 
 @router.post("/chat", response_model=StandardResponse[ChatResponseData])
 def handle_chat_message(request: ChatRequest, req: Request):
@@ -86,7 +96,10 @@ def stream_chat_message(request: ChatRequest, req: Request):
                 client_history=request.history,
                 attachments=request.attachments
             ):
-                payload = json.dumps({"token": chunk}, ensure_ascii=False)
+                if isinstance(chunk, dict):
+                    payload = json.dumps(chunk, ensure_ascii=False)
+                else:
+                    payload = json.dumps({"token": chunk}, ensure_ascii=False)
                 yield f"data: {payload}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as e:
@@ -103,6 +116,30 @@ def stream_chat_message(request: ChatRequest, req: Request):
             "X-Accel-Buffering": "no"
         }
     )
+
+@router.post("/chat/suggestions")
+@router.post("/chats/{session_id}/suggestions")
+def get_chat_suggestions(payload: SuggestionRequest):
+    """
+    Generate 4 dynamic, context-aware follow-up suggestions based on the current
+    conversation stage, latest user query, and AI response.
+    """
+    clean_msg = security_service.sanitize_input(payload.message) if payload.message else ""
+    clean_ans = security_service.sanitize_input(payload.answer) if payload.answer else ""
+
+    res = suggestion_service.generate_context_suggestions(
+        message=clean_msg,
+        answer=clean_ans,
+        conversation_history=payload.history,
+        language=payload.language or "en",
+        exclude=payload.current_suggestions,
+        refresh=bool(payload.refresh)
+    )
+    return {
+        "success": True,
+        "topic": res.get("topic", "Suggested Topics"),
+        "suggestions": res.get("suggestions", [])
+    }
 
 @router.get("/chat/sessions")
 @router.get("/chats")

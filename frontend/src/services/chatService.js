@@ -32,7 +32,7 @@ export const chatService = {
   /**
    * Stream message via SSE for real-time ChatGPT-like typing response
    */
-  async streamMessage(payload, { onChunk, onDone, onError, signal }) {
+  async streamMessage(payload, { onChunk, onSuggestions, onDone, onError, signal }) {
     try {
       const response = await fetch(`${API_BASE_URL}/chat/stream`, {
         method: 'POST',
@@ -73,6 +73,8 @@ export const chatService = {
             const parsed = JSON.parse(dataStr);
             if (parsed.token && onChunk) {
               onChunk(cleanTextEncoding(parsed.token));
+            } else if (parsed.suggestions && onSuggestions) {
+              onSuggestions(parsed.suggestions, parsed.topic);
             }
           } catch (e) {
             // Ignore non-json or malformed chunks
@@ -221,11 +223,22 @@ export const chatService = {
     const res = await api.get('/system/status');
     return res?.data ?? res;
   },
+
+  async fetchSuggestions(payload) {
+    try {
+      const res = await api.post('/chat/suggestions', payload);
+      return res?.data ?? res;
+    } catch (err) {
+      console.warn('Failed to fetch chat suggestions:', err);
+      return { success: false, suggestions: [] };
+    }
+  },
 };
 
 // Standalone function exports for direct imports
 export const sendMessage = (payload) => chatService.sendMessage(payload);
 export const streamMessage = (payload, callbacks) => chatService.streamMessage(payload, callbacks);
+export const fetchChatSuggestions = (payload) => chatService.fetchSuggestions(payload);
 export const fetchChatSessions = () => chatService.getChatSessions();
 export const searchChatSessions = (query) => chatService.searchChatSessions(query);
 export const fetchChatSession = (id) => chatService.getChatById(id);
