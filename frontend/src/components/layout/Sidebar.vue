@@ -80,34 +80,6 @@
         </div>
       </div>
 
-      <!-- Cambodia Service Categories -->
-      <div class="px-2 pt-1 pb-1 shrink-0 border-b border-zinc-200/60 dark:border-zinc-800/60">
-        <button
-          type="button"
-          @click="showCategories = !showCategories"
-          class="w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer"
-        >
-          <span class="flex items-center gap-1.5">
-            <span>🇰🇭</span>
-            <span>{{ isKhmer ? 'សេវាកម្មកម្ពុជា' : 'Cambodia Services' }}</span>
-          </span>
-          <ChevronDown :size="12" :class="['transition-transform duration-200', showCategories ? 'rotate-180' : '']" />
-        </button>
-
-        <div v-show="showCategories" class="mt-1 space-y-0.5 max-h-40 overflow-y-auto scrollbar-thin pb-1">
-          <button
-            v-for="cat in cambodiaCategories"
-            :key="cat.id"
-            @click="handleSelectCategory(cat)"
-            type="button"
-            class="w-full flex items-center space-x-2 px-2 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors text-left cursor-pointer group"
-          >
-            <component :is="cat.icon" :size="13" class="shrink-0 text-zinc-400 group-hover:text-zinc-800 dark:group-hover:text-zinc-200 transition-colors" />
-            <span class="truncate">{{ isKhmer ? cat.nameKm : cat.nameEn }}</span>
-          </button>
-        </div>
-      </div>
-
       <!-- Conversation History List (Scrolls independently) -->
       <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1 min-h-0 scrollbar-thin">
         <div v-if="filteredSessions.length === 0" class="py-8 text-center text-zinc-400 text-xs">
@@ -233,11 +205,10 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, markRaw } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import {
   Plus, Search, MessageSquare, Pencil, Trash2, Check, X,
-  Settings, PanelLeftClose, ChevronDown, Landmark, Languages,
-  Briefcase, GraduationCap, Building2, Cpu
+  Settings, PanelLeftClose
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -275,66 +246,7 @@ const emit = defineEmits([
   'delete-session',
   'rename-session',
   'open-settings',
-  'select-category',
 ]);
-
-const showCategories = ref(true);
-
-const cambodiaCategories = [
-  {
-    id: 'tourism',
-    icon: markRaw(Landmark),
-    nameEn: 'Tourism & Travel',
-    nameKm: 'ទេសចរណ៍ & ដំណើរកម្សាន្ត',
-    promptEn: 'Plan a 3-day trip to Siem Reap with travel recommendations and itinerary.',
-    promptKm: 'សូមរៀបចំគម្រោងដំណើរកម្សាន្ត ៣ ថ្ងៃនៅសៀមរាប ជាមួយការណែនាំទីកន្លែង និងកញ្ចប់ថវិកា។'
-  },
-  {
-    id: 'language',
-    icon: markRaw(Languages),
-    nameEn: 'Khmer Language',
-    nameKm: 'ភាសាខ្មែរ & ការបកប្រែ',
-    promptEn: 'Translate Khmer to English and explain formal writing nuance: "សូមគោរពជម្រាបសួរលោកប្រធាន"',
-    promptKm: 'ជួយណែនាំទម្រង់លិខិតរដ្ឋបាលផ្លូវការជាភាសាខ្មែរ តាមក្បួនអក្ខរាវិរុទ្ធវចនានុក្រមសម្ដេចសង្ឃរាជ ជួន ណាត។'
-  },
-  {
-    id: 'business',
-    icon: markRaw(Briefcase),
-    nameEn: 'Business & Economy',
-    nameKm: 'ធុរកិច្ច & សេដ្ឋកិច្ច',
-    promptEn: 'Explain Cambodian business registration procedures via CamDX and tax obligations.',
-    promptKm: 'ពន្យល់ពីនីតិវិធីនៃការចុះបញ្ជីអាជីវកម្មតាម CamDX និងកាតព្វកិច្ចពន្ធដារនៅកម្ពុជា។'
-  },
-  {
-    id: 'education',
-    icon: markRaw(GraduationCap),
-    nameEn: 'Education & Research',
-    nameKm: 'ការអប់រំ & ការស្រាវជ្រាវ',
-    promptEn: 'Provide a Grade 12 BacII study guide for mathematics and Cambodian science curriculum.',
-    promptKm: 'ជួយណែនាំវិធីសាស្ត្ររៀបចំប្រឡងសញ្ញាបត្រមធ្យមសិក្សាទុតិយភូមិ (បាក់ឌុប) ថ្នាក់ទី ១២ និងមុខវិជ្ជាស្នូល។'
-  },
-  {
-    id: 'government',
-    icon: markRaw(Building2),
-    nameEn: 'Public Services',
-    nameKm: 'រដ្ឋបាល & សេវាសាធារណៈ',
-    promptEn: 'Find official Cambodian government information regarding passport issuance and e-Visa.',
-    promptKm: 'ស្វែងរកព័ត៌មានផ្លូវការអំពីការធ្វើលិខិតឆ្លងដែនខ្មែរ (GDI) និងទិដ្ឋាការអេឡិចត្រូនិក e-Visa។'
-  },
-  {
-    id: 'technology',
-    icon: markRaw(Cpu),
-    nameEn: 'Technology & AI',
-    nameKm: 'បច្ចេកវិទ្យា & AI',
-    promptEn: 'Build an AI application with Laravel, Vue.js, and Bakong KHQR payment integration.',
-    promptKm: 'របៀបបង្កើតកម្មវិធី AI ដោយប្រើ Laravel, Vue.js និងការតភ្ជាប់ជាមួយប្រព័ន្ធ Bakong KHQR Open API។'
-  }
-];
-
-const handleSelectCategory = (cat) => {
-  const prompt = isKhmer.value ? cat.promptKm : cat.promptEn;
-  emit('select-category', prompt);
-};
 
 const searchQuery = ref('');
 const editingSessionId = ref(null);

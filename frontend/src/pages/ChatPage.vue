@@ -147,7 +147,7 @@ import { ref, computed, watch, onMounted, onUnmounted, markRaw } from 'vue';
 import {
   Sparkles, RotateCcw, Landmark, Utensils, Calendar,
   Coins, Sun, MapPin, Code, Calculator, Languages, Briefcase,
-  Building2, GraduationCap
+  Building2, GraduationCap, Compass, Palmtree
 } from 'lucide-vue-next';
 import Header from '../components/layout/Header.vue';
 import Sidebar from '../components/layout/Sidebar.vue';
@@ -212,24 +212,28 @@ const handleCategorySelect = (prompt) => {
 
 const enWelcomePromptsPool = [
   { id: 'itinerary', icon: markRaw(Calendar), title: 'Plan a 3-day trip to Siem Reap', prompt: 'Plan a 3-day trip to Siem Reap with travel recommendations, cultural sites, and estimated budget.' },
-  { id: 'business', icon: markRaw(Briefcase), title: 'Explain Cambodian business registration', prompt: 'Explain Cambodian business registration procedures via CamDX and Ministry of Commerce requirements.' },
-  { id: 'translate', icon: markRaw(Languages), title: 'Translate Khmer to English', prompt: 'Translate this Khmer text to natural English with cultural nuance: "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
-  { id: 'history', icon: markRaw(Landmark), title: 'Learn about Cambodian history', prompt: 'Learn about Cambodian history from the early Funan and Chenla kingdoms through the Angkorian Golden Age.' },
-  { id: 'laravel_ai', icon: markRaw(Code), title: 'Build an AI application with Laravel', prompt: 'Build an AI application with Laravel, Vue.js, and Bakong KHQR digital payment integration.' },
-  { id: 'government', icon: markRaw(Building2), title: 'Find official Cambodian government information', prompt: 'Find official Cambodian government information regarding passport issuance, e-Visa, and driver license procedures.' },
-  { id: 'math', icon: markRaw(Calculator), title: 'Explain Gradient Descent step-by-step', prompt: 'Explain the mathematical foundation of Gradient Descent and show how to compute the derivative step by step.' },
-  { id: 'provinces', icon: markRaw(MapPin), title: 'Cambodia 25 Administrative Divisions', prompt: 'Give an overview of the 25 administrative divisions of Cambodia (24 provinces and Phnom Penh) with their unique specialties.' }
+  { id: 'angkor', icon: markRaw(Landmark), title: 'Explore Angkor Wat & sunrise spots', prompt: 'What is the history, best sunrise spot, and ticket options for visiting Angkor Wat?' },
+  { id: 'phnom_penh', icon: markRaw(Landmark), title: 'Discover Phnom Penh highlights', prompt: 'What are the top attractions, Royal Palace hours, and riverfront sights in Phnom Penh?' },
+  { id: 'islands', icon: markRaw(Palmtree), title: 'Koh Rong & island paradise getaways', prompt: 'How do I travel to Koh Rong, and what are the best beaches and speed ferries?' },
+  { id: 'food', icon: markRaw(Utensils), title: 'Authentic Khmer dishes & street food', prompt: 'What authentic Khmer dishes like Fish Amok, Lok Lak, and pepper crab are must-try?' },
+  { id: 'kampot', icon: markRaw(MapPin), title: 'Kep crab market & Bokor Mountain', prompt: 'Tell me about fresh Kampot pepper crab in Kep and visiting Bokor National Park.' },
+  { id: 'battambang', icon: markRaw(Compass), title: 'Battambang Bamboo Train & bat caves', prompt: 'Tell me about the Bamboo Train, French colonial heritage, and bat caves in Battambang.' },
+  { id: 'budget', icon: markRaw(Coins), title: 'Cambodia travel budget & currency tips', prompt: 'What should I know about travel costs, currency exchange (USD vs Riel), and tipping in Cambodia?' },
+  { id: 'mondulkiri', icon: markRaw(MapPin), title: 'Mondulkiri waterfalls & eco-tourism', prompt: 'What are the top waterfalls, elephant sanctuaries, and eco-tourism spots in Mondulkiri?' },
+  { id: 'weather', icon: markRaw(Sun), title: 'Best time to visit Cambodia & seasons', prompt: 'What is the best time of year to visit Cambodia in terms of weather, seasons, and festivals?' }
 ];
 
 const kmWelcomePromptsPool = [
   { id: 'itinerary', icon: markRaw(Calendar), title: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប រួមទាំងប្រាសាទបុរាណ ការស្នាក់នៅ និងការប៉ាន់ស្មានថវិកា។' },
-  { id: 'business', icon: markRaw(Briefcase), title: 'ពន្យល់ពីការចុះបញ្ជីអាជីវកម្មនៅកម្ពុជា', prompt: 'ពន្យល់ពីនីតិវិធីនៃការចុះបញ្ជីអាជីវកម្មនៅកម្ពុជា តាមប្រព័ន្ធ CamDX និងក្រសួងពាណិជ្ជកម្ម។' },
-  { id: 'translate', icon: markRaw(Languages), title: 'បកប្រែភាសាខ្មែរទៅជាអង់គ្លេស', prompt: 'បកប្រែអត្ថបទខ្មែរនេះទៅជាភាសាអង់គ្លេសតាមបែបធម្មជាតិ៖ "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
-  { id: 'history', icon: markRaw(Landmark), title: 'ស្វែងយល់អំពីប្រវត្តិសាស្ត្រខ្មែរ', prompt: 'រៀបរាប់អំពីប្រវត្តិសាស្ត្រខ្មែរ ចាប់តាំងពីសម័យហ្វូណន ចេនឡា រហូតដល់សម័យមហានគរដ៏រុងរឿង។' },
-  { id: 'laravel_ai', icon: markRaw(Code), title: 'បង្កើតកម្មវិធី AI ជាមួយ Laravel', prompt: 'ជួយណែនាំពីរបៀបបង្កើតកម្មវិធី AI ដោយប្រើ Laravel, Vue.js និងការតភ្ជាប់ Bakong KHQR។' },
-  { id: 'government', icon: markRaw(Building2), title: 'ស្វែងរកព័ត៌មានរដ្ឋបាល និងសេវាសាធារណៈ', prompt: 'ស្វែងរកព័ត៌មានរដ្ឋបាលផ្លូវការអំពីការធ្វើលិខិតឆ្លងដែន ទិដ្ឋាការ e-Visa និងបណ្ណបើកបរ។' },
-  { id: 'math', icon: markRaw(Calculator), title: 'គណិតវិទ្យា និង Algorithm', prompt: 'ជួយពន្យល់ពីគោលការណ៍ក្បួនដោះស្រាយ (Algorithm) និងភាពស្មុគស្មាញ Big-O notation។' },
-  { id: 'provinces', icon: markRaw(MapPin), title: 'រាជធានី-ខេត្តទាំង ២៥ នៃកម្ពុជា', prompt: 'សូមរៀបរាប់សង្ខេបអំពីរាជធានី-ខេត្តទាំង ២៥ នៅកម្ពុជា រួមទាំងសក្តានុពលសេដ្ឋកិច្ច និងទេសចរណ៍។' }
+  { id: 'angkor', icon: markRaw(Landmark), title: 'ទស្សនាប្រាសាទអង្គរវត្ត និងមើលថ្ងៃរះ', prompt: 'តើប្រវត្តិសាស្ត្រអង្គរវត្ត កន្លែងមើលថ្ងៃរះ និងតម្លៃសំបុត្រទស្សនាមានអ្វីខ្លះ?' },
+  { id: 'phnom_penh', icon: markRaw(Landmark), title: 'ដើរលេងរាជធានីភ្នំពេញ និងព្រះបរមរាជវាំង', prompt: 'តើនៅភ្នំពេញមានកន្លែងកម្សាន្ត ព្រះបរមរាជវាំង និងមាត់ទន្លេណាខ្លះគួរទៅដើរលេង?' },
+  { id: 'islands', icon: markRaw(Palmtree), title: 'ដំណើរកម្សាន្តកោះរ៉ុង និងឆ្នេរសមុទ្រ', prompt: 'តើត្រូវធ្វើដំណើរទៅកោះរ៉ុងយ៉ាងដូចម្តេច និងមានឆ្នេរខ្សាច់ណាស្អាតខ្លះ?' },
+  { id: 'food', icon: markRaw(Utensils), title: 'ម្ហូបខ្មែរប្រពៃណី និងអាមុកត្រីឆ្ងាញ់ៗ', prompt: 'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដូចជាអាមុក ឡុកឡាក់ និងក្តាមឆាម្រេចដែលត្រូវតែភ្លក្ស?' },
+  { id: 'kampot', icon: markRaw(MapPin), title: 'ក្តាមឆាម្រេចខ្ចីនៅកែប និងភ្នំបូកគោ', prompt: 'សូមប្រាប់អំពីក្តាមឆាម្រេចខ្ចីនៅកែប និងការដើរលេងឧទ្យានជាតិភ្នំបូកគោ ខេត្តកំពត។' },
+  { id: 'battambang', icon: markRaw(Compass), title: 'ជិះឡូរី និងមើលហ្វូងប្រចៀវបាត់ដំបង', prompt: 'សូមណែនាំដំណើរកម្សាន្តជិះឡូរីបាត់ដំបង និងទស្សនាហ្វូងប្រចៀវរាប់លាននៅភ្នំសំពៅ។' },
+  { id: 'budget', icon: markRaw(Coins), title: 'ការប៉ាន់ស្មានថវិកា និងការចាយប្រាក់រៀល', prompt: 'តើការចាយវាយថវិកាដើរលេង និងការចាយប្រាក់រៀលធៀបដុល្លារនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?' },
+  { id: 'mondulkiri', icon: markRaw(MapPin), title: 'ទឹកធ្លាក់ប៊ូស្រា និងទេសចរណ៍មណ្ឌលគិរី', prompt: 'តើដំណើរកម្សាន្តទៅមណ្ឌលគិរី ទឹកធ្លាក់ប៊ូស្រា និងជម្រកដំរីមានអ្វីគួរចាប់អារម្មណ៍?' },
+  { id: 'weather', icon: markRaw(Sun), title: 'រដូវកាលល្អបំផុតសម្រាប់ដើរលេងនៅកម្ពុជា', prompt: 'តើរដូវកាលណាដែលល្អបំផុតសម្រាប់ធ្វើដំណើរកម្សាន្តនៅប្រទេសកម្ពុជា?' }
 ];
 
 const currentWelcomePrompts = ref([]);

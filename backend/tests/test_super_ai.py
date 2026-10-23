@@ -330,61 +330,61 @@ def test_smart_context_aware_suggestions_tourism_progression():
     joined2 = " ".join(res2["suggestions"]).lower()
     assert any(w in joined2 for w in ["history", "ticket", "pass", "sunrise", "nearby", "temple"])
 
-def test_smart_context_aware_suggestions_business_progression():
-    """Verify context-aware suggestion progression for Cambodian business (Startup -> CamDX Registration)."""
+def test_smart_context_aware_suggestions_islands_and_coastal_progression():
+    """Verify context-aware suggestion progression for Cambodian coastal destinations (Koh Rong -> Kampot & Kep)."""
     from app.services.suggestion_service import suggestion_service
 
-    # Step 1: User asks about starting a business in Cambodia
+    # Step 1: User asks about Koh Rong beach vacation
     res1 = suggestion_service.generate_context_suggestions(
-        message="I want to start a business in Cambodia",
-        answer="Cambodia has a vibrant economy with CamDX Single Portal for business registration...",
+        message="What are the best beaches on Koh Rong island?",
+        answer="Koh Rong is famous for its white sand beaches, turquoise waters, and vibrant island life...",
         language="en"
     )
     assert len(res1["suggestions"]) == 4
-    assert "Business" in res1["topic"]
+    assert "Coastal" in res1["topic"] or "Beach" in res1["topic"] or "ឆ្នេរ" in res1["topic"]
     joined1 = " ".join(res1["suggestions"]).lower()
-    assert any(w in joined1 for w in ["registration", "cost", "tax", "plan", "camdx"])
+    assert any(w in joined1 for w in ["ferry", "beach", "crab", "pepper", "bokor", "island", "sanloem"])
 
-    # Step 2: Follow-up on registration procedures
+    # Step 2: Follow-up on Kampot and Kep
     res2 = suggestion_service.generate_context_suggestions(
-        message="Understand business registration procedures",
-        answer="Registration is conducted through the CamDX Single Portal involving MoC, GDT, and MoLVT...",
+        message="Tell me about fresh crab and pepper in Kampot and Kep",
+        answer="Kep is world-famous for its Crab Market where fresh blue swimmer crabs are cooked with green Kampot pepper...",
         language="en",
         history=[
-            {"role": "user", "content": "I want to start a business in Cambodia"},
-            {"role": "assistant", "content": "Cambodia has a vibrant economy with CamDX Single Portal..."}
+            {"role": "user", "content": "What are the best beaches on Koh Rong island?"},
+            {"role": "assistant", "content": "Koh Rong is famous for its white sand beaches..."}
         ]
     )
     assert len(res2["suggestions"]) == 4
     joined2 = " ".join(res2["suggestions"]).lower()
-    assert any(w in joined2 for w in ["camdx", "authority", "documents", "fee", "tax", "gdt", "steps"])
+    assert any(w in joined2 for w in ["crab", "pepper", "bokor", "ferry", "island", "market"])
 
-def test_smart_context_aware_suggestions_tech_and_rag():
-    """Verify context-aware suggestions for programming & AI (Laravel AI -> RAG & Vector DB)."""
+def test_smart_context_aware_suggestions_food_and_nature_progression():
+    """Verify context-aware suggestions for authentic Khmer cuisine and eco-tourism."""
     from app.services.suggestion_service import suggestion_service
 
-    # Step 1: Building AI app with Laravel
+    # Step 1: Authentic Khmer food
     res1 = suggestion_service.generate_context_suggestions(
-        message="Building an AI application with Laravel and Vue",
-        answer="You can structure a Laravel backend using service classes and integrate LLM APIs...",
+        message="What authentic Khmer dishes should I try in Cambodia?",
+        answer="Must-try traditional Cambodian dishes include Fish Amok steamed in banana leaves, Beef Lok Lak...",
         language="en"
     )
     assert len(res1["suggestions"]) == 4
     joined1 = " ".join(res1["suggestions"]).lower()
-    assert any(w in joined1 for w in ["architecture", "api", "history", "rag", "database"])
+    assert any(w in joined1 for w in ["amok", "lok lak", "noodles", "market", "cooking", "curry"])
 
-    # Step 2: Add RAG
+    # Step 2: Eco-tourism in Mondulkiri
     res2 = suggestion_service.generate_context_suggestions(
-        message="Add RAG Retrieval-Augmented Generation",
-        answer="RAG involves chunking documents, embedding them into a vector database, and querying top-k...",
+        message="Tell me about Bousra waterfall and elephant sanctuaries in Mondulkiri",
+        answer="Mondulkiri is an eco-tourism hub with the double-drop Bousra Waterfall and community elephant sanctuaries...",
         language="en",
         history=[
-            {"role": "user", "content": "Building an AI application with Laravel and Vue"}
+            {"role": "user", "content": "What authentic Khmer dishes should I try in Cambodia?"}
         ]
     )
     assert len(res2["suggestions"]) == 4
     joined2 = " ".join(res2["suggestions"]).lower()
-    assert any(w in joined2 for w in ["vector", "chunk", "embedding", "retrieve", "context"])
+    assert any(w in joined2 for w in ["bousra", "waterfall", "elephant", "yeak laom", "lake", "nature"])
 
 def test_smart_context_aware_suggestions_khmer_language():
     """Verify natural Khmer suggestions when user is communicating in Khmer."""

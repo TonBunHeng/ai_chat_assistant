@@ -367,31 +367,33 @@ const hasSpecializedCard = computed(() => {
 });
 
 const enTopicsPool = [
-  { id: 'code', icon: markRaw(Code), title: 'Write a Python FastAPI web service', prompt: 'Write a clean, production-ready Python FastAPI web service with authentication and database models.' },
-  { id: 'math', icon: markRaw(Calculator), title: 'Solve complex math & statistics', prompt: 'Explain the mathematical foundation of Gradient Descent and show how to compute the derivative step by step.' },
-  { id: 'cambodia_history', icon: markRaw(Landmark), title: 'Angkor Empire & King Jayavarman VII', prompt: 'Tell me about the history of the Khmer Empire and the accomplishments of King Jayavarman VII.' },
-  { id: 'translation', icon: markRaw(Languages), title: 'Translate Khmer to English accurately', prompt: 'Translate this text into natural English: "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
-  { id: 'business', icon: markRaw(Briefcase), title: 'Starting a tech startup in Cambodia', prompt: 'What are the legal steps, opportunities, and digital payment ecosystems for launching a tech startup in Cambodia?' },
-  { id: 'provinces', icon: markRaw(MapPin), title: '25 Provinces of Cambodia overview', prompt: 'Give an overview of the 25 administrative divisions of Cambodia (24 provinces and Phnom Penh) with their unique specialties.' },
-  { id: 'currency', icon: markRaw(Coins), title: 'Currency & USD vs Riel tips', prompt: 'What should I know about Cambodian currency, exchange rates, and tipping culture?' },
-  { id: 'itinerary', icon: markRaw(Calendar), title: '3-Day Siem Reap cultural itinerary', prompt: 'Create a 3-day Siem Reap cultural itinerary' },
-  { id: 'crab', icon: markRaw(Utensils), title: 'Fresh Kampot pepper crab in Kep', prompt: 'Tell me about fresh Kampot pepper crab in Kep' },
-  { id: 'nature', icon: markRaw(MapPin), title: 'Bokor National Park in Kampot', prompt: 'What can I explore at Bokor National Park in Kampot?' },
-  { id: 'food', icon: markRaw(Utensils), title: 'Must-try authentic Khmer dishes', prompt: 'What authentic Khmer dishes are must-try in Cambodia?' },
-  { id: 'sunrise', icon: markRaw(Sun), title: 'Best time for Angkor Wat sunrise', prompt: 'What is the best time and spot for Angkor Wat sunrise?' }
+  { id: 'angkor_wat', icon: markRaw(Landmark), title: 'Explore Angkor Wat & ancient temples', prompt: 'Tell me about the history, architecture, and sunrise spots at Angkor Wat.' },
+  { id: 'itinerary', icon: markRaw(Calendar), title: '3-Day Siem Reap cultural itinerary', prompt: 'Create a 3-day Siem Reap cultural itinerary with top temples, costs, and tips.' },
+  { id: 'phnom_penh', icon: markRaw(Landmark), title: 'Phnom Penh Royal Palace & riverfront', prompt: 'What are the top attractions and riverside experiences to explore in Phnom Penh?' },
+  { id: 'islands', icon: markRaw(Palmtree), title: 'Koh Rong & tropical white-sand beaches', prompt: 'Tell me about speed ferries, resorts, and beaches on Koh Rong and Koh Rong Sanloem.' },
+  { id: 'crab', icon: markRaw(Utensils), title: 'Fresh Kampot pepper crab in Kep', prompt: 'Tell me about fresh Kampot pepper crab in Kep and visiting Kep Crab Market.' },
+  { id: 'nature', icon: markRaw(MapPin), title: 'Bokor National Park in Kampot', prompt: 'What can I explore at Bokor National Park and the historic hill station in Kampot?' },
+  { id: 'battambang', icon: markRaw(Compass), title: 'Battambang Bamboo Train & bat caves', prompt: 'Tell me about the Bamboo Train, colonial architecture, and bat caves in Battambang.' },
+  { id: 'mondulkiri', icon: markRaw(MapPin), title: 'Mondulkiri waterfalls & eco-tourism', prompt: 'What are the top eco-tourism spots, elephant sanctuaries, and waterfalls in Mondulkiri?' },
+  { id: 'food', icon: markRaw(Utensils), title: 'Must-try authentic Khmer dishes & Amok', prompt: 'What authentic Khmer dishes like Fish Amok, Lok Lak, and Nom Banh Chok are must-try?' },
+  { id: 'currency', icon: markRaw(Coins), title: 'Cambodia travel budget & USD vs Riel', prompt: 'What should I know about Cambodian currency, exchange rates, and tipping culture?' },
+  { id: 'provinces', icon: markRaw(MapPin), title: '25 Provinces of Cambodia overview', prompt: 'Give an overview of the 25 administrative divisions of Cambodia with their top travel spots.' },
+  { id: 'sunrise', icon: markRaw(Sun), title: 'Best time for Angkor Wat sunrise & weather', prompt: 'What is the best time and spot for Angkor Wat sunrise and best travel seasons?' }
 ];
 
 const kmTopicsPool = [
-  { id: 'code', icon: markRaw(Code), title: 'សរសេរកូដ Python និង Web API', prompt: 'ជួយពន្យល់ និងសរសេរកូដ Python FastAPI សម្រាប់បង្កើត REST API ដោយមាន database និង authentication។' },
-  { id: 'math', icon: markRaw(Calculator), title: 'គណិតវិទ្យា និងវិទ្យាសាស្ត្រកុំព្យូទ័រ', prompt: 'ជួយពន្យល់ពីគោលការណ៍ក្បួនដោះស្រាយ (Algorithm) និងភាពស្មុគស្មាញ Big-O notation។' },
-  { id: 'cambodia_history', icon: markRaw(Landmark), title: 'ប្រវត្តិសាស្ត្រអាណាចក្រខ្មែរ និងព្រះបាទជ័យវរ្ម័នទី ៧', prompt: 'សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រសម័យអង្គរដ៏រុងរឿង និងស្នាព្រះហស្តព្រះបាទជ័យវរ្ម័នទី ៧។' },
-  { id: 'translation', icon: markRaw(Languages), title: 'បកប្រែភាសាអង់គ្លេស-ខ្មែរ ត្រឹមត្រូវតាមក្បួន', prompt: 'ជួយបកប្រែអត្ថបទនេះទៅជាភាសាខ្មែរផ្លូវការ៖ "Artificial intelligence empowers modern digital economies and innovation."' },
-  { id: 'business', icon: markRaw(Briefcase), title: 'ការបង្កើតអាជីវកម្ម និងប្រព័ន្ធទូទាត់បាគង', prompt: 'តើការចុះបញ្ជីអាជីវកម្ម និងការរួមបញ្ចូលប្រព័ន្ធទូទាត់បាគង (Bakong KHQR) នៅកម្ពុជាមានជំហានអ្វីខ្លះ?' },
-  { id: 'provinces', icon: markRaw(MapPin), title: 'រាជធានី-ខេត្តទាំង ២៥ នៃកម្ពុជា', prompt: 'សូមរៀបរាប់សង្ខេបអំពីរាជធានី-ខេត្តទាំង ២៥ នៅកម្ពុជា រួមទាំងសក្តានុពលសេដ្ឋកិច្ច និងទេសចរណ៍។' },
+  { id: 'angkor_wat', icon: markRaw(Landmark), title: 'ស្វែងយល់ពីប្រាសាទអង្គរវត្ត និងប្រវត្តិសាស្ត្រ', prompt: 'សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រ ស្ថាបត្យកម្ម និងកន្លែងមើលថ្ងៃរះស្អាតបំផុតនៅអង្គរវត្ត។' },
+  { id: 'itinerary', icon: markRaw(Calendar), title: 'គម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប រួមទាំងការស្នាក់នៅ ម្ហូបអាហារ និងកញ្ចប់ថវិកា។' },
+  { id: 'phnom_penh', icon: markRaw(Landmark), title: 'ដើរលេងរាជធានីភ្នំពេញ និងព្រះបរមរាជវាំង', prompt: 'តើនៅភ្នំពេញមានកន្លែងកម្សាន្ត និងសារមន្ទីរប្រវត្តិសាស្ត្រណាខ្លះដែលគួរទៅទស្សនា?' },
+  { id: 'islands', icon: markRaw(Palmtree), title: 'កោះរ៉ុង និងឆ្នេរខ្សាច់សកម្សាន្ត', prompt: 'ស្វែងយល់ពីដំណើរកម្សាន្តទៅកាន់កោះរ៉ុង និងកោះរ៉ុងសន្លឹម រួមទាំងអូប័រល្បឿនលឿន។' },
+  { id: 'crab', icon: markRaw(Utensils), title: 'ក្តាមឆាម្រេចខ្ចីនៅកែប', prompt: 'តើក្តាមឆាម្រេចខ្ចីនៅកែប និងចម្ការម្រេចកំពតមានអ្វីពិសេស?' },
+  { id: 'nature', icon: markRaw(MapPin), title: 'ឧទ្យានជាតិភ្នំបូកគោ ខេត្តកំពត', prompt: 'តើការឡើងកម្សាន្តលើភ្នំបូកគោមានតំបន់ទេសចរណ៍ និងសំណង់ប្រវត្តិសាស្ត្រណាខ្លះ?' },
+  { id: 'battambang', icon: markRaw(Compass), title: 'ជិះឡូរីបាត់ដំបង និងទស្សនាល្អាងប្រចៀវ', prompt: 'សូមណែនាំដំណើរកម្សាន្តជិះឡូរី (Bamboo Train) និងមើលហ្វូងប្រចៀវនៅភ្នំសំពៅ បាត់ដំបង។' },
+  { id: 'mondulkiri', icon: markRaw(MapPin), title: 'ទឹកធ្លាក់ប៊ូស្រា និងទេសចរណ៍មណ្ឌលគិរី', prompt: 'តើដំណើរកម្សាន្តទៅមណ្ឌលគិរី ទឹកធ្លាក់ប៊ូស្រា និងជម្រកដំរីមានអ្វីគួរចាប់អារម្មណ៍?' },
+  { id: 'food', icon: markRaw(Utensils), title: 'ម្ហូបខ្មែរប្រពៃណី និងអាមុកត្រីមិនគួររំលង', prompt: 'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង ដូចជាអាមុក ឡុកឡាក់ និងនំបញ្ចុក?' },
   { id: 'currency', icon: markRaw(Coins), title: 'ការចាយលុយដុល្លារ និងប្រាក់រៀល', prompt: 'តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?' },
-  { id: 'itinerary', icon: markRaw(Calendar), title: 'គម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប' },
-  { id: 'crab', icon: markRaw(Utensils), title: 'ក្តាមឆាម្រេចខ្ចីនៅកែប', prompt: 'តើក្តាមឆាម្រេចខ្ចីនៅកែបមានរសជាតិយ៉ាងណា?' },
-  { id: 'food', icon: markRaw(Utensils), title: 'ម្ហូបខ្មែរប្រពៃណីមិនគួររំលង', prompt: 'តើម្ហូបខ្មែរប្រពៃណីណាខ្លះដែលមិនគួររំលង?' }
+  { id: 'provinces', icon: markRaw(MapPin), title: 'រាជធានី-ខេត្តទាំង ២៥ នៃកម្ពុជា', prompt: 'សូមរៀបរាប់សង្ខេបអំពីរាជធានី-ខេត្តទាំង ២៥ នៅកម្ពុជា រួមទាំងសក្តានុពលទេសចរណ៍។' },
+  { id: 'sunrise', icon: markRaw(Sun), title: 'ពេលវេលាល្អបំផុតមើលថ្ងៃរះអង្គរវត្ត', prompt: 'តើពេលវេលា និងទីតាំងណាដែលល្អបំផុតសម្រាប់ទស្សនាថ្ងៃរះនៅអង្គរវត្ត?' }
 ];
 
 const displayTopicTitle = computed(() => {
