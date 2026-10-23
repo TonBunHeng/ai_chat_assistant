@@ -1,8 +1,9 @@
 <template>
-  <div class="flex flex-col h-screen bg-[#fbfbfb] dark:bg-[#18181b] text-zinc-900 dark:text-zinc-100 transition-colors duration-200 overflow-hidden font-sans">
+  <div class="flex flex-col h-screen h-[100dvh] bg-[#fbfbfb] dark:bg-[#18181b] text-zinc-900 dark:text-zinc-100 transition-colors duration-200 overflow-hidden font-sans">
     
-    <!-- Top Header Navigation -->
+    <!-- Top Header Navigation (Fixed top shell) -->
     <Header
+      class="shrink-0"
       :sidebar-open="isSidebarOpen"
       :language="language"
       :is-online="isOnline"
@@ -14,7 +15,7 @@
     />
 
     <!-- Main Container with Sidebar + Chat Area -->
-    <div class="flex flex-1 overflow-hidden relative">
+    <div class="flex flex-1 min-h-0 overflow-hidden relative">
       
       <!-- Collapsible ChatGPT-style Sidebar -->
       <Sidebar
@@ -33,73 +34,75 @@
         @open-settings="isSettingsOpen = true"
       />
 
-      <!-- Conversation Viewport -->
-      <main class="flex-1 flex flex-col h-full min-w-0 bg-[#fbfbfb] dark:bg-[#18181b] relative">
+      <!-- Conversation Viewport (Beside sidebar on desktop, full-width on mobile) -->
+      <main class="flex-1 flex flex-col h-full min-w-0 bg-[#fbfbfb] dark:bg-[#18181b] overflow-hidden relative">
         
         <!-- Welcome Screen (when conversation is empty) -->
         <div
           v-if="messages.length === 0"
-          class="flex-1 flex flex-col items-center justify-center px-4 max-w-3xl mx-auto w-full -mt-8 sm:-mt-12 animate-fade-in"
+          class="flex-1 overflow-y-auto px-4 py-8 flex flex-col items-center justify-center min-h-0 animate-fade-in"
         >
-          <!-- Hero Badge & Title -->
-          <div class="text-center mb-6 max-w-xl">
-            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3 shadow-2xs">
-              <span>🇰🇭</span>
-              <span>{{ isKhmer ? 'ជំនួយការឆ្លាតវៃកម្ពុជា Super AI' : 'Cambodia Super AI Assistant' }}</span>
-            </div>
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
-              {{ isKhmer ? 'តើខ្ញុំអាចជួយដោះស្រាយ ឬស្វែងយល់អ្វីជូនអ្នកនៅថ្ងៃនេះ?' : 'What can I help you explore or solve today?' }}
-            </h1>
-            <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-2 max-w-md mx-auto">
-              {{ isKhmer ? 'ឆ្លើយតបសំណួរទូទៅ សរសេរកូដ គណិតវិទ្យា ការបកប្រែ និងឯកទេសពេញលេញអំពីកម្ពុជា' : 'General intelligence, programming, math, translation, and deep Cambodia expertise.' }}
-            </p>
-          </div>
-
-          <!-- Centered Input Pill -->
-          <div class="w-full max-w-2xl">
-            <ChatInput
-              @send-message="handleSendMessage"
-              @stop-generating="handleStopGenerating"
-              :is-loading="isLoading"
-              :language="language"
-              :is-centered="true"
-            />
-          </div>
-
-          <!-- Quick Starter Prompts -->
-          <div class="mt-6 w-full max-w-2xl px-1 animate-fade-in">
-            <div class="flex items-center justify-between mb-2 px-1">
-              <span class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles :size="12" class="text-amber-500" />
-                <span>{{ isKhmer ? 'ប្រធានបទណែនាំ' : 'Suggested Topics' }}</span>
-              </span>
-              <button
-                type="button"
-                @click="refreshWelcomePrompts"
-                class="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white px-2 py-0.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group active:scale-95"
-                :title="isKhmer ? 'ប្តូរសំណួរថ្មី' : 'Refresh topics'"
-              >
-                <RotateCcw
-                  :size="11"
-                  :class="['transition-transform duration-500', isRefreshingWelcome ? '-rotate-180 text-zinc-900 dark:text-white' : 'group-hover:-rotate-90']"
-                />
-                <span>{{ isKhmer ? 'ប្តូរសំណួរ' : 'Refresh' }}</span>
-              </button>
+          <div class="w-full max-w-2xl flex flex-col items-center my-auto">
+            <!-- Hero Badge & Title -->
+            <div class="text-center mb-6 max-w-xl">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3 shadow-2xs">
+                <span>🇰🇭</span>
+                <span>{{ isKhmer ? 'ជំនួយការឆ្លាតវៃកម្ពុជា Super AI' : 'Cambodia Super AI Assistant' }}</span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
+                {{ isKhmer ? 'តើខ្ញុំអាចជួយដោះស្រាយ ឬស្វែងយល់អ្វីជូនអ្នកនៅថ្ងៃនេះ?' : 'What can I help you explore or solve today?' }}
+              </h1>
+              <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-2 max-w-md mx-auto">
+                {{ isKhmer ? 'ឆ្លើយតបសំណួរទូទៅ សរសេរកូដ គណិតវិទ្យា ការបកប្រែ និងឯកទេសពេញលេញអំពីកម្ពុជា' : 'General intelligence, programming, math, translation, and deep Cambodia expertise.' }}
+              </p>
             </div>
 
-            <!-- Starter Prompt Cards Grid (2x2) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
-                v-for="(card, cIdx) in currentWelcomePrompts"
-                :key="cIdx"
-                @click="handleSendMessage(card.prompt)"
-                class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#212121] border border-zinc-200/90 dark:border-zinc-800 text-xs sm:text-[13px] text-zinc-700 dark:text-zinc-300 hover:border-zinc-400 dark:hover:border-zinc-600 hover:text-zinc-900 dark:hover:text-white shadow-2xs hover:shadow-xs transition-all duration-200 active:scale-95 cursor-pointer text-left group"
-              >
-                <div class="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-600 dark:text-zinc-400 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 transition-colors">
-                  <component :is="card.icon" :size="14" class="group-hover:scale-110 transition-transform duration-200" />
-                </div>
-                <span class="line-clamp-1 font-medium">{{ card.title }}</span>
-              </button>
+            <!-- Centered Input Pill -->
+            <div class="w-full">
+              <ChatInput
+                @send-message="handleSendMessage"
+                @stop-generating="handleStopGenerating"
+                :is-loading="isLoading"
+                :language="language"
+                :is-centered="true"
+              />
+            </div>
+
+            <!-- Quick Starter Prompts -->
+            <div class="mt-6 w-full animate-fade-in">
+              <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles :size="12" class="text-amber-500" />
+                  <span>{{ isKhmer ? 'ប្រធានបទណែនាំ' : 'Suggested Topics' }}</span>
+                </span>
+                <button
+                  type="button"
+                  @click="refreshWelcomePrompts"
+                  class="inline-flex items-center gap-1.5 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white px-2 py-0.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all cursor-pointer group active:scale-95"
+                  :title="isKhmer ? 'ប្តូរសំណួរថ្មី' : 'Refresh topics'"
+                >
+                  <RotateCcw
+                    :size="11"
+                    :class="['transition-transform duration-500', isRefreshingWelcome ? '-rotate-180 text-zinc-900 dark:text-white' : 'group-hover:-rotate-90']"
+                  />
+                  <span>{{ isKhmer ? 'ប្តូរសំណួរ' : 'Refresh' }}</span>
+                </button>
+              </div>
+
+              <!-- Starter Prompt Cards Grid (2x2) -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  v-for="(card, cIdx) in currentWelcomePrompts"
+                  :key="cIdx"
+                  @click="handleSendMessage(card.prompt)"
+                  class="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#212121] border border-zinc-200/90 dark:border-zinc-800 text-xs sm:text-[13px] text-zinc-700 dark:text-zinc-300 hover:border-zinc-400 dark:hover:border-zinc-600 hover:text-zinc-900 dark:hover:text-white shadow-2xs hover:shadow-xs transition-all duration-200 active:scale-95 cursor-pointer text-left group"
+                >
+                  <div class="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-600 dark:text-zinc-400 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 transition-colors">
+                    <component :is="card.icon" :size="14" class="group-hover:scale-110 transition-transform duration-200" />
+                  </div>
+                  <span class="line-clamp-1 font-medium">{{ card.title }}</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -179,9 +182,13 @@ const isKhmer = computed(() => language.value === 'km');
 
 const checkMobileScreen = () => {
   const mobile = window.innerWidth < 768;
-  isMobile.value = mobile;
-  if (mobile && isSidebarOpen.value) {
-    isSidebarOpen.value = false;
+  if (mobile !== isMobile.value) {
+    isMobile.value = mobile;
+    if (mobile) {
+      isSidebarOpen.value = false;
+    } else {
+      isSidebarOpen.value = true;
+    }
   }
 };
 
@@ -247,9 +254,9 @@ watch(
 const getInitialProfile = () => {
   try {
     const stored = localStorage.getItem('cambodia_ai_user_profile');
-    return stored ? JSON.parse(stored) : { name: 'Super AI User', email: '', travelStyle: 'cultural', preferredDestinations: ['siem_reap'] };
+    return stored ? JSON.parse(stored) : { name: 'Traveler', email: '', travelStyle: 'cultural', preferredDestinations: ['siem_reap'] };
   } catch (e) {
-    return { name: 'Super AI User', email: '', travelStyle: 'cultural', preferredDestinations: ['siem_reap'] };
+    return { name: 'Traveler', email: '', travelStyle: 'cultural', preferredDestinations: ['siem_reap'] };
   }
 };
 
@@ -690,7 +697,9 @@ const handleEditMessage = async ({ id, newText, index, message: origMsg }) => {
 };
 
 onMounted(() => {
-  checkMobileScreen();
+  const mobile = window.innerWidth < 768;
+  isMobile.value = mobile;
+  isSidebarOpen.value = !mobile;
   window.addEventListener('resize', checkMobileScreen);
 
   loadLocalSessions();

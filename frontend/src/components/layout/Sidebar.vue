@@ -1,24 +1,43 @@
 <template>
-  <div>
-    <!-- Mobile Backdrop Overlay -->
-    <div
-      v-if="isOpen && isMobile"
-      @click="$emit('close')"
-      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity duration-200"
-    ></div>
+  <!-- Sidebar Aside Container -->
+  <aside
+    :class="[
+      'flex flex-col h-full bg-[#fbfbfb] dark:bg-[#18181b] border-zinc-200 dark:border-zinc-800/80 select-none shrink-0 transition-all duration-300 ease-in-out',
+      // Mobile styles: fixed drawer overlay below 56px header
+      'fixed top-14 bottom-0 left-0 z-40 w-[280px] max-w-[85vw] border-r shadow-2xl',
+      isOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none',
+      // Desktop styles: in-flow collapsible sidebar beside main chat
+      'md:relative md:top-0 md:bottom-auto md:left-auto md:z-10 md:max-w-none md:shadow-none md:pointer-events-auto md:translate-x-0',
+      isOpen ? 'md:w-[280px] md:border-r' : 'md:w-0 md:border-r-0 md:overflow-hidden'
+    ]"
+  >
+    <!-- Teleported mobile backdrop attached directly to body -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="transition-opacity duration-200 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-200 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="isOpen && isMobile"
+          @click="$emit('close')"
+          class="fixed inset-x-0 top-14 bottom-0 z-30 bg-black/40 backdrop-blur-xs md:hidden cursor-pointer"
+          aria-label="Close sidebar backdrop"
+        />
+      </Transition>
+    </Teleport>
 
-    <!-- Sidebar Aside -->
-    <aside
-      :class="[
-        'fixed sm:static top-0 bottom-0 left-0 z-50 flex flex-col h-full bg-[#fbfbfb] dark:bg-[#18181b] border-r border-zinc-200 dark:border-zinc-800/80 transition-all duration-300 ease-in-out select-none',
-        isOpen ? 'w-64 sm:w-68 translate-x-0' : '-translate-x-full sm:translate-x-0 sm:w-0 sm:overflow-hidden sm:border-r-0'
-      ]"
-    >
+    <!-- Fixed-width inner column: prevents text wrapping or squashing while collapsing -->
+    <div class="w-[280px] h-full flex flex-col min-h-0 overflow-hidden">
+      
       <!-- Top Action Bar -->
-      <div class="p-3 border-b border-zinc-200/70 dark:border-zinc-800/60 flex items-center justify-between gap-2">
+      <div class="p-3 border-b border-zinc-200/80 dark:border-zinc-800/80 flex items-center justify-between gap-2 shrink-0">
         <button
           type="button"
-          @click="$emit('new-chat')"
+          @click="handleNewChat"
           class="flex-1 flex items-center justify-between px-3 h-9 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-800 dark:text-zinc-200 text-xs sm:text-[13px] font-semibold transition-all duration-150 shadow-2xs hover:shadow-xs active:scale-98 cursor-pointer group"
           :title="isKhmer ? 'កិច្ចសន្ទនាថ្មី' : 'New Chat'"
         >
@@ -33,7 +52,7 @@
         <button
           type="button"
           @click="$emit('toggle')"
-          class="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800/80 transition-colors cursor-pointer shrink-0"
+          class="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
           :title="isKhmer ? 'បិទរបារចំហៀង' : 'Close Sidebar'"
         >
           <PanelLeftClose :size="16" />
@@ -41,7 +60,7 @@
       </div>
 
       <!-- Search Conversations Input -->
-      <div class="px-3 pt-3 pb-1">
+      <div class="px-3 pt-3 pb-1 shrink-0">
         <div class="relative flex items-center">
           <Search :size="13" class="absolute left-2.5 text-zinc-400 pointer-events-none" />
           <input
@@ -61,8 +80,8 @@
         </div>
       </div>
 
-      <!-- Conversation History List -->
-      <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1 scrollbar-thin">
+      <!-- Conversation History List (Scrolls independently) -->
+      <div class="flex-1 overflow-y-auto px-2 py-2 space-y-1 min-h-0 scrollbar-thin">
         <div v-if="filteredSessions.length === 0" class="py-8 text-center text-zinc-400 text-xs">
           <MessageSquare :size="20" class="mx-auto mb-2 opacity-40" />
           <span>{{ isKhmer ? 'មិនមានប្រវត្តិសន្ទនាទេ' : 'No chats found' }}</span>
@@ -76,7 +95,7 @@
               'group relative flex items-center justify-between w-full h-9 px-2.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer',
               currentSessionId === sess.session_id
                 ? 'bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-white font-semibold'
-                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-850 hover:text-zinc-900 dark:hover:text-zinc-200'
+                : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200'
             ]"
             @click="handleSelect(sess.session_id)"
           >
@@ -152,17 +171,16 @@
         </template>
       </div>
 
-      <!-- Bottom User Profile & Settings Area -->
-      <div class="p-3 border-t border-zinc-200/80 dark:border-zinc-800/80 space-y-2 bg-white/50 dark:bg-zinc-900/40">
-        <!-- User Profile Chip -->
+      <!-- Bottom User Profile Section (Anchored to bottom) -->
+      <div class="p-3 border-t border-zinc-200/80 dark:border-zinc-800/80 shrink-0 bg-white/50 dark:bg-zinc-900/40">
         <div class="flex items-center justify-between p-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors">
           <div class="flex items-center space-x-2.5 min-w-0">
-            <div class="w-7 h-7 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-              {{ (userProfile?.name || 'U').charAt(0).toUpperCase() }}
+            <div class="w-8 h-8 rounded-full bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+              {{ userInitials }}
             </div>
             <div class="min-w-0">
               <span class="text-xs font-semibold text-zinc-900 dark:text-white block truncate">
-                {{ userProfile?.name || 'Bunheng' }}
+                {{ displayName }}
               </span>
               <span class="text-[10px] text-zinc-400 dark:text-zinc-500 block -mt-0.5 truncate">
                 Super AI Assistant
@@ -174,15 +192,16 @@
           <button
             type="button"
             @click="$emit('open-settings')"
-            class="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-200/70 dark:hover:bg-zinc-700/60 transition-colors cursor-pointer"
+            class="w-7 h-7 flex items-center justify-center rounded-lg text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white hover:bg-zinc-200/70 dark:hover:bg-zinc-700/60 transition-colors cursor-pointer shrink-0"
             :title="isKhmer ? 'ការកំណត់' : 'Settings'"
           >
             <Settings :size="14" />
           </button>
         </div>
       </div>
-    </aside>
-  </div>
+
+    </div>
+  </aside>
 </template>
 
 <script setup>
@@ -211,7 +230,7 @@ const props = defineProps({
   },
   userProfile: {
     type: Object,
-    default: () => ({ name: 'Bunheng' }),
+    default: () => ({ name: 'Traveler' }),
   },
   isMobile: {
     type: Boolean,
@@ -236,6 +255,14 @@ const renameInputRef = ref(null);
 
 const isKhmer = computed(() => props.language === 'km');
 
+const displayName = computed(() => {
+  return props.userProfile?.name?.trim() || 'Traveler';
+});
+
+const userInitials = computed(() => {
+  return displayName.value.charAt(0).toUpperCase();
+});
+
 const filteredSessions = computed(() => {
   if (!props.sessions) return [];
   if (!searchQuery.value.trim()) return props.sessions;
@@ -247,6 +274,13 @@ const filteredSessions = computed(() => {
 
 const handleSelect = (sessionId) => {
   emit('select-session', sessionId);
+  if (props.isMobile) {
+    emit('close');
+  }
+};
+
+const handleNewChat = () => {
+  emit('new-chat');
   if (props.isMobile) {
     emit('close');
   }

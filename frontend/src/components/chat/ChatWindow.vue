@@ -1,6 +1,6 @@
 <template>
-  <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-8 bg-[#f8fafc] dark:bg-[#18181b] transition-colors duration-200">
-    <div class="max-w-4xl mx-auto space-y-4">
+  <div ref="chatContainerRef" class="flex-1 overflow-y-auto px-3 py-4 sm:px-6 sm:py-8 bg-[#fbfbfb] dark:bg-[#18181b] transition-colors duration-200">
+    <div class="max-w-3xl mx-auto space-y-4">
       
       <!-- Active Chat Conversation Messages -->
       <ChatMessage
