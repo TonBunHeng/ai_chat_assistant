@@ -9,13 +9,6 @@
         <span class="font-bold text-zinc-900 dark:text-zinc-100">AngkorVers AI</span>
         <span class="text-zinc-400">•</span>
         <span
-          v-if="mode === 'offline' || mode === 'degraded' || mode === 'fallback'"
-          class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 text-[10px]"
-        >
-          <WifiOff :size="9" /> Offline
-        </span>
-        <span
-          v-else
           class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60 text-[10px]"
         >
           <Wifi :size="9" /> Online
@@ -318,7 +311,7 @@
 import { ref, computed, nextTick, watch, markRaw } from 'vue';
 import {
   Copy, Check, Pencil, MapPin, ThumbsUp, ThumbsDown, RotateCcw,
-  Wifi, WifiOff, Image as ImageIcon, ExternalLink, Sparkles, Compass,
+  Wifi, Image as ImageIcon, ExternalLink, Sparkles, Compass,
   Landmark, Utensils, Calendar, Palmtree, Coins, Sun,
   Code, Calculator, Languages, Briefcase, Building2, GraduationCap
 } from 'lucide-vue-next';

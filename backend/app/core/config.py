@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "Angkor Verse AI"
     APP_VERSION: str = "2.0.0"
     
-    # AI Mode & Orchestration ("auto", "online", "offline", "degraded")
-    AI_MODE: str = "auto"
+    # AI Mode & Orchestration (Pure Online Mode)
+    AI_MODE: str = "online"
     
     # Online AI Provider Configuration (Google Gemini)
     ONLINE_AI_PROVIDER: str = "gemini"

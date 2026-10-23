@@ -8,7 +8,6 @@ from app.services.places_service import places_service
 from app.services.transport_service import transport_service
 from app.services.recommendation_engine import recommendation_engine
 from app.services.itinerary_engine import itinerary_engine
-from app.services.ollama_service import ollama_service
 from app.core.config import settings
 from app.models.chat import RecommendationRequest, ItineraryRequest, CurrencyConvertRequest
 
@@ -201,32 +200,19 @@ async def get_transport_options(
 @router.get("/system/status")
 @router.get("/ai/status")
 async def get_ai_system_status():
-    """Check availability of AI models (Gemini Online, Ollama Local) and data sources."""
+    """Check availability of AI models (Gemini Online) and data sources in pure online mode."""
     has_gemini_key = bool(settings.effective_gemini_api_key)
-    ollama_online = ollama_service.is_available()
-    
-    current_active_mode = "online" if has_gemini_key else ("offline" if ollama_online else "degraded")
     
     return {
         "success": True,
         "system": "Angkor Verse AI",
-        "active_mode": current_active_mode,
+        "active_mode": "online",
         "providers": {
             "online_gemini": {
                 "provider": "Google Gemini",
                 "model": settings.effective_online_model,
                 "configured": has_gemini_key,
                 "status": "ready" if has_gemini_key else "missing_api_key"
-            },
-            "offline_ollama": {
-                "provider": "Ollama Local",
-                "model": settings.effective_offline_model,
-                "endpoint": settings.OLLAMA_BASE_URL,
-                "status": "running" if ollama_online else "stopped"
-            },
-            "degraded_engine": {
-                "provider": "Local Knowledge Synthesizer",
-                "status": "ready"
             }
         },
         "data_services": {

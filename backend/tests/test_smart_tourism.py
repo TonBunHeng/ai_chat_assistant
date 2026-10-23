@@ -231,3 +231,20 @@ def test_route_shadowing_and_bug_fixes():
     vec2 = embedding_service.encode("Angkor Wat temple Siem Reap")
     assert (vec1 == vec2).all()
 
+def test_online_mode_status():
+    """Verify system health and status endpoints strictly report online active mode."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+
+    client = TestClient(app)
+
+    health_resp = client.get("/health")
+    assert health_resp.status_code == 200
+    assert health_resp.json()["active_mode"] == "online"
+
+    status_resp = client.get("/api/system/status")
+    assert status_resp.status_code == 200
+    assert status_resp.json()["active_mode"] == "online"
+    assert "offline_ollama" not in status_resp.json()["providers"]
+    assert "online_gemini" in status_resp.json()["providers"]
+

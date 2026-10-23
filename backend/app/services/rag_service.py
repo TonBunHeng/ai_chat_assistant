@@ -314,7 +314,7 @@ class RAGService:
             data_type = "conversation_summary"
             data_content = summary_info
             ai_meta = {
-                "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "mode": "online",
                 "provider": "conversation_memory",
                 "model": "system_memory",
                 "confidence": 1.0,
@@ -332,9 +332,9 @@ class RAGService:
                      "How can I help you today?"
             )
             ai_meta = {
-                "mode": "online" if settings.effective_gemini_api_key else "offline",
-                "provider": "gemini" if settings.effective_gemini_api_key else "ollama",
-                "model": settings.effective_online_model if settings.effective_gemini_api_key else settings.effective_offline_model,
+                "mode": "online",
+                "provider": "gemini",
+                "model": settings.effective_online_model,
                 "confidence": 0.98,
                 "fallback_used": False,
                 "data_sources": ["system_greeting"]
@@ -356,7 +356,7 @@ class RAGService:
                 answer = f"🕒 The current time in Cambodia (Indochina Time, UTC+7) is **{time_12h}** ({time_24h}), **{date_en}**."
                 
             ai_meta = {
-                "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "mode": "online",
                 "provider": "system_clock",
                 "model": "system_realtime",
                 "confidence": 1.0,
@@ -375,7 +375,7 @@ class RAGService:
                     "I provide comprehensive assistance across software engineering, mathematics, sciences, translation, and business, while holding authoritative specialization in Cambodia's 25 administrative divisions, cultural heritage, history, and travel."
                 )
             ai_meta = {
-                "mode": "online" if settings.effective_gemini_api_key else "offline",
+                "mode": "online",
                 "provider": "system_identity",
                 "model": "system_core",
                 "confidence": 1.0,

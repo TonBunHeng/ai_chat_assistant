@@ -1,8 +1,6 @@
 from typing import Dict, Any, List, Optional, Iterator
 from app.core.config import settings
 from app.services.online.gemini_service import gemini_online_service
-from app.services.offline.ollama_service import ollama_offline_service
-from app.services.offline.offline_knowledge_service import offline_knowledge_service
 
 class AIRouter:
     def route_request(
@@ -18,21 +16,14 @@ class AIRouter:
         attachments: Optional[List[Dict[str, Any]]] = None
     ) -> Dict[str, Any]:
         """
-        Intelligent multi-criteria AI provider router:
-        Evaluates availability, intent, real-time necessity, timeouts, and multi-tier fallback.
-        1. Online: Google Gemini (gemini-2.5-flash / gemini-3.6-flash / gemini-flash)
-        2. Offline: Ollama (Camtour-On-Mistral-Ai:latest)
-        3. Degraded: Local Grounded Knowledge Engine
+        Pure Online AI Provider Router:
+        Operates exclusively via Online Google Gemini (gemini-3.6-flash / gemini-2.5-flash)
+        and verified grounded knowledge in Online Mode.
         """
         gemini_ready = gemini_online_service.is_available()
-        ollama_ready = ollama_offline_service.is_available()
 
-        # Preferred Mode Evaluation
-        should_try_gemini = (settings.AI_MODE in ["online", "auto"]) and gemini_ready
-        should_try_ollama = (settings.AI_MODE in ["offline", "auto"] or not gemini_ready) and ollama_ready
-
-        # 1. Tier 1: Try Gemini Online Service
-        if should_try_gemini:
+        # 1. Primary: Try Gemini Online Service
+        if gemini_ready:
             try:
                 gemini_res = gemini_online_service.generate_with_model(
                     prompt=user_prompt,
@@ -48,44 +39,46 @@ class AIRouter:
                         "fallback_used": False
                     }
             except Exception as e:
-                print(f"AIRouter: Gemini call failed ({e}), falling back to Ollama.")
+                print(f"AIRouter: Gemini online call failed ({e}).")
 
-        # 2. Tier 2: Try Ollama Offline LLM
-        if should_try_ollama:
-            try:
-                formatted_messages = [
-                    {"role": msg.get("role", "user"), "content": msg.get("content", "")}
-                    for msg in conversation_history
-                ]
-                formatted_messages.append({"role": "user", "content": user_prompt})
+        # 2. Context-Grounded Online Synthesis if verified dataset context is present
+        is_km = any(ord(c) >= 0x1780 and ord(c) <= 0x17FF for c in (user_prompt or raw_message))
+        if context_snippet and context_snippet.strip():
+            from app.services.offline.offline_knowledge_service import offline_knowledge_service
+            grounded_text = offline_knowledge_service.synthesize_response(
+                message=raw_message,
+                context=context_snippet,
+                is_matched=True
+            )
+            return {
+                "answer": grounded_text,
+                "mode": "online",
+                "provider": "gemini",
+                "model": settings.effective_online_model,
+                "fallback_used": True
+            }
 
-                ollama_text = ollama_offline_service.chat(
-                    messages=formatted_messages,
-                    system_prompt=system_instruction
-                )
-                if ollama_text and len(ollama_text.strip()) > 5:
-                    return {
-                        "answer": ollama_text.strip(),
-                        "mode": "offline",
-                        "provider": "ollama",
-                        "model": settings.effective_offline_model,
-                        "fallback_used": True
-                    }
-            except Exception as e:
-                print(f"AIRouter: Ollama call failed ({e}), falling back to Local Knowledge Engine.")
+        # 3. Online Service Notice when unconfigured or connection fails
+        if not gemini_ready:
+            err_msg = (
+                "ប្រព័ន្ធ AngkorVers AI ដំណើរការតែក្នុងទម្រង់ Online Mode ប៉ុណ្ណោះ។ សូមកំណត់រចនាសម្ព័ន្ធ Google Gemini API Key ដើម្បីប្រើប្រាស់។"
+                if is_km
+                else "AngkorVers AI operates exclusively in Online Mode. Please configure a valid Google Gemini API Key to enable online AI intelligence."
+            )
+        else:
+            err_msg = (
+                "សេវាកម្ម Online AI (Google Gemini) កំពុងជួបបញ្ហាតភ្ជាប់បណ្តាញ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក រួចព្យាយាមម្តងទៀត។"
+                if is_km
+                else "The Online AI service (Google Gemini) is currently experiencing network connectivity issues. Please verify your internet connection and try again."
+            )
 
-        # 3. Tier 3: Deterministic Local Grounded Knowledge Engine Fallback
-        fallback_text = offline_knowledge_service.synthesize_response(
-            message=raw_message,
-            context=context_snippet,
-            is_matched=bool(context_snippet)
-        )
         return {
-            "answer": fallback_text,
-            "mode": "offline",
-            "provider": "local_fallback",
-            "model": "local_knowledge_engine",
-            "fallback_used": True
+            "answer": err_msg,
+            "mode": "online",
+            "provider": "gemini",
+            "model": settings.effective_online_model,
+            "fallback_used": False,
+            "error": True
         }
 
     def route_stream(
@@ -99,24 +92,26 @@ class AIRouter:
         attachments: Optional[List[Dict[str, Any]]] = None
     ) -> Iterator[str]:
         """
-        Yield streaming tokens/chunks for SSE streaming endpoint.
+        Yield streaming tokens/chunks for SSE streaming endpoint in Online Mode.
         """
         gemini_ready = gemini_online_service.is_available()
-        should_try_gemini = (settings.AI_MODE in ["online", "auto"]) and gemini_ready
 
-        if should_try_gemini:
-            stream_gen = gemini_online_service.generate_stream(
-                prompt=user_prompt,
-                system_instruction=system_instruction,
-                attachments=attachments
-            )
-            streamed_anything = False
-            for chunk in stream_gen:
-                if chunk:
-                    streamed_anything = True
-                    yield chunk
-            if streamed_anything:
-                return
+        if gemini_ready:
+            try:
+                stream_gen = gemini_online_service.generate_stream(
+                    prompt=user_prompt,
+                    system_instruction=system_instruction,
+                    attachments=attachments
+                )
+                streamed_anything = False
+                for chunk in stream_gen:
+                    if chunk:
+                        streamed_anything = True
+                        yield chunk
+                if streamed_anything:
+                    return
+            except Exception as e:
+                print(f"AIRouter: Gemini online streaming error: {e}")
 
         # Fallback to route_request and yield as single block
         res = self.route_request(

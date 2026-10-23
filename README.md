@@ -1,29 +1,25 @@
 # AngkorVers AI - Tourism Information Service (Cambodia)
 
-An intelligent AI Tourism Information Service specialized in Cambodia tourism built with **FastAPI**, **RAG (Retrieval-Augmented Generation)**, **Google Gemini (`gemini-3.5-flash`)**, **Ollama (`Camtour-On-Mistral-Ai:latest`)**, **SQLite**, and **Vue 3 + Vite**.
+An intelligent AI Tourism Information Service specialized in Cambodia tourism built with **FastAPI**, **RAG (Retrieval-Augmented Generation)**, **Google Gemini (`gemini-3.6-flash`)**, **SQLite**, and **Vue 3 + Vite**.
 
 ---
 
 ## AI Model Details
 
-- **Online Cloud Model**: `gemini-3.5-flash` / `gemini-3.7-flash` (Google Gemini API with auto-failover)
-- **Primary Offline Model**: `Camtour-On-Mistral-Ai:latest` (Fine-tuned model running locally via Ollama)
-- **Supported Alternative Local Models**: `tripmind-ft-gguf`, `llama3.2`, `mistral`
+- **Online Cloud Model**: `gemini-3.6-flash` / `gemini-2.5-flash` (Google Gemini API)
 - **Embedding & Semantic Matching**: RapidFuzz fuzzy scoring and high-dimensional semantic vector search over Cambodia tourism datasets
-- **Offline Fallback**: Built-in RAG Knowledge Synthesizer engine (ensures 100% server availability even when offline)
+- **Architecture**: 100% Online Cloud AI Intelligence with verified Cambodia ground-truth knowledge
 
 ---
 
 ## Chatbot Operating Modes & Capabilities
 
-### 1. AI Execution Modes (Auto Orchestration)
-The system automatically orchestrates between 3 execution tiers based on connectivity and availability:
+### 1. AI Execution Mode
+The system operates in **Pure Online Mode** powered by Google Gemini:
 
 | Mode | Engine / Provider | Description |
 | :--- | :--- | :--- |
-| **Online Mode** | **Google Gemini** (`gemini-3.5-flash`) | Uses cloud AI along with real-time live tools (Weather, Currency, Live Events, OSM Places). |
-| **Offline Mode** | **Local Ollama** (`Camtour-On-Mistral-Ai:latest`) | Runs locally without internet using Ollama, vector search, and local tourism datasets. |
-| **Degraded / Fallback Mode** | **Local Knowledge Engine** | Activated if neither Gemini nor Ollama is reachable; synthesizes answers using cached datasets and rule-based search. |
+| **Online Mode** | **Google Gemini** (`gemini-3.6-flash`) | Uses cloud AI along with real-time live tools (Weather, Currency, Live Events, OSM Places) and grounded tourism knowledge. |
 
 ### 2. Language Modes
 - **Khmer Mode (ភាសាខ្មែរ)**: Automatic detection of Khmer script with strict 100% Khmer responses (no mixed English prose).
@@ -77,23 +73,11 @@ In `backend/.env`:
 ```env
 AI_MODE=online
 GEMINI_API_KEY=your_gemini_api_key_here
-GEMINI_MODEL=gemini-3.5-flash
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_MODEL=Camtour-On-Mistral-Ai:latest
+GEMINI_MODEL=gemini-3.6-flash
 SIMILARITY_THRESHOLD=0.80
 HOST=0.0.0.0
 PORT=8000
 DEBUG=True
-```
-
----
-
-### Step 2: Start Ollama AI Model (Optional for Offline Mode)
-
-If running offline with Ollama:
-
-```bash
-ollama run Camtour-On-Mistral-Ai:latest
 ```
 
 ---

@@ -38,12 +38,12 @@
         <!-- Online Status Indicator (Desktop Pill) -->
         <div class="hidden sm:flex items-center">
           <div
-            v-if="!isOnline || mode === 'offline' || mode === 'degraded' || mode === 'fallback'"
-            class="flex items-center space-x-1.5 h-8 px-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 text-xs font-medium shrink-0"
-            title="Running in local offline mode"
+            v-if="!isOnline"
+            class="flex items-center space-x-1.5 h-8 px-2.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/60 text-amber-700 dark:text-amber-400 text-xs font-medium shrink-0"
+            title="Internet disconnected"
           >
             <WifiOff :size="12" />
-            <span>Offline</span>
+            <span>Disconnected</span>
           </div>
           <div
             v-else
@@ -61,13 +61,13 @@
         <!-- Mobile Online Status Indicator Icon -->
         <div
           class="flex sm:hidden items-center justify-center w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 shrink-0"
-          :title="isOnline ? 'Online' : 'Offline'"
+          :title="isOnline ? 'Online' : 'Disconnected'"
         >
-          <span v-if="isOnline && mode !== 'offline'" class="relative flex h-2 w-2">
+          <span v-if="isOnline" class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <WifiOff v-else :size="13" class="text-zinc-500 dark:text-zinc-400" />
+          <WifiOff v-else :size="13" class="text-amber-500 dark:text-amber-400" />
         </div>
 
         <!-- Khmer Language Selector -->

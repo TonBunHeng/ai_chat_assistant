@@ -138,19 +138,20 @@
               </div>
             </div>
 
-            <!-- Offline Data Cache -->
+            <!-- AI Intelligence Mode -->
             <div class="py-3.5 flex items-center justify-between">
               <div>
                 <div class="text-xs sm:text-sm font-medium text-slate-900 dark:text-white">
-                  {{ isKhmer ? 'ទិន្នន័យក្រៅបណ្តាញ' : 'Offline RAG Knowledge' }}
+                  {{ isKhmer ? 'ទម្រង់វៃឆ្លាត AI' : 'AI Intelligence Mode' }}
                 </div>
                 <div class="text-[11px] text-slate-400 dark:text-slate-500">
-                  {{ isKhmer ? 'ស្វែងរកទិន្នន័យទេសចរណ៍ទោះគ្មានអ៊ីនធឺណិត' : 'Search local tourism data even without network' }}
+                  {{ isKhmer ? 'ដំណើរការតាម Cloud AI លើបណ្តាញអនឡាញ (Online Only)' : 'Powered by Cloud AI models (Online Only)' }}
                 </div>
               </div>
 
-              <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium">
-                Active
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium">
+                <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                Online
               </span>
             </div>
 

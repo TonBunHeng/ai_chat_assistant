@@ -46,13 +46,8 @@ class ConfidenceService:
         else:
             tool_score = 0.75
 
-        # Provider mode score
-        if ai_provider_mode == "online":
-            provider_score = 0.95
-        elif ai_provider_mode == "offline":
-            provider_score = 0.85
-        else:
-            provider_score = 0.75
+        # Provider mode score (Pure Online Mode)
+        provider_score = 0.95
 
         overall = (
             intent_score * weights["intent"] +

@@ -155,7 +155,6 @@ import ChatWindow from '../components/chat/ChatWindow.vue';
 import ChatInput from '../components/chat/ChatInput.vue';
 import SettingsModal from '../components/modals/SettingsModal.vue';
 import { useOnlineStatus } from '../composables/useOnlineStatus';
-import { performOfflineSearch } from '../utils/offlineSearch';
 import {
   sendMessage,
   streamMessage,
@@ -289,8 +288,8 @@ watch(language, (newLang) => {
   } catch (e) {}
 }, { immediate: true });
 
-watch(isOnline, (online) => {
-  currentMode.value = online ? 'online' : 'offline';
+watch(isOnline, () => {
+  currentMode.value = 'online';
 }, { immediate: true });
 
 const ONE_HOUR_MS = 60 * 60 * 1000;
@@ -388,7 +387,7 @@ const handleSelectSession = async (sessionId) => {
         id: m.id || (idx + 1),
         sender: m.sender || (m.role === 'assistant' ? 'ai' : m.role || 'user'),
         message: m.message || m.content || '',
-        mode: m.mode || 'offline',
+        mode: m.mode || 'online',
         created_at: m.created_at || new Date().toISOString(),
       }));
       if (local.language) {
@@ -512,6 +511,14 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
   error.value = null;
   const userMessageText = text.trim();
 
+  if (!isOnline.value) {
+    const isKm = language.value === 'km' || /[\u1780-\u17FF]/.test(userMessageText || '');
+    error.value = isKm
+      ? 'ត្រូវការការតភ្ជាប់អ៊ីនធឺណិតដើម្បីប្រើប្រាស់ AngkorVers AI (Online Mode)។'
+      : 'An active internet connection is required to use AngkorVers AI (Online Mode).';
+    return;
+  }
+
   // Optimistically append user message to UI if not regenerating
   if (!isRegenerate) {
     const tempUserMsg = {
@@ -544,7 +551,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
     sender: 'ai',
     message: '',
     userQuery: userMessageText,
-    mode: isOnline.value ? 'online' : 'offline',
+    mode: 'online',
     sources: [],
     suggestions: [],
     topic: '',
@@ -681,19 +688,23 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
           return;
         }
       } catch (apiErr) {
-        console.warn('Standard API call failed, falling back to client-side offline search:', apiErr);
+        console.warn('Standard API call failed:', apiErr);
       }
     }
 
-    // 4. Client-side Offline Search Fallback
-    const offlineRes = await performOfflineSearch(userMessageText, language.value);
+    // Online service unreachable or network error notice
+    const isKm = language.value === 'km' || /[\u1780-\u17FF]/.test(userMessageText || '');
+    const errorNotice = isKm
+      ? 'មិនអាចភ្ជាប់ទៅកាន់សេវា Online AI បានទេ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នក រួចព្យាយាមម្តងទៀត។'
+      : 'Unable to reach AngkorVers Online AI service. Please check your internet connection and try again.';
+
     if (currentAiMsg) {
-      currentAiMsg.message = cleanTextEncoding(offlineRes.message || 'AngkorVers AI is ready to help answer questions and explore Cambodia.');
-      currentAiMsg.mode = 'offline';
-      currentAiMsg.sources = offlineRes.sources || [];
-      currentAiMsg.suggestions = offlineRes.suggestions || [];
+      currentAiMsg.message = errorNotice;
+      currentAiMsg.mode = 'online';
+      currentAiMsg.sources = [];
+      currentAiMsg.suggestions = [];
     }
-    currentMode.value = 'offline';
+    currentMode.value = 'online';
 
     const firstUser = messages.value.find((m) => m.sender === 'user' || m.role === 'user');
     saveLocalSession({
@@ -708,6 +719,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
     error.value = 'Failed to process message.';
   } finally {
     isLoading.value = false;
+    currentMode.value = 'online';
   }
 };
 
