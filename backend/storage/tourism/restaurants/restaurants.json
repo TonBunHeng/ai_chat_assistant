@@ -15,8 +15,19 @@
     "price": "$8 - $20 USD per person",
     "opening_hours": "11:30 AM - 03:00 PM, 05:30 PM - 10:00 PM (Monday to Saturday)",
     "best_time": "Dinner or Lunch",
-    "specialty_dishes": ["Fish Amok (Amok Trei)", "Pomelo Salad", "Smoked Fish with Eggplant"],
-    "tags": ["restaurant", "food", "fish amok", "khmer cuisine", "siem reap", "authentic"],
+    "specialty_dishes": [
+      "Fish Amok (Amok Trei)",
+      "Pomelo Salad",
+      "Smoked Fish with Eggplant"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "fish amok",
+      "khmer cuisine",
+      "siem reap",
+      "authentic"
+    ],
     "verified": true,
     "source": "Cambodia Tourism Federation / Chef Kethana",
     "last_updated": "2026-08-31"
@@ -37,8 +48,18 @@
     "price": "$38 - $50 USD per tasting menu",
     "opening_hours": "06:30 PM - 11:00 PM (Tuesday to Sunday)",
     "best_time": "Dinner (Reservation recommended)",
-    "specialty_dishes": ["Mekong Langoustine", "Braised Duck with Star Anise", "Siem Reap Rice Wine Desserts"],
-    "tags": ["restaurant", "food", "tasting menu", "siem reap", "gourmet"],
+    "specialty_dishes": [
+      "Mekong Langoustine",
+      "Braised Duck with Star Anise",
+      "Siem Reap Rice Wine Desserts"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "tasting menu",
+      "siem reap",
+      "gourmet"
+    ],
     "verified": true,
     "source": "Asia's 50 Best / Cuisine Wat Damnak",
     "last_updated": "2026-08-31"
@@ -59,8 +80,18 @@
     "price": "$6 - $15 USD per person",
     "opening_hours": "11:30 AM - 02:30 PM, 05:30 PM - 09:30 PM (Closed Tuesday & Wednesday)",
     "best_time": "Lunch or Dinner",
-    "specialty_dishes": ["Lok Lak", "Khmer Coconut Curry", "Fresh Spring Rolls"],
-    "tags": ["restaurant", "food", "social enterprise", "lok lak", "siem reap"],
+    "specialty_dishes": [
+      "Lok Lak",
+      "Khmer Coconut Curry",
+      "Fresh Spring Rolls"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "social enterprise",
+      "lok lak",
+      "siem reap"
+    ],
     "verified": true,
     "source": "Haven Foundation Cambodia",
     "last_updated": "2026-08-31"
@@ -81,8 +112,18 @@
     "price": "$15 - $40 USD per person",
     "opening_hours": "06:00 AM - 10:00 PM (Daily)",
     "best_time": "Dinner or breakfast",
-    "specialty_dishes": ["Royal Fish Amok", "Siem Reap Sausages", "Kuy Teav Malis"],
-    "tags": ["restaurant", "food", "khmer cuisine", "fine dining", "phnom penh"],
+    "specialty_dishes": [
+      "Royal Fish Amok",
+      "Siem Reap Sausages",
+      "Kuy Teav Malis"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "khmer cuisine",
+      "fine dining",
+      "phnom penh"
+    ],
     "verified": true,
     "source": "Cambodia Tourism Federation / Malis Official",
     "last_updated": "2026-08-31"
@@ -103,8 +144,18 @@
     "price": "$8 - $18 USD per person",
     "opening_hours": "11:00 AM - 10:00 PM (Daily)",
     "best_time": "Lunch or dinner",
-    "specialty_dishes": ["Fish Amok", "Beef Lok Lak with Kampot Pepper", "Crispy Tarantula"],
-    "tags": ["restaurant", "food", "social enterprise", "khmer cuisine", "phnom penh"],
+    "specialty_dishes": [
+      "Fish Amok",
+      "Beef Lok Lak with Kampot Pepper",
+      "Crispy Tarantula"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "social enterprise",
+      "khmer cuisine",
+      "phnom penh"
+    ],
     "verified": true,
     "source": "Friends-International Tree Alliance",
     "last_updated": "2026-08-31"
@@ -125,8 +176,18 @@
     "price": "$4 - $9 USD per person",
     "opening_hours": "07:00 AM - 09:30 PM (Daily)",
     "best_time": "Breakfast, Lunch, or Dinner",
-    "specialty_dishes": ["Fish Amok Burger", "Beef Lok Lak Rice", "Khmer Chicken Curry"],
-    "tags": ["restaurant", "food", "eco-friendly", "phnom penh", "lok lak"],
+    "specialty_dishes": [
+      "Fish Amok Burger",
+      "Beef Lok Lak Rice",
+      "Khmer Chicken Curry"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "eco-friendly",
+      "phnom penh",
+      "lok lak"
+    ],
     "verified": true,
     "source": "Eleven One Kitchen Phnom Penh",
     "last_updated": "2026-08-31"
@@ -147,8 +208,19 @@
     "price": "$8 - $15 USD per kg with cooking",
     "opening_hours": "07:00 AM - 08:00 PM (Daily)",
     "best_time": "Lunch (11:00 AM - 02:00 PM)",
-    "specialty_dishes": ["Stir-Fried Crab with Green Kampot Pepper", "Grilled Squid", "Shrimp in Tamarind Sauce"],
-    "tags": ["restaurant", "food", "seafood", "kep", "crab", "kampot pepper"],
+    "specialty_dishes": [
+      "Stir-Fried Crab with Green Kampot Pepper",
+      "Grilled Squid",
+      "Shrimp in Tamarind Sauce"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "seafood",
+      "kep",
+      "crab",
+      "kampot pepper"
+    ],
     "verified": true,
     "source": "Kep Provincial Tourism Department",
     "last_updated": "2026-08-31"
@@ -169,8 +241,18 @@
     "price": "$6 - $16 USD per person",
     "opening_hours": "07:00 AM - 10:00 PM (Daily)",
     "best_time": "Sunset Dinner (05:00 PM - 08:00 PM)",
-    "specialty_dishes": ["Kampot Pepper Squid", "Khmer Fish Amok", "Mango Sticky Rice"],
-    "tags": ["restaurant", "food", "kampot", "riverside", "pepper"],
+    "specialty_dishes": [
+      "Kampot Pepper Squid",
+      "Khmer Fish Amok",
+      "Mango Sticky Rice"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "kampot",
+      "riverside",
+      "pepper"
+    ],
     "verified": true,
     "source": "Kampot Tourism Association",
     "last_updated": "2026-08-31"
@@ -191,8 +273,18 @@
     "price": "$5 - $14 USD per person",
     "opening_hours": "07:30 AM - 10:00 PM (Daily)",
     "best_time": "Lunch or Sunset BBQ",
-    "specialty_dishes": ["Grilled Red Snapper", "Seafood Amok", "Khmer Lok Lak"],
-    "tags": ["restaurant", "food", "koh rong", "beachfront", "seafood"],
+    "specialty_dishes": [
+      "Grilled Red Snapper",
+      "Seafood Amok",
+      "Khmer Lok Lak"
+    ],
+    "tags": [
+      "restaurant",
+      "food",
+      "koh rong",
+      "beachfront",
+      "seafood"
+    ],
     "verified": true,
     "source": "Koh Rong Island Community Tourism",
     "last_updated": "2026-08-31"

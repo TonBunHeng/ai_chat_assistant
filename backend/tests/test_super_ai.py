@@ -235,4 +235,69 @@ def test_rag_outside_search_and_auto_storage_workflow(monkeypatch):
     except Exception:
         pass
 
+def test_cambodia_core_knowledge_datasets():
+    """Verify that all Cambodia pillar knowledge datasets are loaded into tourism_service."""
+    all_items = tourism_service.get_all_items()
+    item_names = {item.get("name") for item in all_items}
+
+    # Business dataset
+    assert "Cambodia Business Registration via CamDX Single Portal" in item_names
+    assert "Cambodian Corporate & Small Business Tax System" in item_names
+
+    # Government dataset
+    assert "Cambodian Passport Application & Renewal (GDI)" in item_names
+    assert "Cambodia Visas & Official E-Visa Portal" in item_names
+    assert "Cambodian Driver's License Issuance & Foreign Conversion (MPWT)" in item_names
+
+    # Education dataset
+    assert "Cambodian National High School Exam (BacII / បាក់ឌុប)" in item_names
+    assert "Leading Cambodian Universities & Higher Education" in item_names
+
+    # Technology dataset
+    assert "Bakong KHQR API & Developer Integration" in item_names
+
+    # Language dataset
+    assert "Standard Khmer Official & Business Letter Structure" in item_names
+    assert "Khmer Orthography, Unicode Rules & Diacritical Marks" in item_names
+
+    # Culture dataset additions
+    assert "Kun Bokator (Traditional Khmer Martial Art)" in item_names
+    assert "Chronology of Cambodian History & The Khmer Empire" in item_names
+
+def test_cambodia_pillar_matching_and_disclaimers():
+    """Verify that RAG matching retrieves official portals and documents for government and business queries."""
+    from app.services.matching_service import matching_service
+
+    # Test CamDX business retrieval
+    ctx_biz, sources_biz = matching_service.build_rag_context("How do I register a company through CamDX in Cambodia?")
+    assert len(sources_biz) > 0
+    assert any("CamDX" in s["name"] for s in sources_biz)
+    assert "registrationservices.gov.kh" in ctx_biz
+
+    # Test GDI passport retrieval
+    ctx_gov, sources_gov = matching_service.build_rag_context("What documents are required for a Cambodian passport at GDI?")
+    assert len(sources_gov) > 0
+    assert any("Passport" in s["name"] for s in sources_gov)
+    assert "gdi.gov.kh" in ctx_gov
+    assert "ID Card" in ctx_gov or "សំបុត្រកំណើត" in ctx_gov
+
+def test_cambodia_intents_detection():
+    """Verify intent extraction detects government, education, language, and tech queries."""
+    # Government query
+    r_gov = intent_service.detect_intent("Where can I renew my Cambodian passport?")
+    assert r_gov["intent"] == "cambodia_government"
+
+    # Education query
+    r_edu = intent_service.detect_intent("What subjects are on the Grade 12 BacII exam in Cambodia?")
+    assert r_edu["intent"] == "cambodia_education"
+
+    # Language query
+    r_lang = intent_service.detect_intent("How do I format a formal administrative letter in Khmer?")
+    assert r_lang["intent"] == "khmer_language"
+
+    # Tech query
+    r_tech = intent_service.detect_intent("How to integrate Bakong KHQR in a Laravel Vue application?")
+    assert r_tech["intent"] in ["cambodia_tech", "coding"]
+
+
 

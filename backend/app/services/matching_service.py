@@ -55,6 +55,8 @@ class SimilarityMatchingService:
             parts.append(str(item["name_km"]))
         if item.get("category"):
             parts.append(f"Category: {item['category']}")
+        if item.get("topic"):
+            parts.append(f"Topic: {item['topic']}")
         if item.get("province"):
             parts.append(f"Province: {item['province']}")
         if item.get("province_km"):
@@ -63,10 +65,16 @@ class SimilarityMatchingService:
             parts.append(str(item["description"]))
         if item.get("description_km"):
             parts.append(str(item["description_km"]))
+        if item.get("official_portal"):
+            parts.append(f"Portal: {item['official_portal']}")
         if item.get("tags") and isinstance(item["tags"], list):
             parts.append("Tags: " + ", ".join(item["tags"]))
         if item.get("travel_tips") and isinstance(item["travel_tips"], list):
             parts.append("Tips: " + ", ".join(item["travel_tips"]))
+        if item.get("specialties") and isinstance(item["specialties"], list):
+            parts.append("Specialties: " + ", ".join(item["specialties"]))
+        if item.get("required_documents") and isinstance(item["required_documents"], list):
+            parts.append("Requirements: " + ", ".join(item["required_documents"]))
 
         return " | ".join(parts)
 
@@ -112,8 +120,16 @@ class SimilarityMatchingService:
                 if ratio >= 0.75:
                     scores.append(ratio)
 
-        # 2. Token overlap on significant words
+        # 2. Key acronyms and high-value domain tokens
         q_tokens = set(clean_q.split())
+        tags = [str(t).lower().strip() for t in item.get("tags", [])]
+        topic = str(item.get("topic") or "").lower().strip()
+
+        for kw in ["camdx", "gdi", "bacii", "khqr", "cadt", "rupp", "mpwt", "owso", "evisa", "bokator"]:
+            if kw in q_tokens and (kw in name_en or kw in tags or kw in topic):
+                scores.append(0.92)
+
+        # 3. Token overlap on significant words
         for name in [name_en, name_km]:
             if not name:
                 continue
@@ -122,8 +138,15 @@ class SimilarityMatchingService:
                 scores.append(0.90)
             elif q_tokens and n_tokens and len(q_tokens & n_tokens) >= 2:
                 overlap = len(q_tokens & n_tokens) / len(n_tokens)
-                if overlap >= 0.66:
-                    scores.append(0.75 + 0.20 * overlap)
+                if overlap >= 0.5:
+                    scores.append(0.70 + 0.25 * overlap)
+
+        # 4. Multi-tag match
+        matching_tags = [t for t in tags if t in q_tokens and len(t) >= 4]
+        if len(matching_tags) >= 2:
+            scores.append(0.85)
+        elif len(matching_tags) == 1 and any(kw in matching_tags[0] for kw in ["passport", "tax", "startup"]):
+            scores.append(0.80)
 
         return max(scores) if scores else 0.0
 
@@ -259,15 +282,17 @@ class SimilarityMatchingService:
                 "id": item.get("id", "src"),
                 "name": item.get("name") or item.get("title"),
                 "name_km": item.get("name_km"),
-                "category": item.get("category", "Tourism Record"),
+                "category": item.get("category", "National Record"),
+                "topic": item.get("topic"),
                 "province": item.get("province") or item.get("location", ""),
                 "description": item.get("description", ""),
                 "price": item.get("price") or item.get("entrance_fee"),
                 "relevance_score": score,
+                "official_portal": item.get("official_portal"),
                 "google_maps_url": f"https://www.google.com/maps/search/?api=1&query={item.get('latitude')},{item.get('longitude')}" if item.get("latitude") else None,
                 "website_links": item.get("website_links", []),
                 "picture_links": item.get("picture_links", []),
-                "verified_source": item.get("source") or item.get("verified_source", "Ministry of Tourism Cambodia")
+                "verified_source": item.get("source") or item.get("verified_source", "Kingdom of Cambodia Official Authority")
             })
 
         context_str = "\n\n".join(snippets)
@@ -283,15 +308,25 @@ class SimilarityMatchingService:
 
         if item.get("category"):
             lines.append(f"CATEGORY: {item['category']}")
+        if item.get("topic"):
+            lines.append(f"TOPIC: {item['topic']}")
         if item.get("province"):
             prov = item.get("province")
             if item.get("province_km"):
                 prov += f" ({item['province_km']})"
             lines.append(f"PROVINCE/LOCATION: {prov}")
+        if item.get("official_portal"):
+            lines.append(f"OFFICIAL PORTAL / URL: {item['official_portal']}")
         if item.get("description"):
             lines.append(f"DESCRIPTION (EN): {item['description']}")
         if item.get("description_km"):
             lines.append(f"DESCRIPTION (KM): {item['description_km']}")
+        if item.get("required_documents") and isinstance(item["required_documents"], list):
+            lines.append(f"REQUIRED DOCUMENTS: {', '.join(item['required_documents'])}")
+        if item.get("specialties") and isinstance(item["specialties"], list):
+            lines.append(f"SPECIALTIES / PROFILE: {', '.join(item['specialties'])}")
+        if item.get("official_disclaimer"):
+            lines.append(f"OFFICIAL DISCLAIMER: {item['official_disclaimer']}")
         if item.get("opening_hours"):
             lines.append(f"OPENING HOURS: {item['opening_hours']}")
         if item.get("price") or item.get("entrance_fee"):
@@ -301,6 +336,8 @@ class SimilarityMatchingService:
         if item.get("travel_tips"):
             tips = item["travel_tips"]
             lines.append(f"TRAVEL TIPS: {', '.join(tips) if isinstance(tips, list) else tips}")
+        if item.get("source") or item.get("verified_source"):
+            lines.append(f"VERIFIED SOURCE: {item.get('source') or item.get('verified_source')}")
 
         # Website links (links only)
         if item.get("website_links") and isinstance(item["website_links"], list):

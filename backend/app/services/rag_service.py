@@ -237,19 +237,25 @@ class RAGService:
         is_matched = bool(retrieved_sources)
         top_sim_score = retrieved_sources[0]["relevance_score"] if retrieved_sources else 0.0
 
-        # Step 2: If asking about tourism/places in Cambodia and not found in storage -> Search Outside & Auto-Store in Storage
-        is_cambodia_tourism = (
-            intent in ["place_search", "recommendation", "itinerary", "culture", "events", "food", "safety", "transportation"] or
+        # Step 2: If asking about Cambodia topics/places and not found in storage -> Search Outside & Auto-Store in Storage
+        is_cambodia_topic = (
+            intent in [
+                "place_search", "recommendation", "itinerary", "culture", "events",
+                "food", "safety", "transportation", "cambodia_government",
+                "cambodia_business", "cambodia_education", "cambodia_tech", "khmer_language"
+            ] or
             any(w in message.lower() for w in [
                 "cambodia", "phnom penh", "siem reap", "angkor", "temple", "beach", "waterfall", 
                 "resort", "hotel", "island", "place", "places", "visit", "trip", "tour", "travel",
-                "attraction", "attractions", "sightseeing", "province",
-                "កម្ពុជា", "ទេសចរណ៍", "ដើរលេង", "ទស្សនា", "ប្រាសាទ", "ឆ្នេរ", "កោះ", "ទឹកធ្លាក់", "ភ្នំ", "កន្លែង"
+                "attraction", "attractions", "sightseeing", "province", "camdx", "gdt", "moc",
+                "bakong", "khqr", "passport", "visa", "bacii",
+                "កម្ពុជា", "ទេសចរណ៍", "ដើរលេង", "ទស្សនា", "ប្រាសាទ", "ឆ្នេរ", "កោះ", "ទឹកធ្លាក់", "ភ្នំ", "កន្លែង",
+                "លិខិតឆ្លងដែន", "ទិដ្ឋាការ", "បាក់ឌុប", "បាគង", "ពន្ធដារ"
             ]) or
             bool(entities.get("destination"))
         )
 
-        if is_cambodia_tourism and not is_matched:
+        if is_cambodia_topic and not is_matched:
             try:
                 outside_info = web_search_service.search_outside_knowledge(message)
                 if outside_info and outside_info.get("description"):
@@ -611,18 +617,24 @@ class RAGService:
         )
         is_matched = bool(retrieved_sources)
 
-        # Step 2: If tourism query and not in storage -> Search outside and auto-store in storage
-        is_cambodia_tourism = (
-            intent in ["place_search", "recommendation", "itinerary", "culture", "events", "food", "safety", "transportation"] or
+        # Step 2: If Cambodia query and not in storage -> Search outside and auto-store in storage
+        is_cambodia_topic = (
+            intent in [
+                "place_search", "recommendation", "itinerary", "culture", "events",
+                "food", "safety", "transportation", "cambodia_government",
+                "cambodia_business", "cambodia_education", "cambodia_tech", "khmer_language"
+            ] or
             any(w in message.lower() for w in [
                 "cambodia", "phnom penh", "siem reap", "angkor", "temple", "beach", "waterfall", 
                 "resort", "hotel", "island", "place", "places", "visit", "trip", "tour", "travel",
-                "attraction", "attractions", "sightseeing", "province",
-                "កម្ពុជា", "ទេសចរណ៍", "ដើរលេង", "ទស្សនា", "ប្រាសាទ", "ឆ្នេរ", "កោះ", "ទឹកធ្លាក់", "ភ្នំ", "កន្លែង"
+                "attraction", "attractions", "sightseeing", "province", "camdx", "gdt", "moc",
+                "bakong", "khqr", "passport", "visa", "bacii",
+                "កម្ពុជា", "ទេសចរណ៍", "ដើរលេង", "ទស្សនា", "ប្រាសាទ", "ឆ្នេរ", "កោះ", "ទឹកធ្លាក់", "ភ្នំ", "កន្លែង",
+                "លិខិតឆ្លងដែន", "ទិដ្ឋាការ", "បាក់ឌុប", "បាគង", "ពន្ធដារ"
             ])
         )
 
-        if is_cambodia_tourism and not is_matched:
+        if is_cambodia_topic and not is_matched:
             try:
                 outside_info = web_search_service.search_outside_knowledge(message)
                 if outside_info and outside_info.get("description"):

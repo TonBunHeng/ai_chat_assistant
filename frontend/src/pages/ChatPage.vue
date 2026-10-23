@@ -32,6 +32,7 @@
         @delete-session="handleDeleteSession"
         @rename-session="handleRenameSession"
         @open-settings="isSettingsOpen = true"
+        @select-category="handleCategorySelect"
       />
 
       <!-- Conversation Viewport (Beside sidebar on desktop, full-width on mobile) -->
@@ -145,7 +146,8 @@
 import { ref, computed, watch, onMounted, onUnmounted, markRaw } from 'vue';
 import {
   Sparkles, RotateCcw, Landmark, Utensils, Calendar,
-  Coins, Sun, MapPin, Code, Calculator, Languages, Briefcase
+  Coins, Sun, MapPin, Code, Calculator, Languages, Briefcase,
+  Building2, GraduationCap
 } from 'lucide-vue-next';
 import Header from '../components/layout/Header.vue';
 import Sidebar from '../components/layout/Sidebar.vue';
@@ -200,26 +202,33 @@ const toggleLanguage = () => {
   language.value = language.value === 'en' ? 'km' : 'en';
 };
 
+const handleCategorySelect = (prompt) => {
+  if (isMobile.value) {
+    isSidebarOpen.value = false;
+  }
+  handleSendMessage(prompt);
+};
+
 const enWelcomePromptsPool = [
-  { id: 'code', icon: markRaw(Code), title: 'Write Python FastAPI service with auth', prompt: 'Write a clean, production-ready Python FastAPI web service with authentication and database models.' },
-  { id: 'provinces', icon: markRaw(MapPin), title: 'Cambodia 25 Administrative Divisions', prompt: 'Give an overview of the 25 administrative divisions of Cambodia (24 provinces and Phnom Penh) with their unique specialties.' },
+  { id: 'itinerary', icon: markRaw(Calendar), title: 'Plan a 3-day trip to Siem Reap', prompt: 'Plan a 3-day trip to Siem Reap with travel recommendations, cultural sites, and estimated budget.' },
+  { id: 'business', icon: markRaw(Briefcase), title: 'Explain Cambodian business registration', prompt: 'Explain Cambodian business registration procedures via CamDX and Ministry of Commerce requirements.' },
+  { id: 'translate', icon: markRaw(Languages), title: 'Translate Khmer to English', prompt: 'Translate this Khmer text to natural English with cultural nuance: "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
+  { id: 'history', icon: markRaw(Landmark), title: 'Learn about Cambodian history', prompt: 'Learn about Cambodian history from the early Funan and Chenla kingdoms through the Angkorian Golden Age.' },
+  { id: 'laravel_ai', icon: markRaw(Code), title: 'Build an AI application with Laravel', prompt: 'Build an AI application with Laravel, Vue.js, and Bakong KHQR digital payment integration.' },
+  { id: 'government', icon: markRaw(Building2), title: 'Find official Cambodian government information', prompt: 'Find official Cambodian government information regarding passport issuance, e-Visa, and driver license procedures.' },
   { id: 'math', icon: markRaw(Calculator), title: 'Explain Gradient Descent step-by-step', prompt: 'Explain the mathematical foundation of Gradient Descent and show how to compute the derivative step by step.' },
-  { id: 'temples', icon: markRaw(Landmark), title: 'Khmer Empire & Angkor Wat heritage', prompt: 'Tell me about the history of the Khmer Empire and the architectural marvels of Angkor Wat.' },
-  { id: 'translate', icon: markRaw(Languages), title: 'Khmer to English natural translation', prompt: 'Translate this text into natural English: "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
-  { id: 'business', icon: markRaw(Briefcase), title: 'Starting a tech startup in Cambodia', prompt: 'What are the legal steps, opportunities, and digital payment ecosystems for launching a tech startup in Cambodia?' },
-  { id: 'currency', icon: markRaw(Coins), title: 'Currency & USD vs Riel tips', prompt: 'What should I know about Cambodian currency, exchange rates, and tipping culture?' },
-  { id: 'itinerary', icon: markRaw(Calendar), title: '3-Day Siem Reap cultural itinerary', prompt: 'Create a 3-day Siem Reap cultural itinerary' }
+  { id: 'provinces', icon: markRaw(MapPin), title: 'Cambodia 25 Administrative Divisions', prompt: 'Give an overview of the 25 administrative divisions of Cambodia (24 provinces and Phnom Penh) with their unique specialties.' }
 ];
 
 const kmWelcomePromptsPool = [
-  { id: 'code', icon: markRaw(Code), title: 'សរសេរកូដ Python និង Web API', prompt: 'ជួយពន្យល់ និងសរសេរកូដ Python FastAPI សម្រាប់បង្កើត REST API ដោយមាន database និង authentication។' },
-  { id: 'provinces', icon: markRaw(MapPin), title: 'រាជធានី-ខេត្តទាំង ២៥ នៃកម្ពុជា', prompt: 'សូមរៀបរាប់សង្ខេបអំពីរាជធានី-ខេត្តទាំង ២៥ នៅកម្ពុជា រួមទាំងសក្តានុពលសេដ្ឋកិច្ច និងទេសចរណ៍។' },
+  { id: 'itinerary', icon: markRaw(Calendar), title: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប រួមទាំងប្រាសាទបុរាណ ការស្នាក់នៅ និងការប៉ាន់ស្មានថវិកា។' },
+  { id: 'business', icon: markRaw(Briefcase), title: 'ពន្យល់ពីការចុះបញ្ជីអាជីវកម្មនៅកម្ពុជា', prompt: 'ពន្យល់ពីនីតិវិធីនៃការចុះបញ្ជីអាជីវកម្មនៅកម្ពុជា តាមប្រព័ន្ធ CamDX និងក្រសួងពាណិជ្ជកម្ម។' },
+  { id: 'translate', icon: markRaw(Languages), title: 'បកប្រែភាសាខ្មែរទៅជាអង់គ្លេស', prompt: 'បកប្រែអត្ថបទខ្មែរនេះទៅជាភាសាអង់គ្លេសតាមបែបធម្មជាតិ៖ "សូមស្វាគមន៍មកកាន់ប្រទេសកម្ពុជា ទឹកដីនៃអរិយធម៌ដ៏រុងរឿង"' },
+  { id: 'history', icon: markRaw(Landmark), title: 'ស្វែងយល់អំពីប្រវត្តិសាស្ត្រខ្មែរ', prompt: 'រៀបរាប់អំពីប្រវត្តិសាស្ត្រខ្មែរ ចាប់តាំងពីសម័យហ្វូណន ចេនឡា រហូតដល់សម័យមហានគរដ៏រុងរឿង។' },
+  { id: 'laravel_ai', icon: markRaw(Code), title: 'បង្កើតកម្មវិធី AI ជាមួយ Laravel', prompt: 'ជួយណែនាំពីរបៀបបង្កើតកម្មវិធី AI ដោយប្រើ Laravel, Vue.js និងការតភ្ជាប់ Bakong KHQR។' },
+  { id: 'government', icon: markRaw(Building2), title: 'ស្វែងរកព័ត៌មានរដ្ឋបាល និងសេវាសាធារណៈ', prompt: 'ស្វែងរកព័ត៌មានរដ្ឋបាលផ្លូវការអំពីការធ្វើលិខិតឆ្លងដែន ទិដ្ឋាការ e-Visa និងបណ្ណបើកបរ។' },
   { id: 'math', icon: markRaw(Calculator), title: 'គណិតវិទ្យា និង Algorithm', prompt: 'ជួយពន្យល់ពីគោលការណ៍ក្បួនដោះស្រាយ (Algorithm) និងភាពស្មុគស្មាញ Big-O notation។' },
-  { id: 'temples', icon: markRaw(Landmark), title: 'ប្រវត្តិសាស្ត្រអង្គរ និងវប្បធម៌ខ្មែរ', prompt: 'សូមរៀបរាប់អំពីប្រវត្តិសាស្ត្រសម័យអង្គរដ៏រុងរឿង និងស្នាព្រះហស្តព្រះបាទជ័យវរ្ម័នទី ៧។' },
-  { id: 'translate', icon: markRaw(Languages), title: 'បកប្រែភាសាអង់គ្លេស-ខ្មែរ ត្រឹមត្រូវតាមក្បួន', prompt: 'ជួយបកប្រែអត្ថបទនេះទៅជាភាសាខ្មែរផ្លូវការ៖ "Artificial intelligence empowers modern digital economies and innovation."' },
-  { id: 'business', icon: markRaw(Briefcase), title: 'ការបង្កើតអាជីវកម្ម និងប្រព័ន្ធទូទាត់បាគង', prompt: 'តើការចុះបញ្ជីអាជីវកម្ម និងការរួមបញ្ចូលប្រព័ន្ធទូទាត់បាគង (Bakong KHQR) នៅកម្ពុជាមានជំហានអ្វីខ្លះ?' },
-  { id: 'currency', icon: markRaw(Coins), title: 'ការចាយលុយដុល្លារ និងប្រាក់រៀល', prompt: 'តើការចាយលុយដុល្លារ និងប្រាក់រៀលនៅកម្ពុជាត្រូវដឹងអ្វីខ្លះ?' },
-  { id: 'itinerary', icon: markRaw(Calendar), title: 'គម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប', prompt: 'រៀបចំគម្រោងដើរលេង ៣ ថ្ងៃនៅសៀមរាប' }
+  { id: 'provinces', icon: markRaw(MapPin), title: 'រាជធានី-ខេត្តទាំង ២៥ នៃកម្ពុជា', prompt: 'សូមរៀបរាប់សង្ខេបអំពីរាជធានី-ខេត្តទាំង ២៥ នៅកម្ពុជា រួមទាំងសក្តានុពលសេដ្ឋកិច្ច និងទេសចរណ៍។' }
 ];
 
 const currentWelcomePrompts = ref([]);

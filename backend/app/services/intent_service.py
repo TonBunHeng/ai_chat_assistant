@@ -34,58 +34,70 @@ class IntentService:
         
         self.intent_patterns = {
             "greeting": [
-                r"^\s*(hi|hello|hey|greetings|good\s+morning|good\s+afternoon|good\s+evening|សួស្តី|ជំរាបសួរ)\b"
+                r"\b(hi|hello|hey|greetings|good\s+morning|good\s+afternoon|good\s+evening)\b|(សួស្តី|ជំរាបសួរ)"
             ],
             "coding": [
-                r"\b(code|coding|python|javascript|typescript|vue|react|html|css|sql|function|debug|algorithm|bug|program|syntax|regex|git|docker|api|class|endpoint|compil|script|សរសេរកូដ|កូដ|កម្មវិធី)\b"
+                r"\b(code|coding|python|javascript|typescript|vue|react|html|css|sql|function|debug|algorithm|bug|program|syntax|regex|git|docker|api|class|endpoint|compil|script)\b|(សរសេរកូដ|កូដ|កម្មវិធីកុំព្យូទ័រ)"
+            ],
+            "khmer_language": [
+                r"\b(khmer\s+letter|formal\s+letter|administrative\s+letter|letter\s+format|khmer\s+writing|khmer\s+grammar|orthography|chuon\s+nath|proofread|correct\s+khmer|khmer\s+dictionary|format\s+a\s+.*letter)\b|(លិខិតផ្លូវការ|ទម្រង់លិខិត|សរសេរលិខិត|ពាក្យសុំច្បាប់|អក្ខរាវិរុទ្ធ|វេយ្យាករណ៍ខ្មែរ|វចនានុក្រមខ្មែរ|ជួន\s*ណាត)"
             ],
             "translation": [
-                r"\b(translate|translation|how\s+to\s+say|in\s+khmer|in\s+english|mean\s+in\s+khmer|បកប្រែ|ប្រែសម្រួល|ប្រែជាភាសា|ជាភាសាអង់គ្លេស|ជាភាសាខ្មែរ)\b"
+                r"\b(translate|translation|how\s+to\s+say|mean\s+in\s+khmer|meaning\s+in\s+khmer|say\s+in\s+khmer|say\s+in\s+english)\b|(បកប្រែ|ប្រែសម្រួល|ប្រែជាភាសា|ជាភាសាអង់គ្លេស|ជាភាសាខ្មែរ)"
             ],
             "math_science": [
-                r"\b(calculate|equation|formula|math|mathematics|physics|chemistry|biology|derivative|integral|algebra|គណនា|រូបវិទ្យា|គីមី|គណិតវិទ្យា)\b"
+                r"\b(calculate|equation|formula|math|mathematics|physics|chemistry|biology|derivative|integral|algebra)\b|(គណនា|រូបវិទ្យា|គីមី|គណិតវិទ្យា|ជីវវិទ្យា)"
             ],
             "business_finance": [
-                r"\b(business|startup|marketing|investment|strategy|economics|revenue|profit|gdp|finance|stock|bakong|aba|ធុរកិច្ច|អាជីវកម្ម|សេដ្ឋកិច្ច|ទីផ្សារ|វិនិយោគ)\b"
+                r"\b(business|startup|marketing|investment|strategy|economics|revenue|profit|gdp|finance|stock|bakong|aba|camdx)\b|(ធុរកិច្ច|អាជីវកម្ម|សេដ្ឋកិច្ច|ទីផ្សារ|វិនិយោគ|ចុះបញ្ជីអាជីវកម្ម)"
+            ],
+            "cambodia_government": [
+                r"\b(passport|passports|visa|visas|evisa|driver\s+license|driving\s+license|sangkat|civil\s+registry|birth\s+certificate|marriage\s+certificate|public\s+service|ministry|gdi|mpwt|owso|one\s+window|government\s+service)\b|(លិខិតឆ្លងដែន|ទិដ្ឋាការ|បណ្ណបើកបរ|សំបុត្រកំណើត|សំបុត្រអាពាហ៍ពិពាហ៍|សេវាសាធារណៈ|សង្កាត់|ក្រសួង|ច្រកចេញចូលតែមួយ)"
+            ],
+            "cambodia_education": [
+                r"\b(bacii|grade\s+12\s+exam|high\s+school\s+exam|rupp|itc|cadt|num|university\s+in\s+cambodia|study\s+guide|lesson\s+plan)\b|(បាក់ឌុប|ប្រឡងបាក់ឌុប|សាកលវិទ្យាល័យ|តិចណូ|មេរៀន|លំហាត់)"
+            ],
+            "cambodia_tech": [
+                r"\b(bakong\s+api|khqr\s+api|laravel\s+cambodia|vue\s+cambodia|techo\s+startup|startup\s+cambodia|developer\s+cambodia)\b"
             ],
             "weather": [
-                r"\b(weather|rain|temperature|forecast|climate|temp|degrees|humidity|sunny|storm|អាកាសធាតុ|ភ្លៀង|ក្តៅ|រងា|ព្យុះ|ពពក)\b"
+                r"\b(weather|rain|temperature|forecast|climate|temp|degrees|humidity|sunny|storm)\b|(អាកាសធាតុ|ភ្លៀង|ក្តៅ|រងា|ព្យុះ|ពពក)"
             ],
             "currency": [
-                r"\b(riel|khr|exchange|convert|currency|rate|usd\s+to\s+khr|khr\s+to\s+usd|dollar|riel\s+rate|money|cash|ប្តូរលុយ|រៀល|ដុល្លារ|អត្រាប្តូរប្រាក់|រូបិយប័ណ្ណ)\b"
+                r"\b(riel|khr|exchange|convert|currency|rate|usd\s+to\s+khr|khr\s+to\s+usd|dollar|riel\s+rate|money|cash)\b|(ប្តូរលុយ|រៀល|ដុល្លារ|អត្រាប្តូរប្រាក់|រូបិយប័ណ្ណ)"
             ],
             "itinerary": [
-                r"\b(itinerary|plan|trip\s+plan|schedule|tour|route|day\s+1|day\s+2|day\s+3|day\s+4|day\s+5|3\s*day|4\s*day|5\s*day|multi-day|គម្រោង|ដំណើរកម្សាន្ត|ដើរលេង|គម្រោងដើរលេង)\b"
+                r"\b(itinerary|plan|trip\s+plan|schedule|tour|route|day\s+1|day\s+2|day\s+3|day\s+4|day\s+5|3\s*day|4\s*day|5\s*day|multi-day)\b|(គម្រោង|ដំណើរកម្សាន្ត|ដើរលេង|គម្រោងដើរលេង)"
             ],
             "recommendation": [
-                r"\b(recommend|recommendation|where\s+to\s+go|best\s+places|must\s+visit|top\s+attractions|things\s+to\s+do|suggest|highlight|suggested|ណែនាំ|កន្លែងណា|គួរទៅណា|កន្លែងល្បី|កន្លែងស្អាត)\b"
+                r"\b(recommend|recommendation|where\s+to\s+go|best\s+places|must\s+visit|top\s+attractions|things\s+to\s+do|suggest|highlight|suggested)\b|(ណែនាំ|កន្លែងណា|គួរទៅណា|កន្លែងល្បី|កន្លែងស្អាត)"
             ],
             "events": [
-                r"\b(event|events|festival|festivals|holiday|water\s+festival|bon\s+om\s+touk|marathon|new\s+year|sankranta|pchum\s+ben|ពិធីបុណ្យ|បុណ្យ|អុំទូក|ចូលឆ្នាំ|ភ្ជុំបិណ្ឌ|ព្រឹត្តិការណ៍)\b"
+                r"\b(event|events|festival|festivals|holiday|water\s+festival|bon\s+om\s+touk|marathon|new\s+year|sankranta|pchum\s+ben)\b|(ពិធីបុណ្យ|បុណ្យ|អុំទូក|ចូលឆ្នាំ|ភ្ជុំបិណ្ឌ|ព្រឹត្តិការណ៍)"
             ],
             "culture": [
-                r"\b(culture|tradition|heritage|history|apsara|shadow\s+theatre|sbek\s+thom|chapei|buddhism|monk|dress\s+code|pagoda|temple\s+rule|វប្បធម៌|ប្រពៃណី|ប្រវត្តិ|របាំ|អប្សរា|ចាប៉ី|ព្រះពុទ្ធសាសនា|វត្ត)\b"
+                r"\b(culture|tradition|heritage|history|apsara|shadow\s+theatre|sbek\s+thom|chapei|buddhism|monk|dress\s+code|pagoda|temple\s+rule)\b|(វប្បធម៌|ប្រពៃណី|ប្រវត្តិ|របាំ|អប្សរា|ចាប៉ី|ព្រះពុទ្ធសាសនា|វត្ត|គុនល្បុក្កតោ)"
             ],
             "food": [
-                r"\b(food|eat|restaurant|dish|dishes|amok|lok\s+lak|kuy\s+teav|noodles|crab|seafood|street\s+food|dining|cuisine|ម្ហូប|អាហារ|ញ៉ាំ|ហាងបាយ|អាម៉ុក|ឡុកឡាក់|គុយទាវ|នំបញ្ចុក|ក្តាម)\b"
+                r"\b(food|eat|restaurant|dish|dishes|amok|lok\s+lak|kuy\s+teav|noodles|crab|seafood|street\s+food|dining|cuisine)\b|(ម្ហូប|អាហារ|ញ៉ាំ|ហាងបាយ|អាម៉ុក|ឡុកឡាក់|គុយទាវ|នំបញ្ចុក|ក្តាម)"
             ],
             "transportation": [
-                r"\b(transport|transportation|how\s+to\s+get|taxi|bus|train|flight|ferry|speed\s+boat|tuk\s*tuk|passapp|grab|rent|drive|airport|ធ្វើដំណើរ|ជិះអី|ឡានក្រុង|តាក់ស៊ី|ទូក|កាណូត|យន្តហោះ)\b"
+                r"\b(transport|transportation|how\s+to\s+get|taxi|bus|train|flight|ferry|speed\s+boat|tuk\s*tuk|passapp|grab|rent|drive|airport)\b|(ធ្វើដំណើរ|ជិះអី|ឡានក្រុង|តាក់ស៊ី|ទូក|កាណូត|យន្តហោះ)"
             ],
             "time": [
-                r"\b(what\s+time|what\s+is\s+the\s+time|current\s+time|time\s+now|time\s+in\s+cambodia|time\s+zone|timezone|what\s+day\s+is\s+today|today\s+date|what\s+date|ម៉ោងប៉ុន្មាន|ម៉ោងប៉ុន្មានហើយ|វេលាម៉ោង|ថ្ងៃនេះថ្ងៃអ្វី|កាលបរិច្ឆេទ)\b"
+                r"\b(what\s+time|what\s+is\s+the\s+time|current\s+time|time\s+now|time\s+in\s+cambodia|time\s+zone|timezone|what\s+day\s+is\s+today|today\s+date|what\s+date)\b|(ម៉ោងប៉ុន្មាន|ម៉ោងប៉ុន្មានហើយ|វេលាម៉ោង|ថ្ងៃនេះថ្ងៃអ្វី|កាលបរិច្ឆេទ)"
             ],
             "identity": [
-                r"^\s*(who\s+are\s+you|what\s+are\s+you|what\s+is\s+your\s+name|who\s+made\s+you|what\s+can\s+you\s+do|តើអ្នកជាអ្នកណា|តើអ្នកជាអ្វី|អ្នកបង្កើតដោយអ្នកណា)\b"
+                r"\b(who\s+are\s+you|what\s+are\s+you|what\s+is\s+your\s+name|who\s+made\s+you|what\s+can\s+you\s+do)\b|(តើអ្នកជាអ្នកណា|តើអ្នកជាអ្វី|អ្នកបង្កើតដោយអ្នកណា)"
             ],
             "safety": [
-                r"\b(safety|safe|emergency|police|hospital|doctor|clinic|scam|sim\s*card|internet|vaccine|tap\s*water|សុវត្ថិភាព|អាសន្ន|ប៉ូលិស|មន្ទីរពេទ្យ|ស៊ីមកាត|ទឹកស្អាត|គ្រោះថ្នាក់)\b"
+                r"\b(safety|safe|emergency|police|hospital|doctor|clinic|scam|sim\s*card|internet|vaccine|tap\s*water)\b|(សុវត្ថិភាព|អាសន្ន|ប៉ូលិស|មន្ទីរពេទ្យ|ស៊ីមកាត|ទឹកស្អាត|គ្រោះថ្នាក់)"
             ],
             "place_search": [
-                r"\b(where\s+is|location\s+of|tell\s+me\s+about|information\s+about|find|opening\s+hours|ticket|price\s+of|entrance\s+fee|នៅឯណា|ទីតាំង|តម្លៃសំបុត្រ|ម៉ោងបើក)\b"
+                r"\b(where\s+is|location\s+of|tell\s+me\s+about|information\s+about|find|opening\s+hours|ticket|price\s+of|entrance\s+fee)\b|(នៅឯណា|ទីតាំង|តម្លៃសំបុត្រ|ម៉ោងបើក)"
             ],
             "conversation_summary": [
-                r"\b(what\s+have\s+we\s+talked\s+about|summarize\s+our\s+conversation|summarize\s+chat|what\s+did\s+i\s+ask|recap\s+conversation|conversation\s+summary|chat\s+history|តើយើងបាននិយាយអំពីអ្វីខ្លះ|សង្ខេបការសន្ទនា|សង្ខេបកិច្ចសន្ទនា|សង្ខេបអ្វីដែលបាននិយាយ)\b"
+                r"\b(what\s+have\s+we\s+talked\s+about|summarize\s+our\s+conversation|summarize\s+chat|what\s+did\s+i\s+ask|recap\s+conversation|conversation\s+summary|chat\s+history)\b|(តើយើងបាននិយាយអំពីអ្វីខ្លះ|សង្ខេបការសន្ទនា|សង្ខេបកិច្ចសន្ទនា|សង្ខេបអ្វីដែលបាននិយាយ)"
             ]
         }
 
