@@ -183,7 +183,7 @@
                 {{ displayName }}
               </span>
               <span class="text-[10px] text-zinc-400 dark:text-zinc-500 block -mt-0.5 truncate">
-                Super AI Assistant
+                AngkorVers AI Assistant
               </span>
             </div>
           </div>

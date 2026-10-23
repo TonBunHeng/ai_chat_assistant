@@ -7,7 +7,7 @@ from app.services.online.gemini_service import gemini_online_service
 
 class SuggestionService:
     """
-    Intelligent Context-Aware Suggestion Generator for Cambodia Super AI.
+    Intelligent Context-Aware Suggestion Generator for AngkorVers AI.
     100% focused on Cambodia Tourism, Travel, Cultural Heritage, and Destinations:
     - Angkor Wat & Cultural Heritage (Architecture, Sunrise, Angkor Pass, Temples)
     - Siem Reap Itineraries & Trip Planning (3-day itinerary, Tonle Sap, Kulen Mountain)
@@ -95,7 +95,7 @@ class SuggestionService:
     ) -> Optional[Dict[str, Any]]:
         """Query Gemini with a strict schema to generate 4 follow-up suggestions focused 100% on Cambodia tourism."""
         prompt = (
-            f"You are the Suggestion Engine for Cambodia Super AI.\n"
+            f"You are the Suggestion Engine for AngkorVers AI.\n"
             f"Your focus is 100% on tourism, travel, destinations, cultural heritage, itineraries, and authentic experiences in Cambodia.\n"
             f"DO NOT suggest topics about technology, programming, coding, mathematics, or software engineering.\n"
             f"Given the conversation state below, generate exactly 4 concise, context-aware follow-up question suggestions "

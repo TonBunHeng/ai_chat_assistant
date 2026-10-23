@@ -79,7 +79,7 @@ class OfflineKnowledgeService:
         # 3. General overview response
         if is_km:
             return (
-                "**សូមស្វាគមន៍មកកាន់ Cambodia Super AI** 🇰🇭 *(ទម្រង់ក្រៅបណ្តាញ - Offline Mode)*\n\n"
+                "**សូមស្វាគមន៍មកកាន់ AngkorVers AI** *(ទម្រង់ក្រៅបណ្តាញ - Offline Mode)*\n\n"
                 "បច្ចុប្បន្នប្រព័ន្ធកំពុងដំណើរការក្នុងទម្រង់មូលដ្ឋានទិន្នន័យក្រៅបណ្តាញ។ ខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពី៖\n"
                 "- 🏛️ **រាជធានី និងខេត្តទាំង ២៥:** ភ្នំពេញ, សៀមរាប, ព្រះសីហនុ, កំពត, បាត់ដំបង និងខេត្តដទៃទៀត\n"
                 "- 👑 **ប្រវត្តិសាស្ត្រ និងបេតិកភណ្ឌ:** ប្រាសាទអង្គរវត្ត, ប្រាសាទព្រះវិហារ, សំបូរព្រៃគុក, កោះកេរ\n"
@@ -89,7 +89,7 @@ class OfflineKnowledgeService:
             )
         else:
             return (
-                "**Welcome to Cambodia Super AI** 🇰🇭 *(Offline Local Knowledge Mode)*\n\n"
+                "**Welcome to AngkorVers AI** *(Offline Local Knowledge Mode)*\n\n"
                 "The system is currently operating in offline mode. I can answer inquiries with verified local records on:\n"
                 "- 🏛️ **Cambodia's 25 Administrative Units:** Phnom Penh, Siem Reap, Sihanoukville, Kampot, Battambang, and all 24 provinces\n"
                 "- 👑 **World Heritage & History:** Angkor Wat, Preah Vihear, Sambor Prei Kuk, Koh Ker, and the Khmer Empire\n"

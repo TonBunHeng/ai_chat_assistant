@@ -15,18 +15,18 @@
           <PanelLeftOpen v-else :size="18" />
         </button>
 
-        <!-- Cambodia Super AI Logo & Title -->
+        <!-- AngkorVers AI Logo & Title -->
         <div class="flex items-center space-x-2 min-w-0">
           <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200/80 dark:border-zinc-700/80 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs">
-            <img src="/tourism_logo.png" alt="Cambodia AI" class="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
+            <img src="/tourism_logo.png" alt="AngkorVers AI" class="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
           </div>
 
           <div class="flex items-center space-x-2 min-w-0">
             <span class="font-bold text-sm sm:text-base tracking-tight text-zinc-900 dark:text-white truncate">
-              Cambodia Super AI
+              AngkorVers AI
             </span>
             <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 shrink-0">
-              Cambodia AI
+              AngkorVers AI
             </span>
           </div>
         </div>

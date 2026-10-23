@@ -6,7 +6,7 @@
       
       <!-- Mode Tag Badge for AI -->
       <div v-if="!isUser && (Boolean(textContent && textContent.trim()) || hasSpecializedCard)" class="flex flex-wrap items-center gap-1.5 mb-1 px-1 text-[11px]">
-        <span class="font-bold text-zinc-900 dark:text-zinc-100">Cambodia Super AI</span>
+        <span class="font-bold text-zinc-900 dark:text-zinc-100">AngkorVers AI</span>
         <span class="text-zinc-400">•</span>
         <span
           v-if="mode === 'offline' || mode === 'degraded' || mode === 'fallback'"

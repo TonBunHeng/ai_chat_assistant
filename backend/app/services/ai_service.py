@@ -41,7 +41,7 @@ class AIService:
                 )
             else:
                 prompt_parts.append(
-                    f"[MODE: CAMBODIA SUPER AI ASSISTANT]:\n"
+                    f"[MODE: ANGKORVERS AI ASSISTANT]:\n"
                     f"Answer accurately, helpfully, and conversationally. If the query is about Cambodia, provide rich, authoritative national insights."
                 )
 
@@ -133,7 +133,7 @@ class AIService:
             "confidence": conf_eval["overall_score"],
             "confidence_level": conf_eval["level"],
             "fallback_used": route_result.get("fallback_used", False),
-            "data_sources": [f"{route_result['provider']}_ai", "cambodia_super_ai_knowledge"]
+            "data_sources": [f"{route_result['provider']}_ai", "angkorvers_ai_knowledge"]
         }
 
     def generate_stream(

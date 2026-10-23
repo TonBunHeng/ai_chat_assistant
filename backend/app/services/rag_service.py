@@ -323,11 +323,11 @@ class RAGService:
             }
         elif intent == "greeting":
             answer = (
-                "សួស្តី! 🖐️ ខ្ញុំជា **Cambodia Super AI Assistant** 🇰🇭។ "
+                "សួស្តី! 🖐️ ខ្ញុំជា **AngkorVers AI Assistant** 🇰🇭។ "
                 "ខ្ញុំអាចជួយឆ្លើយសំណួរស្ទើរតែគ្រប់ប្រធានបទ ចាប់ពីការសរសេរកូដ គណិតវិទ្យា វិទ្យាសាស្ត្រ និងធុរកិច្ច រហូតដល់ចំណេះដឹងស៊ីជម្រៅលើប្រទេសកម្ពុជា (រាជធានី-ខេត្តទាំង២៥ ប្រវត្តិសាស្ត្រ វប្បធម៌ និងដំណើរកម្សាន្ត)។ "
                 "តើមានអ្វីដែលខ្ញុំអាចជួយអ្នកថ្ងៃនេះ?"
                 if is_km
-                else "Hello! 👋 I am **Cambodia Super AI Assistant** 🇰🇭. "
+                else "Hello! 👋 I am **AngkorVers AI Assistant** 🇰🇭. "
                      "I can assist you across almost any domain—from programming, mathematics, science, and business to deep expertise in Cambodia (its 25 administrative divisions, cultural heritage, history, and travel). "
                      "How can I help you today?"
             )
@@ -366,12 +366,12 @@ class RAGService:
         elif intent == "identity":
             if is_km:
                 answer = (
-                    "ខ្ញុំជា **Cambodia Super AI Assistant** 🇰🇭 ដែលជាជំនួយការឆ្លាតវៃកម្រិតខ្ពស់។ "
+                    "ខ្ញុំជា **AngkorVers AI Assistant** 🇰🇭 ដែលជាជំនួយការឆ្លាតវៃកម្រិតខ្ពស់។ "
                     "ខ្ញុំមានចំណេះដឹងទូលំទូលាយលើផ្នែកវិទ្យាសាស្ត្រ បច្ចេកវិទ្យា ការសរសេរកម្មវិធី ការបកប្រែភាសា និងធុរកិច្ច ព្រមទាំងមានជំនាញឯកទេសស៊ីជម្រៅលើព្រះរាជាណាចក្រកម្ពុជា រួមទាំងរាជធានី-ខេត្តទាំង ២៥ ប្រវត្តិសាស្ត្រខ្មែរ ប្រាសាទបុរាណ ម្ហូបអាហារ និងព័ត៌មានទេសចរណ៍។"
                 )
             else:
                 answer = (
-                    "I am **Cambodia Super AI Assistant** 🇰🇭, an intelligent AI platform powered by state-of-the-art models and grounded knowledge. "
+                    "I am **AngkorVers AI Assistant** 🇰🇭, an intelligent AI platform powered by state-of-the-art models and grounded knowledge. "
                     "I provide comprehensive assistance across software engineering, mathematics, sciences, translation, and business, while holding authoritative specialization in Cambodia's 25 administrative divisions, cultural heritage, history, and travel."
                 )
             ai_meta = {

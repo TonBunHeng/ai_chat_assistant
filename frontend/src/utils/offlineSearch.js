@@ -45,8 +45,8 @@ export const performOfflineSearch = async (query, language = 'en') => {
       mode: 'offline',
       intent: 'greeting',
       message: isKhmer
-        ? 'សួស្តី! 🖐️ ខ្ញុំជា Angkor Verse AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?'
-        : "Hello! 👋 Welcome to Cambodia! I'm Angkor Verse AI, your local AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?",
+        ? 'សួស្តី! 🖐️ ខ្ញុំជា AngkorVers AI ជំនួយការទេសចរណ៍ AI នៅកម្ពុជា។ តើខ្ញុំអាចជួយផ្ដល់ព័ត៌មានអំពីកន្លែងកម្សាន្ត ហាងអាហារ សណ្ឋាគារ ឬគម្រោងដើរលេងដល់អ្នកយ៉ាងដូចម្តេចដែរ?'
+        : "Hello! 👋 Welcome to Cambodia! I'm AngkorVers AI, your local AI Tourism Assistant. How can I help you explore attractions, hotels, food, or trip itineraries today?",
       suggestions: getOfflineSuggestions(isKhmer, 'Siem Reap'),
       sources: [],
     };

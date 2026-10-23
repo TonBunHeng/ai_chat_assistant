@@ -3,7 +3,7 @@
     <!-- Typing Bubble -->
     <div class="bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-zinc-800 px-4 py-3 rounded-2xl rounded-tl-xs shadow-2xs flex items-center space-x-2.5">
       <span class="text-xs sm:text-[13px] text-zinc-500 dark:text-zinc-400 font-medium">
-        {{ isKhmer ? 'Cambodia Super AI កំពុងគិត...' : 'Cambodia Super AI is thinking...' }}
+        {{ isKhmer ? 'AngkorVers AI កំពុងគិត...' : 'AngkorVers AI is thinking...' }}
       </span>
       <div class="flex items-center space-x-1">
         <div class="w-1.5 h-1.5 rounded-full bg-zinc-400 dark:bg-zinc-500 typing-dot"></div>

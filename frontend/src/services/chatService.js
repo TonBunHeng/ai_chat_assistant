@@ -16,7 +16,7 @@ export function cleanTextEncoding(str) {
 
 export const chatService = {
   /**
-   * Send chat message to Cambodia Super AI assistant
+   * Send chat message to AngkorVers AI assistant
    * Supports both object payload ({ message, language, session_id, history, attachments })
    * and (chatId, messageText) pattern.
    */

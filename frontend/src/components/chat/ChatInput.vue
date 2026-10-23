@@ -55,7 +55,7 @@
             v-model="text"
             @input="adjustHeight"
             @keydown="handleKeyDown"
-            :placeholder="isKhmer ? 'សួរអ្វីមួយអំពីកម្ពុជា ឬប្រធានបទណាមួយ...' : 'Message Cambodia Super AI...'"
+            :placeholder="isKhmer ? 'សួរអ្វីមួយអំពីកម្ពុជា ឬប្រធានបទណាមួយ...' : 'Message AngkorVers AI...'"
             :disabled="isLoading"
             :class="[
               'w-full bg-transparent text-[14px] sm:text-[15px] leading-relaxed text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none resize-none px-1 py-1 max-h-36 min-h-[28px]',
@@ -94,7 +94,7 @@
 
       <!-- Footer Disclaimer -->
       <p v-if="!isCentered" class="text-[11px] text-center text-zinc-400 dark:text-zinc-500 mt-2 select-none">
-        {{ isKhmer ? 'Cambodia Super AI អាចមានកំហុស។ សូមផ្ទៀងផ្ទាត់ព័ត៌មានសំខាន់ៗ។' : 'Cambodia Super AI can make mistakes. Verify important facts.' }}
+        {{ isKhmer ? 'AngkorVers AI អាចមានកំហុស។ សូមផ្ទៀងផ្ទាត់ព័ត៌មានសំខាន់ៗ។' : 'AngkorVers AI can make mistakes. Verify important facts.' }}
       </p>
     </form>
   </div>

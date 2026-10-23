@@ -48,7 +48,7 @@
             <div class="text-center mb-6 max-w-xl">
               <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-3 shadow-2xs">
                 <span>🇰🇭</span>
-                <span>{{ isKhmer ? 'ជំនួយការឆ្លាតវៃកម្ពុជា Super AI' : 'Cambodia Super AI Assistant' }}</span>
+                <span>{{ isKhmer ? 'ជំនួយការឆ្លាតវៃ AngkorVers AI' : 'AngkorVers AI Assistant' }}</span>
               </div>
               <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-zinc-900 dark:text-white leading-tight">
                 {{ isKhmer ? 'តើខ្ញុំអាចជួយដោះស្រាយ ឬស្វែងយល់អ្វីជូនអ្នកនៅថ្ងៃនេះ?' : 'What can I help you explore or solve today?' }}
@@ -688,7 +688,7 @@ const handleSendMessage = async (text, attachments = [], isRegenerate = false) =
     // 4. Client-side Offline Search Fallback
     const offlineRes = await performOfflineSearch(userMessageText, language.value);
     if (currentAiMsg) {
-      currentAiMsg.message = cleanTextEncoding(offlineRes.message || 'Cambodia Super AI is ready to help answer questions and explore Cambodia.');
+      currentAiMsg.message = cleanTextEncoding(offlineRes.message || 'AngkorVers AI is ready to help answer questions and explore Cambodia.');
       currentAiMsg.mode = 'offline';
       currentAiMsg.sources = offlineRes.sources || [];
       currentAiMsg.suggestions = offlineRes.suggestions || [];
